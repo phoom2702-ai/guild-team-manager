@@ -476,6 +476,7 @@ input:focus{
 <!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 
 <script>
 
@@ -493,6 +494,7 @@ const firebaseConfig={
 
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const auth=firebase.auth();
 const membersRef=db.ref("members");
 const assignmentRef=db.ref("assignment");
 
@@ -501,46 +503,64 @@ const teamsMain=document.getElementById("teamsMain");
 const teamsSub=document.getElementById("teamsSub");
 const statusBox=document.getElementById("status");
 
-// ===== ระบบล็อกสิทธิ์แบบง่าย (รหัสผ่านเดียว ไม่ใช่ระบบ auth เต็มรูปแบบ) =====
-// ⚠️ รหัสนี้อยู่ในโค้ดฝั่งหน้าเว็บ ใครเปิด View Source ก็เห็นได้ ใช้กันแค่คนทั่วไปพลาดกด ไม่ใช่กันแฮกเกอร์
-const ADMIN_PASSWORD="guild2026"; // เปลี่ยนรหัสตรงนี้ได้ตามต้องการ
+// ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
+// ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
+// และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
+// (ต้องเป็นบัญชีเดียวกับที่ตั้งไว้ในไฟล์ index.html)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
-let isAdmin=sessionStorage.getItem("isAdmin")==="true";
+let isAdmin=false;
 
 const adminBadge=document.getElementById("adminBadge");
 
-function checkAdmin(){
-
-if(isAdmin)return true;
-
-let pass=prompt("กรอกรหัสผ่านแอดมินเพื่อทำรายการนี้:");
-
-if(pass===null)return false;
-
-if(pass===ADMIN_PASSWORD){
-isAdmin=true;
-sessionStorage.setItem("isAdmin","true");
+auth.onAuthStateChanged(user=>{
+isAdmin=!!user;
 updateAdminUI();
-return true;
-}
+});
 
-alert("รหัสผ่านไม่ถูกต้อง");
+async function loginPrompt(){
+
+let email=prompt("กรอกอีเมลแอดมิน:");
+
+if(email===null)return false;
+
+let password=prompt("กรอกรหัสผ่านแอดมิน:");
+
+if(password===null)return false;
+
+try{
+
+await auth.signInWithEmailAndPassword(email.trim(),password);
+
+return true;
+
+}catch(e){
+
+alert("เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code));
 
 return false;
 
 }
 
-function toggleAdmin(){
+}
+
+async function checkAdmin(){
+
+if(isAdmin)return true;
+
+return await loginPrompt();
+
+}
+
+async function toggleAdmin(){
 
 if(isAdmin){
 
-isAdmin=false;
-sessionStorage.removeItem("isAdmin");
-updateAdminUI();
+await auth.signOut();
 
 }else{
 
-checkAdmin();
+await checkAdmin();
 
 }
 
@@ -852,7 +872,7 @@ box.classList.remove("drag");
 });
 
 
-document.addEventListener("drop",e=>{
+document.addEventListener("drop",async e=>{
 
 let box=e.target.closest(".members");
 
@@ -862,7 +882,7 @@ box.classList.remove("drag");
 
 if(!dragItem)return;
 
-if(!checkAdmin())return;
+if(!(await checkAdmin()))return;
 
 let dropTarget=e.target.closest(".member");
 
@@ -1047,14 +1067,14 @@ run:resetAll
 }
 };
 
-function confirmAction(key){
+async function confirmAction(key){
 
 let action=ACTIONS[key];
 
 if(!action)return;
 
 // รีเฟรชไม่ได้แก้ไขข้อมูลอะไร เลยไม่ต้องเช็กสิทธิ์
-if(key!=="refresh" && !checkAdmin())return;
+if(key!=="refresh" && !(await checkAdmin()))return;
 
 modalTitle.textContent=action.title;
 modalMessage.textContent=action.message;
