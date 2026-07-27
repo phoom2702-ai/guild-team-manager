@@ -217,8 +217,8 @@ input:focus{
 
 .container{
     display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:8px;
+    grid-template-columns:repeat(6,1fr);
+    gap:6px;
 }
 
 @media(max-width:1100px){
@@ -237,25 +237,25 @@ input:focus{
 
 .team{
     background:#252c3a;
-    padding:8px;
-    border-radius:12px;
+    padding:5px;
+    border-radius:9px;
     box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
 
 .team h3{
     text-align:center;
     color:#ffd54f;
-    font-size:13px;
-    margin:6px 0 10px;
-    letter-spacing:0.2px;
+    font-size:10.5px;
+    margin:2px 0 6px;
+    letter-spacing:0.1px;
 }
 
 .member{
     background:#3d485d;
-    padding:9px 10px;
-    margin:5px 0;
-    border-radius:7px;
-    font-size:15px;
+    padding:5px 7px;
+    margin:3px 0;
+    border-radius:6px;
+    font-size:11.5px;
     font-weight:bold;
     cursor:grab;
     box-shadow:0 1px 3px rgba(0,0,0,0.25);
@@ -278,19 +278,19 @@ input:focus{
 
 @media(max-width:1100px){
     .container{
-        grid-template-columns:repeat(3,1fr);
+        grid-template-columns:repeat(4,1fr);
     }
 }
 
 @media(max-width:900px){
     .container{
-        grid-template-columns:repeat(2,1fr);
+        grid-template-columns:repeat(3,1fr);
     }
 }
 
 @media(max-width:600px){
     .container{
-        grid-template-columns:1fr;
+        grid-template-columns:repeat(2,1fr);
     }
 }
 
@@ -302,15 +302,16 @@ input:focus{
 .teamBox .member{
     counter-increment:slot;
     position:relative;
-    padding-left:28px;
+    padding-left:20px;
 }
 
 .teamBox .member::before{
     content:counter(slot)". ";
     position:absolute;
-    left:8px;
-    top:8px;
+    left:6px;
+    top:5px;
     font-weight:bold;
+    font-size:11px;
     color:#ffe082;
     text-shadow:0 0 3px #000, 0 0 3px #000;
 }
