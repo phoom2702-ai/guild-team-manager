@@ -271,6 +271,7 @@ th{
 <!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 
 <script>
 
@@ -286,47 +287,64 @@ const firebaseConfig={
 
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
+const auth=firebase.auth();
 const membersRef=db.ref("members");
 
-// ===== ระบบล็อกสิทธิ์แบบง่าย (รหัสผ่านเดียว ไม่ใช่ระบบ auth เต็มรูปแบบ) =====
-// ⚠️ รหัสนี้อยู่ในโค้ดฝั่งหน้าเว็บ ใครเปิด View Source ก็เห็นได้ ใช้กันแค่คนทั่วไปพลาดกด ไม่ใช่กันแฮกเกอร์
-// ต้องตรงกับรหัสในไฟล์ guild_team_manager.html
-const ADMIN_PASSWORD="guild2026"; // เปลี่ยนรหัสตรงนี้ได้ตามต้องการ
+// ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
+// ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
+// และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
-let isAdmin=sessionStorage.getItem("isAdmin")==="true";
+let isAdmin=false;
 
-function checkAdmin(){
-
-if(isAdmin)return true;
-
-let pass=prompt("กรอกรหัสผ่านแอดมินเพื่อทำรายการนี้:");
-
-if(pass===null)return false;
-
-if(pass===ADMIN_PASSWORD){
-isAdmin=true;
-sessionStorage.setItem("isAdmin","true");
+auth.onAuthStateChanged(user=>{
+isAdmin=!!user;
 updateAdminUI();
-return true;
-}
+});
 
-alert("รหัสผ่านไม่ถูกต้อง");
+async function loginPrompt(){
+
+let email=prompt("กรอกอีเมลแอดมิน:");
+
+if(email===null)return false;
+
+let password=prompt("กรอกรหัสผ่านแอดมิน:");
+
+if(password===null)return false;
+
+try{
+
+await auth.signInWithEmailAndPassword(email.trim(),password);
+
+return true;
+
+}catch(e){
+
+alert("เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code));
 
 return false;
 
 }
 
-function toggleAdmin(){
+}
+
+async function checkAdmin(){
+
+if(isAdmin)return true;
+
+return await loginPrompt();
+
+}
+
+async function toggleAdmin(){
 
 if(isAdmin){
 
-isAdmin=false;
-sessionStorage.removeItem("isAdmin");
-updateAdminUI();
+await auth.signOut();
 
 }else{
 
-checkAdmin();
+await checkAdmin();
 
 }
 
@@ -489,7 +507,7 @@ listBody.appendChild(tr);
 
 async function moveMember(uid,dir){
 
-if(!checkAdmin())return;
+if(!(await checkAdmin()))return;
 
 let idx=members.findIndex(x=>x.uid===uid);
 
@@ -571,7 +589,7 @@ cancelBtn.style.display="none";
 
 async function addMember(){
 
-if(!checkAdmin())return;
+if(!(await checkAdmin()))return;
 
 let name=nameInput.value.trim();
 let job=jobInput.value.trim();
@@ -633,7 +651,7 @@ await saveMembers();
 
 async function deleteMember(uid){
 
-if(!checkAdmin())return;
+if(!(await checkAdmin()))return;
 
 members=members.filter(m=>m.uid!==uid);
 
