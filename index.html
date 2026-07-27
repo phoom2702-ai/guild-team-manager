@@ -212,9 +212,9 @@ async function loadMembers(){
 
 try{
 
-let result=await window.storage.get("guild-members",false);
+let raw=localStorage.getItem("guild-members");
 
-members=result?JSON.parse(result.value):[];
+members=raw?JSON.parse(raw):[];
 
 }catch(e){
 
@@ -233,15 +233,7 @@ async function saveMembers(){
 
 try{
 
-let result=await window.storage.set("guild-members",JSON.stringify(members),false);
-
-if(!result){
-
-statusBox.textContent="⚠️ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง";
-
-return;
-
-}
+localStorage.setItem("guild-members",JSON.stringify(members));
 
 statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน (บันทึกอัตโนมัติ)";
 
