@@ -73,6 +73,21 @@ button{
     margin-bottom:12px;
 }
 
+.legend{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.chip{
+    display:inline-block;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:bold;
+    color:white;
+    margin:3px;
+}
+
 .uid{
     font-size:11px;
     color:#aab4c4;
@@ -154,7 +169,7 @@ input{
 }
 
 .member:hover{
-    background:#52627c;
+    filter:brightness(1.2);
 }
 
 .full{
@@ -185,7 +200,7 @@ input{
 <h1>🏰 Guild Team Manager</h1>
 
 <div class="nav">
-<a href="index.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
+<a href="member_registration.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
 </div>
 
 <div class="btn">
@@ -195,6 +210,14 @@ input{
 </div>
 
 <div class="status" id="status"></div>
+
+<div class="legend">
+<span class="chip" style="background:#c0392b">🛡️ แท้ง</span>
+<span class="chip" style="background:#2e8b57">⛑️ พระ</span>
+<span class="chip" style="background:#1e5fa8">⚔️ ดีล</span>
+<span class="chip" style="background:#7b3fa0">🎗️ ซัพ</span>
+<span class="chip" style="background:#c9720a">🌀 คุม</span>
+</div>
 
 
 <div class="layout">
@@ -224,6 +247,23 @@ let members=[]; // [{name,uid,job}] loaded from the registration page
 let memberByUid={};
 
 
+const JOB_COLORS={
+"แท้ง":"#c0392b",
+"พระ":"#2e8b57",
+"ดีล":"#1e5fa8",
+"ซัพ":"#7b3fa0",
+"คุม":"#c9720a"
+};
+
+const JOB_LABELS={
+"แท้ง":"🛡️ แท้ง",
+"พระ":"⛑️ พระ",
+"ดีล":"⚔️ ดีล",
+"ซัพ":"🎗️ ซัพ",
+"คุม":"🌀 คุม"
+};
+
+
 function createMember(m){
 
 let div=document.createElement("div");
@@ -232,8 +272,9 @@ div.className="member";
 div.draggable=true;
 div.dataset.uid=m.uid;
 div.title="UID: "+m.uid;
+div.style.background=JOB_COLORS[m.job]||"#3d485d";
 
-div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(m.job)})<span class="uid">UID: ${escapeHtml(m.uid)}</span>`;
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})<span class="uid">UID: ${escapeHtml(m.uid)}</span>`;
 
 div.ondragstart=()=>{
 dragItem=div;
