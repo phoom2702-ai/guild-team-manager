@@ -215,10 +215,34 @@ th{
 
 <div class="status" id="status">กำลังโหลดข้อมูล...</div>
 
+<!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
 <script>
 
+const firebaseConfig={
+  apiKey:"AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
+  authDomain:"gulid-75b53.firebaseapp.com",
+  databaseURL:"https://gulid-75b53-default-rtdb.firebaseio.com",
+  projectId:"gulid-75b53",
+  storageBucket:"gulid-75b53.firebasestorage.app",
+  messagingSenderId:"697549334189",
+  appId:"1:697549334189:web:0b7b8bf2ceaa87bce84824"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const membersRef=db.ref("members");
+
+function makeUid(){
+
+return "m_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+}
+
 let members=[];
-let editingName=null;
+let editingUid=null;
 
 const nameInput=document.getElementById("name");
 const jobInput=document.getElementById("job");
@@ -229,23 +253,36 @@ const addBtn=document.getElementById("addBtn");
 const cancelBtn=document.getElementById("cancelBtn");
 
 
-async function loadMembers(){
+function normalizeMembers(raw){
 
-try{
+if(!raw)return[];
 
-let raw=localStorage.getItem("guild-members");
+if(Array.isArray(raw))return raw.filter(Boolean);
 
-members=raw?JSON.parse(raw):[];
-
-}catch(e){
-
-members=[];
+return Object.values(raw);
 
 }
 
+
+function loadMembers(){
+
+statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
+
+membersRef.on("value",snap=>{
+
+members=normalizeMembers(snap.val());
+
+// ถ้ากำลังแก้ไขอยู่ ก็ยัง render ตารางได้ตามปกติ
+// (ช่องกรอกด้านบนไม่ได้ผูกกับ members array เลยไม่ถูกทับ)
 render();
 
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน (บันทึกอัตโนมัติ)";
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase ไม่สำเร็จ: "+err.message;
+
+});
 
 }
 
@@ -254,9 +291,13 @@ async function saveMembers(){
 
 try{
 
-localStorage.setItem("guild-members",JSON.stringify(members));
+let obj={};
 
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน (บันทึกอัตโนมัติ)";
+members.forEach(m=>{
+obj[m.uid]=m;
+});
+
+await membersRef.set(obj);
 
 }catch(e){
 
@@ -287,8 +328,8 @@ tr.innerHTML=`
 <td>${escapeHtml(m.name)}</td>
 <td>${escapeHtml(m.job)}</td>
 <td>
-<button class="edit" onclick="editMember('${escapeAttr(m.name)}')">✏️ แก้ไข</button>
-<button class="del" onclick="deleteMember('${escapeAttr(m.name)}')">ลบ</button>
+<button class="edit" onclick="editMember('${escapeAttr(m.uid)}')">✏️ แก้ไข</button>
+<button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button>
 </td>
 `;
 
@@ -316,13 +357,13 @@ return String(str).replaceAll("'","\\'");
 }
 
 
-function editMember(name){
+function editMember(uid){
 
-let m=members.find(x=>x.name===name);
+let m=members.find(x=>x.uid===uid);
 
 if(!m)return;
 
-editingName=name;
+editingUid=uid;
 
 nameInput.value=m.name;
 jobInput.value=m.job;
@@ -339,7 +380,7 @@ nameInput.focus();
 
 function cancelEdit(){
 
-editingName=null;
+editingUid=null;
 
 nameInput.value="";
 jobInput.value="";
@@ -367,9 +408,11 @@ return;
 
 }
 
-if(editingName){
+if(editingUid){
 
-if(name!==editingName&&members.some(m=>m.name===name)){
+let current=members.find(x=>x.uid===editingUid);
+
+if(name!==current.name&&members.some(m=>m.name===name&&m.uid!==editingUid)){
 
 errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
 
@@ -377,12 +420,10 @@ return;
 
 }
 
-let m=members.find(x=>x.name===editingName);
+current.name=name;
+current.job=job;
 
-m.name=name;
-m.job=job;
-
-editingName=null;
+editingUid=null;
 
 addBtn.textContent="➕ เพิ่ม";
 cancelBtn.style.display="none";
@@ -397,7 +438,7 @@ return;
 
 }
 
-members.push({name,job});
+members.push({uid:makeUid(),name,job});
 
 }
 
@@ -412,9 +453,9 @@ await saveMembers();
 }
 
 
-async function deleteMember(name){
+async function deleteMember(uid){
 
-members=members.filter(m=>m.name!==name);
+members=members.filter(m=>m.uid!==uid);
 
 render();
 
