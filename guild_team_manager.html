@@ -115,6 +115,26 @@ button:disabled{
     to{opacity:0;transform:translateX(30px);}
 }
 
+.lookupBar{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin:0 0 16px;
+    flex-wrap:wrap;
+}
+
+.lookupBar input{
+    width:230px;
+    margin-bottom:0;
+}
+
+.lookupBar button{
+    background:#3f6f9e;
+    color:white;
+    margin:0;
+}
+
 .nav{
     text-align:center;
     margin-bottom:14px;
@@ -569,6 +589,21 @@ input:focus{
 <button class="copy" onclick="exportTeamImage()">🖼️ ส่งออกเป็นรูปภาพ</button>
 </div>
 
+<div class="lookupBar">
+<input id="lookupName" placeholder="🔍 พิมพ์ชื่อเพื่อดูว่าอยู่ทีมไหน" onkeydown="if(event.key==='Enter')lookupTeam()">
+<button onclick="lookupTeam()">📍 ค้นหาทีม</button>
+</div>
+
+<div class="modalOverlay" id="lookupModalOverlay">
+<div class="modalBox">
+<h3>📍 ผลการค้นหา</h3>
+<p id="lookupMessage">-</p>
+<div class="modalBtns">
+<button class="modalCancel" onclick="closeLookupModal()">ปิด</button>
+</div>
+</div>
+</div>
+
 <div class="modalOverlay" id="modalOverlay">
 <div class="modalBox">
 <h3 id="modalTitle">ยืนยันการทำรายการ</h3>
@@ -624,7 +659,7 @@ input:focus{
 
 </div>
 
-<div class="pool">
+<div class="pool" id="poolSection">
 
 <h2>👥   รายชื่อสมาชิกทั้งหมด</h2>
 
@@ -632,6 +667,10 @@ input:focus{
 
 <div id="pool" class="members poolBox"></div>
 
+</div>
+
+<div class="pool" id="poolLockedNotice" style="display:none;text-align:center;color:#aab4c4;font-size:13px;">
+🔒 กล่องรายชื่อสมาชิกทั้งหมด แสดงเฉพาะโหมดแอดมิน
 </div>
 
 </div>
@@ -836,6 +875,10 @@ function updateAdminUI(){
 
 adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
 adminBadge.classList.toggle("on",isAdmin);
+
+// กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
+document.getElementById("poolSection").style.display=isAdmin?"":"none";
+document.getElementById("poolLockedNotice").style.display=isAdmin?"none":"";
 
 }
 
@@ -1384,8 +1427,88 @@ if(e.target===modalOverlay)closeModal();
 });
 
 document.addEventListener("keydown",e=>{
-if(e.key==="Escape")closeModal();
+if(e.key==="Escape"){
+closeModal();
+closeLookupModal();
+}
 });
+
+
+// ===== Popup ค้นหาว่าสมาชิกอยู่ทีมไหน =====
+const lookupModalOverlay=document.getElementById("lookupModalOverlay");
+const lookupMessage=document.getElementById("lookupMessage");
+
+function closeLookupModal(){
+lookupModalOverlay.classList.remove("show");
+}
+
+lookupModalOverlay.addEventListener("click",e=>{
+if(e.target===lookupModalOverlay)closeLookupModal();
+});
+
+// หาไว้ว่า uid นี้อยู่ในกล่องช่องทีมไหน (คืนชื่อทีม) หรืออยู่ในกล่องรายชื่อ หรือไม่พบเลย
+function findTeamLabelForUid(uid){
+
+let boxes=getAllTeamBoxes();
+
+for(let i=0;i<boxes.length;i++){
+
+let found=realMembersIn(boxes[i]).some(c=>c.dataset.uid===uid);
+
+if(found){
+
+let teamDiv=boxes[i].closest(".team");
+let h3=teamDiv?teamDiv.querySelector("h3"):null;
+
+return h3?h3.textContent.split("(")[0].replace(/\s+/g," ").trim():"ทีม?";
+
+}
+
+}
+
+let inPool=[...pool.children].some(c=>c.dataset.uid===uid);
+
+if(inPool)return "อยู่ในกล่องรายชื่อ (ยังไม่ได้จัดทีม)";
+
+return null;
+
+}
+
+function lookupTeam(){
+
+let key=document.getElementById("lookupName").value.trim().toLowerCase();
+
+if(!key){
+
+lookupMessage.textContent="กรุณาพิมพ์ชื่อที่ต้องการค้นหา";
+lookupModalOverlay.classList.add("show");
+
+return;
+
+}
+
+let matches=members.filter(m=>m.name.toLowerCase().includes(key));
+
+if(matches.length===0){
+
+lookupMessage.innerHTML="ไม่พบสมาชิกชื่อ \""+escapeHtml(key)+"\"";
+
+}else{
+
+lookupMessage.innerHTML=matches.map(m=>{
+
+let jobLabel=JOB_LABELS[m.job]||m.job;
+let teamLabel=findTeamLabelForUid(m.uid)||"ไม่พบตำแหน่ง (ข้อมูลยังไม่โหลดหรือยังไม่จัดทีม)";
+
+return "<b>"+escapeHtml(m.name)+"</b> ("+escapeHtml(jobLabel)+")<br>📍 "+escapeHtml(teamLabel);
+
+}).join("<hr style='border-color:#3d485d;margin:10px 0'>");
+
+}
+
+lookupModalOverlay.classList.add("show");
+
+}
 
 
 let activeJobFilter=null;
