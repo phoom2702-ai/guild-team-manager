@@ -526,6 +526,28 @@ input:focus{
     background:#e53935;
     color:white;
 }
+
+.loginConfirm{
+    background:#2e7d32;
+    color:white;
+}
+
+.modalBox input{
+    margin-bottom:12px;
+    text-align:left;
+}
+
+.modalBox input:last-of-type{
+    margin-bottom:6px;
+}
+
+.loginError{
+    color:#ef5350;
+    font-size:12.5px;
+    min-height:16px;
+    margin:0 0 10px;
+    text-align:center;
+}
 </style>
 
 </head>
@@ -554,6 +576,19 @@ input:focus{
 <div class="modalBtns">
 <button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
 <button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
+</div>
+</div>
+</div>
+
+<div class="modalOverlay" id="loginModalOverlay">
+<div class="modalBox">
+<h3>🔑 เข้าสู่โหมดแอดมิน</h3>
+<input type="email" id="loginEmail" placeholder="อีเมลแอดมิน" autocomplete="username">
+<input type="password" id="loginPassword" placeholder="รหัสผ่าน" autocomplete="current-password">
+<p class="loginError" id="loginError"></p>
+<div class="modalBtns">
+<button class="modalCancel" id="loginCancelBtn">ยกเลิก</button>
+<button class="loginConfirm" id="loginConfirmBtn">เข้าสู่ระบบ</button>
 </div>
 </div>
 </div>
@@ -679,25 +714,95 @@ showToast("🔒 ออกจากโหมดแอดมินแล้ว","i
 
 });
 
+// ===== Popup ล็อกอินแอดมิน (แทน prompt() ของเบราว์เซอร์ ให้เด้งตรงกลางสวยๆ) =====
+const loginModalOverlay=document.getElementById("loginModalOverlay");
+const loginEmailInput=document.getElementById("loginEmail");
+const loginPasswordInput=document.getElementById("loginPassword");
+const loginError=document.getElementById("loginError");
+const loginConfirmBtn=document.getElementById("loginConfirmBtn");
+const loginCancelBtn=document.getElementById("loginCancelBtn");
+
+function showLoginModal(){
+
+return new Promise(resolve=>{
+
+loginEmailInput.value="";
+loginPasswordInput.value="";
+loginError.textContent="";
+
+loginModalOverlay.classList.add("show");
+
+setTimeout(()=>loginEmailInput.focus(),50);
+
+function cleanup(){
+
+loginModalOverlay.classList.remove("show");
+loginConfirmBtn.onclick=null;
+loginCancelBtn.onclick=null;
+loginModalOverlay.onclick=null;
+document.removeEventListener("keydown",onKey);
+
+}
+
+function submit(){
+
+let email=loginEmailInput.value.trim();
+let password=loginPasswordInput.value;
+
+if(!email||!password){
+loginError.textContent="กรุณากรอกอีเมลและรหัสผ่านให้ครบ";
+return;
+}
+
+cleanup();
+resolve({email,password});
+
+}
+
+function cancel(){
+cleanup();
+resolve(null);
+}
+
+function onKey(e){
+
+if(e.key==="Escape"){
+cancel();
+}else if(e.key==="Enter"){
+e.preventDefault();
+submit();
+}
+
+}
+
+loginConfirmBtn.onclick=submit;
+loginCancelBtn.onclick=cancel;
+
+loginModalOverlay.onclick=e=>{
+if(e.target===loginModalOverlay)cancel();
+};
+
+document.addEventListener("keydown",onKey);
+
+});
+
+}
+
 async function loginPrompt(){
 
-let email=prompt("กรอกอีเมลแอดมิน:");
+let creds=await showLoginModal();
 
-if(email===null)return false;
-
-let password=prompt("กรอกรหัสผ่านแอดมิน:");
-
-if(password===null)return false;
+if(!creds)return false;
 
 try{
 
-await auth.signInWithEmailAndPassword(email.trim(),password);
+await auth.signInWithEmailAndPassword(creds.email,creds.password);
 
 return true;
 
 }catch(e){
 
-alert("เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code));
+showToast("⚠️ เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code),"error");
 
 return false;
 
