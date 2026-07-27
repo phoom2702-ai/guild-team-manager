@@ -135,6 +135,70 @@ button:disabled{
     margin:0;
 }
 
+.lookupWrap{
+    position:relative;
+    display:inline-block;
+}
+
+.lookupSuggest{
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    right:0;
+    background:#252c3a;
+    border:1px solid #3d485d;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45);
+    z-index:1500;
+    max-height:220px;
+    overflow-y:auto;
+    text-align:left;
+}
+
+.lookupSuggest.show{
+    display:block;
+}
+
+.lookupSuggest .sgItem{
+    padding:9px 12px;
+    cursor:pointer;
+    font-size:13.5px;
+    color:#e8ecf3;
+    border-bottom:1px solid #313a4a;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:center;
+}
+
+.lookupSuggest .sgItem:last-child{
+    border-bottom:none;
+}
+
+.lookupSuggest .sgItem:hover,
+.lookupSuggest .sgItem.active{
+    background:#3f6f9e;
+}
+
+.lookupSuggest .sgJob{
+    font-size:11.5px;
+    color:#a9b3c4;
+    white-space:nowrap;
+}
+
+.lookupSuggest .sgItem:hover .sgJob,
+.lookupSuggest .sgItem.active .sgJob{
+    color:#e8ecf3;
+}
+
+.lookupSuggest .sgEmpty{
+    padding:9px 12px;
+    font-size:13px;
+    color:#a9b3c4;
+    text-align:center;
+}
+
 .nav{
     text-align:center;
     margin-bottom:14px;
@@ -590,13 +654,16 @@ input:focus{
 </div>
 
 <div class="lookupBar">
-<input id="lookupName" placeholder="🔍 พิมพ์ชื่อเพื่อดูว่าอยู่ทีมไหน" onkeydown="if(event.key==='Enter')lookupTeam()">
-<button onclick="lookupTeam()">📍 ค้นหาทีม</button>
+<div class="lookupWrap">
+<input id="lookupName" placeholder="🔍 พิมพ์ชื่อเพื่อดูว่าอยู่ทีมไหน" autocomplete="off" onkeydown="handleLookupKeydown(event)">
+<div class="lookupSuggest" id="lookupSuggest"></div>
+</div>
+<button onclick="lookupTeam()">ค้นหาทีม</button>
 </div>
 
 <div class="modalOverlay" id="lookupModalOverlay">
 <div class="modalBox">
-<h3>📍 ผลการค้นหา</h3>
+<h3>ผลการค้นหา</h3>
 <p id="lookupMessage">-</p>
 <div class="modalBtns">
 <button class="modalCancel" onclick="closeLookupModal()">ปิด</button>
@@ -945,7 +1012,11 @@ div.classList.add("sparkle-job");
 
 div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})`;
 
-div.ondragstart=()=>{
+div.ondragstart=(e)=>{
+if(!isAdmin){
+e.preventDefault();
+return;
+}
 dragItem=div;
 };
 
@@ -1235,7 +1306,7 @@ box.classList.remove("drag");
 
 if(!dragItem)return;
 
-if(!(await checkAdmin()))return;
+if(!isAdmin)return;
 
 let dropTarget=e.target.closest(".member");
 
@@ -1510,6 +1581,105 @@ lookupModalOverlay.classList.add("show");
 
 }
 
+
+// ===== แสดงรายชื่อที่กำลังค้นหาแบบเรียลไทม์ (suggestions) =====
+const lookupNameInput=document.getElementById("lookupName");
+const lookupSuggestBox=document.getElementById("lookupSuggest");
+let lookupSuggestIndex=-1;
+
+function renderLookupSuggestions(){
+
+let key=lookupNameInput.value.trim().toLowerCase();
+
+if(!key){
+lookupSuggestBox.classList.remove("show");
+lookupSuggestBox.innerHTML="";
+lookupSuggestIndex=-1;
+return;
+}
+
+let matches=members
+.filter(m=>m.name.toLowerCase().includes(key))
+.slice(0,8);
+
+if(matches.length===0){
+lookupSuggestBox.innerHTML="<div class='sgEmpty'>ไม่พบชื่อที่ตรงกัน</div>";
+}else{
+lookupSuggestBox.innerHTML=matches.map((m,i)=>{
+let jobLabel=JOB_LABELS[m.job]||m.job;
+return "<div class='sgItem' data-idx=\""+i+"\" onmousedown=\"selectLookupSuggestion('"+m.uid+"')\">"
++"<span>"+escapeHtml(m.name)+"</span>"
++"<span class='sgJob'>"+escapeHtml(jobLabel)+"</span>"
++"</div>";
+}).join("");
+}
+
+lookupSuggestIndex=-1;
+lookupSuggestBox.classList.add("show");
+
+}
+
+function selectLookupSuggestion(uid){
+
+let m=members.find(x=>x.uid===uid);
+if(!m)return;
+
+lookupNameInput.value=m.name;
+lookupSuggestBox.classList.remove("show");
+lookupSuggestBox.innerHTML="";
+lookupSuggestIndex=-1;
+
+lookupTeam();
+
+}
+
+function handleLookupKeydown(event){
+
+let items=[...lookupSuggestBox.querySelectorAll(".sgItem")];
+
+if(event.key==="ArrowDown"){
+event.preventDefault();
+if(!items.length)return;
+lookupSuggestIndex=(lookupSuggestIndex+1)%items.length;
+items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
+items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
+return;
+}
+
+if(event.key==="ArrowUp"){
+event.preventDefault();
+if(!items.length)return;
+lookupSuggestIndex=(lookupSuggestIndex-1+items.length)%items.length;
+items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
+items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
+return;
+}
+
+if(event.key==="Enter"){
+if(lookupSuggestIndex>-1&&items[lookupSuggestIndex]){
+items[lookupSuggestIndex].dispatchEvent(new Event("mousedown"));
+}else{
+lookupSuggestBox.classList.remove("show");
+lookupTeam();
+}
+return;
+}
+
+if(event.key==="Escape"){
+lookupSuggestBox.classList.remove("show");
+}
+
+}
+
+lookupNameInput.addEventListener("input",renderLookupSuggestions);
+
+lookupNameInput.addEventListener("blur",()=>{
+setTimeout(()=>lookupSuggestBox.classList.remove("show"),120);
+});
+
+lookupNameInput.addEventListener("focus",()=>{
+if(lookupNameInput.value.trim())renderLookupSuggestions();
+});
 
 let activeJobFilter=null;
 
