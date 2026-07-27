@@ -9,24 +9,44 @@
 *{box-sizing:border-box}
 
 body{
-    margin:15px;
-    background:#151922;
-    color:white;
-    font-family:Arial,sans-serif;
+    margin:0;
+    padding:18px;
+    background:#1b2130;
+    color:#e8ecf3;
+    font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+    line-height:1.5;
 }
 
 h1{
     text-align:center;
     color:#ffd54f;
+    letter-spacing:0.5px;
+    margin:6px 0 16px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.4);
 }
 
 button{
-    padding:10px 15px;
+    padding:11px 18px;
     border:0;
-    border-radius:8px;
+    border-radius:10px;
     cursor:pointer;
     margin:5px;
     font-weight:bold;
+    font-size:14px;
+    letter-spacing:0.3px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+    transition:transform 0.12s ease,filter 0.12s ease,box-shadow 0.12s ease;
+}
+
+button:hover{
+    filter:brightness(1.12);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+button:active{
+    transform:translateY(0);
+    filter:brightness(0.95);
 }
 
 .btn{
@@ -50,7 +70,7 @@ button{
 
 .nav{
     text-align:center;
-    margin-bottom:10px;
+    margin-bottom:14px;
 }
 
 .nav a{
@@ -58,8 +78,9 @@ button{
     text-decoration:none;
     font-weight:bold;
     background:#252c3a;
-    padding:8px 14px;
-    border-radius:8px;
+    padding:9px 16px;
+    border-radius:10px;
+    transition:background 0.15s ease;
 }
 
 .nav a:hover{
@@ -68,24 +89,27 @@ button{
 
 .status{
     text-align:center;
-    color:#8895a7;
-    font-size:13px;
-    margin-bottom:12px;
+    color:#aab4c4;
+    font-size:13.5px;
+    margin-bottom:16px;
+    min-height:18px;
 }
 
 .legend{
     text-align:center;
-    margin-bottom:15px;
+    margin-bottom:18px;
+    line-height:2;
 }
 
 .chip{
     display:inline-block;
-    padding:5px 12px;
+    padding:6px 14px;
     border-radius:20px;
-    font-size:12px;
+    font-size:12.5px;
     font-weight:bold;
     color:white;
     margin:3px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
 }
 
 .uid{
@@ -102,26 +126,39 @@ button{
 
 .pool{
     background:#252c3a;
-    padding:12px;
-    border-radius:12px;
+    padding:14px;
+    border-radius:14px;
     width:260px;
     flex:0 0 260px;
     position:sticky;
     top:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
+
+.pool h2{
+    font-size:16px;
+    margin:2px 0 12px;
+    color:#ffd54f;
 }
 
 input{
     width:100%;
-    padding:10px;
+    padding:11px;
     border-radius:8px;
     border:0;
-    margin-bottom:10px;
+    margin-bottom:12px;
+    font-size:14px;
+    color:#1b2130;
+}
+
+input:focus{
+    outline:2px solid #ffd54f;
 }
 
 .members{
     min-height:50px;
     padding:8px;
-    border:2px dashed #667;
+    border:2px dashed #566078;
     border-radius:10px;
 }
 
@@ -136,17 +173,18 @@ input{
 }
 
 .category{
-    margin-bottom:16px;
+    margin-bottom:22px;
 }
 
 .category-title{
     text-align:center;
     background:#1c2230;
     border-radius:10px;
-    padding:8px 12px;
-    margin-bottom:12px;
+    padding:10px 12px;
+    margin-bottom:14px;
     font-size:16px;
     font-weight:bold;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
 
 .category-title.main{
@@ -181,37 +219,43 @@ input{
 
 .team{
     background:#252c3a;
-    padding:6px;
-    border-radius:10px;
+    padding:8px;
+    border-radius:12px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
 
 .team h3{
     text-align:center;
     color:#ffd54f;
     font-size:13px;
-    margin:6px 0;
+    margin:6px 0 10px;
+    letter-spacing:0.2px;
 }
 
 .member{
     background:#3d485d;
-    padding:8px 10px;
-    margin:4px 0;
-    border-radius:6px;
-    font-size:16px;
+    padding:9px 10px;
+    margin:5px 0;
+    border-radius:7px;
+    font-size:15px;
     font-weight:bold;
     cursor:grab;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    transition:filter 0.12s ease,transform 0.12s ease;
 }
 
 .member:hover{
     filter:brightness(1.2);
+    transform:translateY(-1px);
 }
 
 .full{
-    border:2px solid red;
+    border:2px solid #ef5350;
+    box-shadow:0 0 0 1px rgba(239,83,80,0.35);
 }
 
 .drag{
-    border-color:#4caf50;
+    border-color:#66bb6a;
 }
 
 @media(max-width:1100px){
@@ -270,6 +314,73 @@ input{
     color:#5c6b80;
     text-shadow:none;
 }
+
+/* ===== Popup ยืนยัน ===== */
+.modalOverlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,12,18,0.65);
+    backdrop-filter:blur(2px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modalOverlay.show{
+    display:flex;
+}
+
+.modalBox{
+    background:#252c3a;
+    border-radius:14px;
+    padding:22px 24px;
+    width:320px;
+    max-width:90vw;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    border:1px solid #3d485d;
+    text-align:center;
+    animation:popIn 0.15s ease;
+}
+
+@keyframes popIn{
+    from{opacity:0;transform:scale(0.94);}
+    to{opacity:1;transform:scale(1);}
+}
+
+.modalBox h3{
+    margin:0 0 10px;
+    color:#ffd54f;
+    font-size:17px;
+}
+
+.modalBox p{
+    margin:0 0 20px;
+    color:#c7cedb;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.modalBtns{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.modalBtns button{
+    flex:1;
+    margin:0;
+}
+
+.modalCancel{
+    background:#3d485d;
+    color:#e8ecf3;
+}
+
+.modalConfirm{
+    background:#e53935;
+    color:white;
+}
 </style>
 
 </head>
@@ -283,22 +394,33 @@ input{
 </div>
 
 <div class="btn">
-<button class="random" onclick="randomTeam()">🎲 สุ่มแบ่งทีม</button>
-<button class="refresh" onclick="refreshMembers()">🔁 รีเฟรชสมาชิก</button>
-<button class="reset" onclick="resetAll()">🔄 รีเซ็ต</button>
+<button class="random" onclick="confirmAction('random')">🎲 สุ่มแบ่งทีม</button>
+<button class="refresh" onclick="confirmAction('refresh')">🔁 รีเฟรชสมาชิก</button>
+<button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
+</div>
+
+<div class="modalOverlay" id="modalOverlay">
+<div class="modalBox">
+<h3 id="modalTitle">ยืนยันการทำรายการ</h3>
+<p id="modalMessage">คุณแน่ใจหรือไม่?</p>
+<div class="modalBtns">
+<button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
+<button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
+</div>
+</div>
 </div>
 
 <div class="status" id="status"></div>
 
 <div class="legend">
-<span class="chip" style="background:#e53935">⚔️ไนท์</span>
-<span class="chip" style="background:#1b5e20">🙏พระ</span>
-<span class="chip" style="background:#29b6f6;color:#111">🧙‍♂️วิ</span>
-<span class="chip" style="background:#81c784;color:#111">🌿ดูอิด</span>
-<span class="chip" style="background:#fdd835;color:#111">🎯สไน</span>
-<span class="chip" style="background:#a1887f;color:#111">💰พ่อค้า</span>
-<span class="chip" style="background:#34495e">🗡️แอส</span>
-<span class="chip" style="background:#5d4037">🔫ปืน</span>
+<span class="chip" style="background:#e53935">⚔️ ไนท์</span>
+<span class="chip" style="background:#1b5e20">🙏 พระ</span>
+<span class="chip" style="background:#29b6f6;color:#111">🧙‍♂️ วิ</span>
+<span class="chip" style="background:#81c784;color:#111">🌿 ดูอิด</span>
+<span class="chip" style="background:#fdd835;color:#111">🎯 สไน</span>
+<span class="chip" style="background:#a1887f;color:#111">💰 พ่อค้า</span>
+<span class="chip" style="background:#34495e">🗡️ แอส</span>
+<span class="chip" style="background:#5d4037">🔫 ปืน</span>
 </div>
 
 
@@ -391,14 +513,14 @@ const JOB_TEXT_COLORS={
 };
 
 const JOB_LABELS={
-"ไนท์":"⚔️ไนท์",
-"พระ":"🙏พระ",
-"วิ":"🧙‍♂️วิ",
-"ดูอิด":"🌿ดูอิด",
-"สไน":"🎯สไน",
-"พ่อค้า":"💰พ่อค้า",
-"แอส":"🗡️แอส",
-"ปืน":"🔫ปืน"
+"ไนท์":"⚔️ ไนท์",
+"พระ":"🙏 พระ",
+"วิ":"🧙‍♂️ วิ",
+"ดูอิด":"🌿 ดูอิด",
+"สไน":"🎯 สไน",
+"พ่อค้า":"💰 พ่อค้า",
+"แอส":"🗡️ แอส",
+"ปืน":"🔫 ปืน"
 };
 
 
@@ -825,6 +947,61 @@ isDragging=false;
 
 }
 
+
+
+// ===== Popup ยืนยัน =====
+const modalOverlay=document.getElementById("modalOverlay");
+const modalTitle=document.getElementById("modalTitle");
+const modalMessage=document.getElementById("modalMessage");
+const modalConfirmBtn=document.getElementById("modalConfirmBtn");
+
+const ACTIONS={
+random:{
+title:"ยืนยันการสุ่มแบ่งทีม",
+message:"ระบบจะสุ่มจัดสมาชิกทั้งหมดในกล่องรายชื่อลงทีมใหม่ ต้องการดำเนินการต่อหรือไม่?",
+run:randomTeam
+},
+refresh:{
+title:"ยืนยันการรีเฟรชสมาชิก",
+message:"ระบบจะโหลดข้อมูลล่าสุดมาวาดใหม่ทั้งหมด ต้องการดำเนินการต่อหรือไม่?",
+run:refreshMembers
+},
+reset:{
+title:"ยืนยันการรีเซ็ต",
+message:"การจัดทีมทั้งหมดจะถูกล้างและย้ายสมาชิกกลับไปที่กล่องรายชื่อ ต้องการดำเนินการต่อหรือไม่?",
+run:resetAll
+}
+};
+
+function confirmAction(key){
+
+let action=ACTIONS[key];
+
+if(!action)return;
+
+modalTitle.textContent=action.title;
+modalMessage.textContent=action.message;
+
+modalConfirmBtn.onclick=()=>{
+closeModal();
+action.run();
+};
+
+modalOverlay.classList.add("show");
+
+}
+
+function closeModal(){
+modalOverlay.classList.remove("show");
+}
+
+modalOverlay.addEventListener("click",e=>{
+if(e.target===modalOverlay)closeModal();
+});
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape")closeModal();
+});
 
 
 document.getElementById("search")
