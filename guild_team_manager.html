@@ -19,10 +19,10 @@ body{
 
 h1{
     text-align:center;
-    color:#ffd54f;
+    color:#d9b46a;
     letter-spacing:0.5px;
     margin:6px 0 16px;
-    text-shadow:0 1px 3px rgba(0,0,0,0.4);
+    text-shadow:0 1px 3px rgba(0,0,0,0.35);
 }
 
 button{
@@ -54,17 +54,17 @@ button:active{
 }
 
 .reset{
-    background:#e53935;
+    background:#b1544e;
     color:white;
 }
 
 .refresh{
-    background:#1e88e5;
+    background:#3f6f9e;
     color:white;
 }
 
 .copy{
-    background:#8e24aa;
+    background:#7a5a96;
     color:white;
 }
 
@@ -96,14 +96,14 @@ button:disabled{
     box-shadow:0 6px 18px rgba(0,0,0,0.45);
     font-size:13.5px;
     font-weight:bold;
-    border-left:4px solid #1e88e5;
+    border-left:4px solid #3f6f9e;
     opacity:0;
     animation:toastIn 0.25s ease forwards,toastOut 0.3s ease 2.7s forwards;
 }
 
-.toast.success{border-left-color:#43a047;}
-.toast.error{border-left-color:#e53935;}
-.toast.info{border-left-color:#1e88e5;}
+.toast.success{border-left-color:#3f8055;}
+.toast.error{border-left-color:#b1544e;}
+.toast.info{border-left-color:#3f6f9e;}
 
 @keyframes toastIn{
     from{opacity:0;transform:translateX(30px);}
@@ -121,7 +121,7 @@ button:disabled{
 }
 
 .nav a{
-    color:#ffd54f;
+    color:#d9b46a;
     text-decoration:none;
     font-weight:bold;
     background:#252c3a;
@@ -148,7 +148,7 @@ button:disabled{
 }
 
 .adminBadge.on{
-    background:#2e7d32;
+    background:#3f8055;
     color:white;
 }
 
@@ -193,9 +193,9 @@ button:disabled{
 }
 
 .chip.active{
-    outline:2px solid #ffd54f;
+    outline:2px solid #d9b46a;
     outline-offset:2px;
-    box-shadow:0 0 8px rgba(255,213,79,0.7);
+    box-shadow:0 0 8px rgba(217,180,106,0.55);
 }
 
 .jobCount{
@@ -229,7 +229,7 @@ button:disabled{
 .pool h2{
     font-size:16px;
     margin:2px 0 12px;
-    color:#ffd54f;
+    color:#d9b46a;
 }
 
 input{
@@ -243,7 +243,7 @@ input{
 }
 
 input:focus{
-    outline:2px solid #ffd54f;
+    outline:2px solid #d9b46a;
 }
 
 .members{
@@ -279,13 +279,13 @@ input:focus{
 }
 
 .category-title.main{
-    color:#ffd54f;
-    border:1px solid #ffd54f55;
+    color:#d9b46a;
+    border:1px solid #d9b46a55;
 }
 
 .category-title.sub{
-    color:#7ee6c9;
-    border:1px solid #7ee6c955;
+    color:#6fbfa1;
+    border:1px solid #6fbfa155;
 }
 
 .container{
@@ -317,7 +317,7 @@ input:focus{
 
 .team h3{
     text-align:center;
-    color:#ffd54f;
+    color:#d9b46a;
     font-size:10.5px;
     margin:2px 0 6px;
     letter-spacing:0.1px;
@@ -336,7 +336,7 @@ input:focus{
 }
 
 .member:hover{
-    filter:brightness(1.2);
+    filter:brightness(1.12);
     transform:translateY(-1px);
 }
 
@@ -347,10 +347,10 @@ input:focus{
 }
 
 @keyframes sparkleGlow{
-    0%,100%{box-shadow:0 0 5px 1px rgba(255,255,255,0.55),0 0 10px 2px rgba(255,105,180,0.55),0 1px 3px rgba(0,0,0,0.25);}
-    25%{box-shadow:0 0 5px 1px rgba(255,255,255,0.55),0 0 10px 2px rgba(255,215,0,0.55),0 1px 3px rgba(0,0,0,0.25);}
-    50%{box-shadow:0 0 5px 1px rgba(255,255,255,0.55),0 0 10px 2px rgba(64,196,255,0.55),0 1px 3px rgba(0,0,0,0.25);}
-    75%{box-shadow:0 0 5px 1px rgba(255,255,255,0.55),0 0 10px 2px rgba(178,102,255,0.55),0 1px 3px rgba(0,0,0,0.25);}
+    0%,100%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,127,168,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    25%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,180,106,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    50%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(95,168,201,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    75%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(154,127,192,0.4),0 1px 3px rgba(0,0,0,0.25);}
 }
 
 @keyframes sparkleTwinkle{
@@ -367,15 +367,15 @@ input:focus{
     position:relative;
     overflow:hidden;
     background:
-        radial-gradient(circle,rgba(255,255,255,0.95) 0%,rgba(255,255,255,0) 60%) 10% 20%/10px 10px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0) 60%) 70% 60%/8px 8px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0) 60%) 40% 80%/7px 7px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 85% 15%/6px 6px no-repeat,
-        linear-gradient(90deg,#ff6ec7,#ffd54f,#69f0ae,#40c4ff,#b266ff,#ff6ec7) !important;
+        radial-gradient(circle,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0) 60%) 10% 20%/10px 10px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 70% 60%/8px 8px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 40% 80%/7px 7px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.8) 0%,rgba(255,255,255,0) 60%) 85% 15%/6px 6px no-repeat,
+        linear-gradient(90deg,#d97fa8,#d9b46a,#6fbfa1,#5fa8c9,#9a7fc0,#d97fa8) !important;
     background-size:100% 100%,100% 100%,100% 100%,100% 100%,300% 100%;
     animation:sparkleRainbowMove 4s linear infinite,sparkleGlow 2.4s ease-in-out infinite,sparkleDots 3s linear infinite;
     color:#fff;
-    text-shadow:0 0 3px rgba(0,0,0,0.6),0 0 6px rgba(255,255,255,0.4);
+    text-shadow:0 0 3px rgba(0,0,0,0.6),0 0 6px rgba(255,255,255,0.35);
 }
 
 .sparkle-job::after{
@@ -394,12 +394,12 @@ input:focus{
 }
 
 .full{
-    border:2px solid #ef5350;
-    box-shadow:0 0 0 1px rgba(239,83,80,0.35);
+    border:2px solid #b1544e;
+    box-shadow:0 0 0 1px rgba(177,84,78,0.3);
 }
 
 .drag{
-    border-color:#66bb6a;
+    border-color:#4f9f6b;
 }
 
 @media(max-width:1100px){
@@ -438,7 +438,7 @@ input:focus{
     top:5px;
     font-weight:bold;
     font-size:11px;
-    color:#ffe082;
+    color:#e6c988;
     text-shadow:0 0 3px #000, 0 0 3px #000;
 }
 
@@ -495,7 +495,7 @@ input:focus{
 
 .modalBox h3{
     margin:0 0 10px;
-    color:#ffd54f;
+    color:#d9b46a;
     font-size:17px;
 }
 
@@ -523,12 +523,12 @@ input:focus{
 }
 
 .modalConfirm{
-    background:#e53935;
+    background:#b1544e;
     color:white;
 }
 
 .loginConfirm{
-    background:#2e7d32;
+    background:#3f8055;
     color:white;
 }
 
@@ -542,7 +542,7 @@ input:focus{
 }
 
 .loginError{
-    color:#ef5350;
+    color:#d17b74;
     font-size:12.5px;
     min-height:16px;
     margin:0 0 10px;
@@ -596,14 +596,14 @@ input:focus{
 <div class="status" id="status"></div>
 
 <div class="legend">
-<span class="chip" data-job="ไนท์" style="background:#e53935">⚔️ไนท์ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="พระ" style="background:#1b5e20">🙏พระ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="วิ" style="background:#29b6f6;color:#111">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ดูอิด" style="background:#81c784;color:#111">🌿ดูอิด <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="สไน" style="background:#FFFF99;color:#111">🎯สไน <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="พ่อค้า" style="background:#a1887f;color:#111">💰พ่อค้า <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="แอส" style="background:#34495e">🗡️แอส <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ปืน" style="background:#5d4037">🔫ปืน <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ไนท์" style="background:#b1544e">⚔️ไนท์ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พระ" style="background:#2f6b46">🙏พระ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="วิ" style="background:#3f6f9e">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ดูอิด" style="background:#3f8f79">🌿ดูอิด <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="สไน" style="background:#b8933a;color:#20242e">🎯สไน <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พ่อค้า" style="background:#8a6a52">💰พ่อค้า <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="แอส" style="background:#5f5480">🗡️แอส <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ปืน" style="background:#7a4f3f">🔫ปืน <span class="jobCount">(0)</span></span>
 </div>
 <div class="legendHint" id="legendHint">👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด</div>
 
@@ -848,15 +848,15 @@ let memberByUid={};
 
 
 const JOB_COLORS={
-"ไนท์":"#e53935",
-"พระ":"#1b5e20",
-"พระทุบNo.1":"#1b5e20",
-"วิ":"#29b6f6",
-"ดูอิด":"#81c784",
-"สไน":"#FFFF99",
-"พ่อค้า":"#a1887f",
-"แอส":"#34495e",
-"ปืน":"#5d4037"
+"ไนท์":"#b1544e",
+"พระ":"#2f6b46",
+"พระทุบNo.1":"#2f6b46",
+"วิ":"#3f6f9e",
+"ดูอิด":"#3f8f79",
+"สไน":"#b8933a",
+"พ่อค้า":"#8a6a52",
+"แอส":"#5f5480",
+"ปืน":"#7a4f3f"
 };
 
 // สีข้อความสำหรับพื้นหลังโทนอ่อน จะได้อ่านง่ายขึ้น
@@ -864,10 +864,10 @@ const JOB_TEXT_COLORS={
 "ไนท์":"#fff",
 "พระ":"#fff",
 "พระทุบNo.1":"#fff",
-"วิ":"#111",
-"ดูอิด":"#111",
-"สไน":"#111",
-"พ่อค้า":"#111",
+"วิ":"#fff",
+"ดูอิด":"#fff",
+"สไน":"#20242e",
+"พ่อค้า":"#fff",
 "แอส":"#fff",
 "ปืน":"#fff"
 };
