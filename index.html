@@ -48,7 +48,7 @@ h1{
 
 .formRow{
     display:grid;
-    grid-template-columns:1fr 1fr 1fr auto;
+    grid-template-columns:1fr 1fr auto auto;
     gap:10px;
     align-items:end;
 }
@@ -95,6 +95,19 @@ button{
     background:#43a047;
     color:white;
     height:42px;
+}
+
+.cancel{
+    background:#607d8b;
+    color:white;
+    height:42px;
+}
+
+.edit{
+    background:#1e88e5;
+    color:white;
+    padding:6px 10px;
+    margin-right:6px;
 }
 
 .del{
@@ -166,11 +179,6 @@ th{
 </div>
 
 <div>
-<label>UID</label>
-<input id="uid" placeholder="เช่น 100234">
-</div>
-
-<div>
 <label>อาชีพ / คลาส</label>
 <select id="job">
 <option value="" disabled selected>เลือกอาชีพ</option>
@@ -185,7 +193,8 @@ th{
 </select>
 </div>
 
-<button class="add" onclick="addMember()">➕ เพิ่ม</button>
+<button class="add" id="addBtn" onclick="addMember()">➕ เพิ่ม</button>
+<button class="cancel" id="cancelBtn" onclick="cancelEdit()" style="display:none">✖ ยกเลิก</button>
 
 </div>
 
@@ -197,7 +206,6 @@ th{
 <thead>
 <tr>
 <th>ชื่อตัวละคร</th>
-<th>UID</th>
 <th>อาชีพ</th>
 <th></th>
 </tr>
@@ -210,13 +218,15 @@ th{
 <script>
 
 let members=[];
+let editingName=null;
 
 const nameInput=document.getElementById("name");
-const uidInput=document.getElementById("uid");
 const jobInput=document.getElementById("job");
 const errorBox=document.getElementById("error");
 const listBody=document.getElementById("memberList");
 const statusBox=document.getElementById("status");
+const addBtn=document.getElementById("addBtn");
+const cancelBtn=document.getElementById("cancelBtn");
 
 
 async function loadMembers(){
@@ -263,7 +273,7 @@ listBody.innerHTML="";
 
 if(members.length===0){
 
-listBody.innerHTML=`<tr><td colspan="4" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
+listBody.innerHTML=`<tr><td colspan="3" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
 
 return;
 
@@ -275,9 +285,11 @@ let tr=document.createElement("tr");
 
 tr.innerHTML=`
 <td>${escapeHtml(m.name)}</td>
-<td>${escapeHtml(m.uid)}</td>
 <td>${escapeHtml(m.job)}</td>
-<td><button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button></td>
+<td>
+<button class="edit" onclick="editMember('${escapeAttr(m.name)}')">✏️ แก้ไข</button>
+<button class="del" onclick="deleteMember('${escapeAttr(m.name)}')">ลบ</button>
+</td>
 `;
 
 listBody.appendChild(tr);
@@ -304,34 +316,92 @@ return String(str).replaceAll("'","\\'");
 }
 
 
+function editMember(name){
+
+let m=members.find(x=>x.name===name);
+
+if(!m)return;
+
+editingName=name;
+
+nameInput.value=m.name;
+jobInput.value=m.job;
+
+errorBox.textContent="";
+
+addBtn.textContent="💾 บันทึก";
+cancelBtn.style.display="inline-block";
+
+nameInput.focus();
+
+}
+
+
+function cancelEdit(){
+
+editingName=null;
+
+nameInput.value="";
+jobInput.value="";
+
+errorBox.textContent="";
+
+addBtn.textContent="➕ เพิ่ม";
+cancelBtn.style.display="none";
+
+}
+
+
 async function addMember(){
 
 let name=nameInput.value.trim();
-let uid=uidInput.value.trim();
 let job=jobInput.value.trim();
 
 errorBox.textContent="";
 
-if(!name||!uid||!job){
+if(!name||!job){
 
-errorBox.textContent="กรุณากรอกชื่อตัวละคร, UID และอาชีพให้ครบ";
-
-return;
-
-}
-
-if(members.some(m=>m.uid===uid)){
-
-errorBox.textContent="UID นี้มีอยู่แล้วในระบบ";
+errorBox.textContent="กรุณากรอกชื่อตัวละครและอาชีพให้ครบ";
 
 return;
 
 }
 
-members.push({name,uid,job});
+if(editingName){
+
+if(name!==editingName&&members.some(m=>m.name===name)){
+
+errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
+
+return;
+
+}
+
+let m=members.find(x=>x.name===editingName);
+
+m.name=name;
+m.job=job;
+
+editingName=null;
+
+addBtn.textContent="➕ เพิ่ม";
+cancelBtn.style.display="none";
+
+}else{
+
+if(members.some(m=>m.name===name)){
+
+errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
+
+return;
+
+}
+
+members.push({name,job});
+
+}
 
 nameInput.value="";
-uidInput.value="";
 jobInput.value="";
 nameInput.focus();
 
@@ -342,9 +412,9 @@ await saveMembers();
 }
 
 
-async function deleteMember(uid){
+async function deleteMember(name){
 
-members=members.filter(m=>m.uid!==uid);
+members=members.filter(m=>m.name!==name);
 
 render();
 
@@ -353,7 +423,7 @@ await saveMembers();
 }
 
 
-[nameInput,uidInput,jobInput].forEach(el=>{
+[nameInput,jobInput].forEach(el=>{
 
 el.addEventListener("keydown",e=>{
 
