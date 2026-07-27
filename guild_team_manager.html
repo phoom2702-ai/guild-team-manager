@@ -194,10 +194,11 @@ input{
 
 .member{
     background:#3d485d;
-    padding:6px 8px;
+    padding:8px 10px;
     margin:4px 0;
     border-radius:6px;
-    font-size:12px;
+    font-size:16px;
+    font-weight:bold;
     cursor:grab;
 }
 
@@ -372,7 +373,7 @@ div.title="UID: "+m.uid;
 div.style.background=JOB_COLORS[m.job]||"#3d485d";
 div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
 
-div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})<span class="uid">UID: ${escapeHtml(m.uid)}</span>`;
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})`;
 
 div.ondragstart=()=>{
 dragItem=div;
