@@ -68,11 +68,6 @@ button:active{
     color:white;
 }
 
-.history{
-    background:#00838f;
-    color:white;
-}
-
 .nav{
     text-align:center;
     margin-bottom:14px;
@@ -484,48 +479,6 @@ input:focus{
     background:#e53935;
     color:white;
 }
-
-.historyBox{
-    width:520px;
-    max-width:92vw;
-    max-height:75vh;
-    text-align:left;
-    display:flex;
-    flex-direction:column;
-}
-
-.historyList{
-    overflow-y:auto;
-    margin:4px 0 16px;
-    padding-right:4px;
-}
-
-.historyItem{
-    padding:9px 0;
-    border-bottom:1px solid #3d485d;
-    font-size:13px;
-    line-height:1.5;
-}
-
-.historyItem:last-child{
-    border-bottom:none;
-}
-
-.historyTime{
-    color:#ffd54f;
-    font-weight:bold;
-    font-size:12px;
-}
-
-.historyAdmin{
-    color:#79c9ff;
-}
-
-.historyEmpty{
-    color:#aab4c4;
-    text-align:center;
-    padding:20px 0;
-}
 </style>
 
 </head>
@@ -543,7 +496,6 @@ input:focus{
 <button class="refresh" onclick="confirmAction('refresh')">🔁 รีเฟรชสมาชิก</button>
 <button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
 <button class="copy" onclick="exportTeamImage()">🖼️ ส่งออกเป็นรูปภาพ</button>
-<button class="history" onclick="openHistory()">📜 ประวัติการแก้ไข</button>
 </div>
 
 <div class="modalOverlay" id="modalOverlay">
@@ -553,16 +505,6 @@ input:focus{
 <div class="modalBtns">
 <button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
 <button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
-</div>
-</div>
-</div>
-
-<div class="modalOverlay" id="historyOverlay">
-<div class="modalBox historyBox">
-<h3>📜 ประวัติการแก้ไข</h3>
-<div class="historyList" id="historyList"></div>
-<div class="modalBtns">
-<button class="modalCancel" onclick="closeHistory()">ปิด</button>
 </div>
 </div>
 </div>
@@ -638,7 +580,6 @@ const db=firebase.database();
 const auth=firebase.auth();
 const membersRef=db.ref("members");
 const assignmentRef=db.ref("assignment");
-const historyRef=db.ref("history");
 
 const pool=document.getElementById("pool");
 const teamsMain=document.getElementById("teamsMain");
@@ -1073,21 +1014,8 @@ if(dropTarget && dropTarget.classList.contains("slot-empty")){
 dropTarget=null;
 }
 
-// เก็บข้อมูลก่อนย้าย ไว้บันทึกลงประวัติ
-let sourceBox=dragItem.parentElement;
-let sourceLabel=containerLabel(sourceBox);
-let movedMember=memberByUid[dragItem.dataset.uid];
-let movedName=movedMember?movedMember.name:dragItem.textContent;
-let wasSwap=false;
-let swappedName=null;
-
 // ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
 if(dropTarget && dropTarget!==dragItem){
-
-wasSwap=true;
-
-let swappedMember=memberByUid[dropTarget.dataset.uid];
-swappedName=swappedMember?swappedMember.name:dropTarget.textContent;
 
 let dragParent=dragItem.parentElement;
 
@@ -1117,17 +1045,6 @@ box.appendChild(dragItem);
 
 }
 
-let targetLabel=containerLabel(box);
-
-if(wasSwap){
-
-logHistory(`🔀 สลับ "${movedName}" (${sourceLabel}) กับ "${swappedName}" (${targetLabel})`);
-
-}else if(sourceBox!==box){
-
-logHistory(`➡️ ย้าย "${movedName}" จาก ${sourceLabel} ไปยัง ${targetLabel}`);
-
-}
 
 isDragging=true;
 
@@ -1199,112 +1116,11 @@ statusBox.textContent="⚠️ บันทึกการจัดทีมไ�
 
 
 
-// ===== ประวัติการแก้ไข =====
-
-let historyEntries=[];
-const historyOverlay=document.getElementById("historyOverlay");
-const historyList=document.getElementById("historyList");
-
-function logHistory(action){
-
-let entry={
-admin:(auth.currentUser&&auth.currentUser.email)||"ไม่ทราบผู้ใช้",
-action:action,
-timestamp:firebase.database.ServerValue.TIMESTAMP
-};
-
-historyRef.push(entry).catch(e=>{
-console.error("บันทึกประวัติไม่สำเร็จ:",e);
-});
-
-}
-
-// หาชื่อตำแหน่ง (ทีมหลัก/ทีมรอง/กล่องรายชื่อ) จาก element ปลายทาง เพื่อโชว์ในประวัติ
-function containerLabel(el){
-
-if(!el)return"ไม่ทราบตำแหน่ง";
-
-if(el.id==="pool")return"📦 กล่องรายชื่อ (ยังไม่จัดทีม)";
-
-let team=el.closest(".team");
-
-if(team){
-
-let h3=team.querySelector("h3");
-
-if(h3){
-return h3.textContent.trim().replace(/\s+/g," ").replace(/\(.*?\)/,"").trim();
-}
-
-return"ทีม";
-
-}
-
-return"ไม่ทราบตำแหน่ง";
-
-}
-
-function renderHistoryList(){
-
-if(historyEntries.length===0){
-historyList.innerHTML=`<div class="historyEmpty">ยังไม่มีประวัติการแก้ไข</div>`;
-return;
-}
-
-historyList.innerHTML=historyEntries.map(h=>{
-
-let time=h.timestamp
-?new Date(h.timestamp).toLocaleString("th-TH")
-:"กำลังบันทึก...";
-
-return`<div class="historyItem">
-<span class="historyTime">${escapeHtml(time)}</span> •
-<span class="historyAdmin">${escapeHtml(h.admin)}</span><br>
-${escapeHtml(h.action)}
-</div>`;
-
-}).join("");
-
-}
-
-function openHistory(){
-renderHistoryList();
-historyOverlay.classList.add("show");
-}
-
-function closeHistory(){
-historyOverlay.classList.remove("show");
-}
-
-historyOverlay.addEventListener("click",e=>{
-if(e.target===historyOverlay)closeHistory();
-});
-
-historyRef.limitToLast(50).on("value",snap=>{
-
-let raw=snap.val()||{};
-
-historyEntries=Object.values(raw)
-.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-
-if(historyOverlay.classList.contains("show")){
-renderHistoryList();
-}
-
-},err=>{
-
-console.error("โหลดประวัติไม่สำเร็จ:",err);
-
-});
-
-
 async function resetAll(){
 
 try{
 
 await assignmentRef.remove();
-
-logHistory("🔄 รีเซ็ตการจัดทีมทั้งหมด (ย้ายสมาชิกทุกคนกลับกล่องรายชื่อ)");
 
 }catch(e){
 
