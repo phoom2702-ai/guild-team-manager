@@ -618,8 +618,28 @@ if(!box)return;
 
 box.classList.remove("drag");
 
-let isTeam=box.classList.contains("teamBox");
+if(!dragItem)return;
 
+let dropTarget=e.target.closest(".member");
+
+// ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
+if(dropTarget && dropTarget!==dragItem){
+
+let dragParent=dragItem.parentElement;
+
+let placeholder=document.createElement("div");
+
+dragParent.insertBefore(placeholder,dragItem);
+
+dropTarget.parentElement.insertBefore(dragItem,dropTarget);
+
+dragParent.insertBefore(dropTarget,placeholder);
+
+dragParent.removeChild(placeholder);
+
+}else{
+
+let isTeam=box.classList.contains("teamBox");
 
 if(isTeam && box.children.length>=5){
 
@@ -629,10 +649,12 @@ return;
 
 }
 
+box.appendChild(dragItem);
+
+}
+
 
 isDragging=true;
-
-box.appendChild(dragItem);
 
 update();
 
