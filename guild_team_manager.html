@@ -185,10 +185,11 @@ input{
 <h1>🏰 Guild Team Manager</h1>
 
 <div class="nav">
-<a href="index.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
+<a href="member_registration.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
 </div>
 
 <div class="btn">
+<button class="random" onclick="randomTeam()">🎲 สุ่มแบ่งทีม</button>
 <button class="refresh" onclick="refreshMembers()">🔁 รีเฟรชสมาชิก</button>
 <button class="reset" onclick="resetAll()">🔄 รีเซ็ต</button>
 </div>
@@ -257,9 +258,9 @@ async function fetchMembers(){
 
 try{
 
-let result=await window.storage.get("guild-members",false);
+let raw=localStorage.getItem("guild-members");
 
-members=result?JSON.parse(result.value):[];
+members=raw?JSON.parse(raw):[];
 
 }catch(e){
 
@@ -280,9 +281,9 @@ async function fetchAssignment(){
 
 try{
 
-let result=await window.storage.get("guild-assignment",false);
+let raw=localStorage.getItem("guild-assignment");
 
-return result?JSON.parse(result.value):null;
+return raw?JSON.parse(raw):null;
 
 }catch(e){
 
@@ -479,11 +480,7 @@ teams:[...document.querySelectorAll(".teamBox")]
 
 try{
 
-let result=await window.storage.set("guild-assignment",JSON.stringify(data),false);
-
-if(!result){
-statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ";
-}
+localStorage.setItem("guild-assignment",JSON.stringify(data));
 
 }catch(e){
 
@@ -497,15 +494,7 @@ statusBox.textContent="⚠️ บันทึกการจัดทีมไ�
 
 async function resetAll(){
 
-try{
-
-await window.storage.delete("guild-assignment",false);
-
-}catch(e){
-
-// key may not exist yet, safe to ignore
-
-}
+localStorage.removeItem("guild-assignment");
 
 await load();
 
