@@ -231,6 +231,45 @@ input{
         grid-template-columns:1fr;
     }
 }
+
+/* ===== เลขลำดับ 1-5 ในช่องทีม ===== */
+.teamBox{
+    counter-reset:slot;
+}
+
+.teamBox .member{
+    counter-increment:slot;
+    position:relative;
+    padding-left:28px;
+}
+
+.teamBox .member::before{
+    content:counter(slot)". ";
+    position:absolute;
+    left:8px;
+    top:8px;
+    font-weight:bold;
+    color:#ffe082;
+    text-shadow:0 0 3px #000, 0 0 3px #000;
+}
+
+.teamBox .slot-empty{
+    background:transparent;
+    border:1px dashed #566;
+    color:#5c6b80;
+    font-style:italic;
+    cursor:default;
+    font-weight:normal;
+}
+
+.teamBox .slot-empty:hover{
+    filter:none;
+}
+
+.teamBox .slot-empty::before{
+    color:#5c6b80;
+    text-shadow:none;
+}
 </style>
 
 </head>
@@ -252,14 +291,14 @@ input{
 <div class="status" id="status"></div>
 
 <div class="legend">
-<span class="chip" style="background:#e53935">⚔️ ไนท์</span>
-<span class="chip" style="background:#1b5e20">🙏 พระ</span>
-<span class="chip" style="background:#29b6f6;color:#111">🧙‍♂️ วิ</span>
-<span class="chip" style="background:#81c784;color:#111">🌿 ดูอิด</span>
-<span class="chip" style="background:#fdd835;color:#111">🎯 สไน</span>
-<span class="chip" style="background:#a1887f;color:#111">💰 พ่อค้า</span>
-<span class="chip" style="background:#34495e">🗡️ แอส</span>
-<span class="chip" style="background:#5d4037">🔫 ปืน</span>
+<span class="chip" style="background:#e53935">⚔️ไนท์</span>
+<span class="chip" style="background:#1b5e20">🙏พระ</span>
+<span class="chip" style="background:#29b6f6;color:#111">🧙‍♂️วิ</span>
+<span class="chip" style="background:#81c784;color:#111">🌿ดูอิด</span>
+<span class="chip" style="background:#fdd835;color:#111">🎯สไน</span>
+<span class="chip" style="background:#a1887f;color:#111">💰พ่อค้า</span>
+<span class="chip" style="background:#34495e">🗡️แอส</span>
+<span class="chip" style="background:#5d4037">🔫ปืน</span>
 </div>
 
 
@@ -322,6 +361,7 @@ const statusBox=document.getElementById("status");
 
 const MAIN_COUNT=12;
 const SUB_COUNT=18;
+const TEAM_SIZE=5;
 
 let members=[]; // [{name,uid,job}] loaded from the registration page
 let memberByUid={};
@@ -351,14 +391,14 @@ const JOB_TEXT_COLORS={
 };
 
 const JOB_LABELS={
-"ไนท์":"⚔️ ไนท์",
-"พระ":"🙏 พระ",
-"วิ":"🧙‍♂️ วิ",
-"ดูอิด":"🌿 ดูอิด",
-"สไน":"🎯 สไน",
-"พ่อค้า":"💰 พ่อค้า",
-"แอส":"🗡️ แอส",
-"ปืน":"🔫 ปืน"
+"ไนท์":"⚔️ไนท์",
+"พระ":"🙏พระ",
+"วิ":"🧙‍♂️วิ",
+"ดูอิด":"🌿ดูอิด",
+"สไน":"🎯สไน",
+"พ่อค้า":"💰พ่อค้า",
+"แอส":"🗡️แอส",
+"ปืน":"🔫ปืน"
 };
 
 
@@ -553,7 +593,7 @@ div.className="team";
 div.innerHTML=`
 <h3>
 ${label} ${i}
-(<span class="count">0</span>/5)
+(<span class="count">0</span>/${TEAM_SIZE})
 </h3>
 
 <div class="members teamBox"></div>
@@ -580,6 +620,14 @@ return [
 ...teamsMain.querySelectorAll(".teamBox"),
 ...teamsSub.querySelectorAll(".teamBox")
 ];
+
+}
+
+
+// นับเฉพาะสมาชิกจริง (ไม่นับช่องว่างที่ใส่ไว้เพื่อโชว์เลข)
+function realMembersIn(box){
+
+return [...box.children].filter(c=>c.dataset.uid);
 
 }
 
@@ -622,6 +670,11 @@ if(!dragItem)return;
 
 let dropTarget=e.target.closest(".member");
 
+// ช่องว่าง (placeholder เลข) ไม่ใช่เป้าหมายสลับตำแหน่งได้ ให้ถือว่าปล่อยลงกล่องเฉยๆ
+if(dropTarget && dropTarget.classList.contains("slot-empty")){
+dropTarget=null;
+}
+
 // ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
 if(dropTarget && dropTarget!==dragItem){
 
@@ -641,9 +694,9 @@ dragParent.removeChild(placeholder);
 
 let isTeam=box.classList.contains("teamBox");
 
-if(isTeam && box.children.length>=5){
+if(isTeam && realMembersIn(box).length>=TEAM_SIZE){
 
-alert("ทีมนี้เต็มแล้ว 5/5");
+alert("ทีมนี้เต็มแล้ว "+TEAM_SIZE+"/"+TEAM_SIZE);
 
 return;
 
@@ -670,11 +723,27 @@ function update(){
 
 document.querySelectorAll(".team").forEach(team=>{
 
-let count=team.querySelector(".teamBox").children.length;
+let box=team.querySelector(".teamBox");
+
+// ลบช่องว่างเดิมทิ้งก่อน แล้วค่อยเติมใหม่ให้ครบ ให้เลขเรียงถูกต้องเสมอ
+box.querySelectorAll(".slot-empty").forEach(el=>el.remove());
+
+let count=realMembersIn(box).length;
+
+for(let i=count;i<TEAM_SIZE;i++){
+
+let ph=document.createElement("div");
+
+ph.className="member slot-empty";
+ph.draggable=false;
+
+box.appendChild(ph);
+
+}
 
 team.querySelector(".count").innerText=count;
 
-team.classList.toggle("full",count>=5);
+team.classList.toggle("full",count>=TEAM_SIZE);
 
 });
 
@@ -688,7 +757,7 @@ let data={
 pool:[...pool.children].map(x=>x.dataset.uid),
 
 teams:getAllTeamBoxes()
-.map(box=>[...box.children].map(x=>x.dataset.uid))
+.map(box=>realMembersIn(box).map(x=>x.dataset.uid))
 
 };
 
@@ -741,7 +810,7 @@ all.forEach((m,i)=>{
 
 let team=boxes[i%boxes.length];
 
-if(team.children.length<5)
+if(realMembersIn(team).length<TEAM_SIZE)
 team.appendChild(m);
 
 });
