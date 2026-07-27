@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Guild Team Manager</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:15px;
+    background:#151922;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+
+h1{
+    text-align:center;
+    color:#ffd54f;
+}
+
+button{
+    padding:10px 15px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    margin:5px;
+    font-weight:bold;
+}
+
+.btn{
+    text-align:center;
+}
+
+.reset{
+    background:#e53935;
+    color:white;
+}
+
+.random{
+    background:#43a047;
+    color:white;
+}
+
+.refresh{
+    background:#1e88e5;
+    color:white;
+}
+
+.nav{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.nav a{
+    color:#ffd54f;
+    text-decoration:none;
+    font-weight:bold;
+    background:#252c3a;
+    padding:8px 14px;
+    border-radius:8px;
+}
+
+.nav a:hover{
+    background:#3d485d;
+}
+
+.status{
+    text-align:center;
+    color:#8895a7;
+    font-size:13px;
+    margin-bottom:12px;
+}
+
+.uid{
+    font-size:11px;
+    color:#aab4c4;
+    display:block;
+}
+
+.layout{
+    display:flex;
+    gap:15px;
+    align-items:flex-start;
+}
+
+.pool{
+    background:#252c3a;
+    padding:12px;
+    border-radius:12px;
+    width:260px;
+    flex:0 0 260px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:0;
+    margin-bottom:10px;
+}
+
+.members{
+    min-height:50px;
+    padding:8px;
+    border:2px dashed #667;
+    border-radius:10px;
+}
+
+.poolBox{
+    height:240px;
+    overflow-y:auto;
+}
+
+.container{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    flex:1;
+    min-width:0;
+}
+
+@media(max-width:1100px){
+    .layout{
+        flex-direction:column;
+    }
+    .pool{
+        width:100%;
+        flex:none;
+    }
+    .poolBox{
+        height:180px;
+    }
+}
+
+.team{
+    background:#252c3a;
+    padding:10px;
+    border-radius:12px;
+}
+
+.team h3{
+    text-align:center;
+    color:#ffd54f;
+}
+
+.member{
+    background:#3d485d;
+    padding:10px;
+    margin:6px 0;
+    border-radius:8px;
+    cursor:grab;
+}
+
+.member:hover{
+    background:#52627c;
+}
+
+.full{
+    border:2px solid red;
+}
+
+.drag{
+    border-color:#4caf50;
+}
+
+@media(max-width:900px){
+    .container{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+@media(max-width:600px){
+    .container{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🏰 Guild Team Manager</h1>
+
+<div class="nav">
+<a href="member_registration.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
+</div>
+
+<div class="btn">
+<button class="random" onclick="randomTeam()">🎲 สุ่มแบ่งทีม</button>
+<button class="refresh" onclick="refreshMembers()">🔁 รีเฟรชสมาชิก</button>
+<button class="reset" onclick="resetAll()">🔄 รีเซ็ต</button>
+</div>
+
+<div class="status" id="status"></div>
+
+
+<div class="layout">
+
+<div id="teams" class="container"></div>
+
+<div class="pool">
+
+<h2>👥 รายชื่อสมาชิกทั้งหมด</h2>
+
+<input id="search" placeholder="🔍 ค้นหารายชื่อ">
+
+<div id="pool" class="members poolBox"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const pool=document.getElementById("pool");
+const teams=document.getElementById("teams");
+const statusBox=document.getElementById("status");
+
+let members=[]; // [{name,uid,job}] loaded from the registration page
+let memberByUid={};
+
+
+function createMember(m){
+
+let div=document.createElement("div");
+
+div.className="member";
+div.draggable=true;
+div.dataset.uid=m.uid;
+div.title="UID: "+m.uid;
+
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(m.job)})<span class="uid">UID: ${escapeHtml(m.uid)}</span>`;
+
+div.ondragstart=()=>{
+dragItem=div;
+};
+
+return div;
+
+}
+
+
+function escapeHtml(str){
+
+return String(str)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;");
+
+}
+
+
+async function fetchMembers(){
+
+try{
+
+let result=await window.storage.get("guild-members",false);
+
+members=result?JSON.parse(result.value):[];
+
+}catch(e){
+
+members=[];
+
+}
+
+memberByUid={};
+
+members.forEach(m=>{
+memberByUid[m.uid]=m;
+});
+
+}
+
+
+async function fetchAssignment(){
+
+try{
+
+let result=await window.storage.get("guild-assignment",false);
+
+return result?JSON.parse(result.value):null;
+
+}catch(e){
+
+return null;
+
+}
+
+}
+
+
+async function load(){
+
+statusBox.textContent="กำลังโหลดข้อมูลสมาชิก...";
+
+await fetchMembers();
+
+let assignment=await fetchAssignment();
+
+pool.innerHTML="";
+
+createTeams();
+
+if(members.length===0){
+
+statusBox.textContent="ยังไม่มีสมาชิก กรุณาไปหน้าลงทะเบียนสมาชิกก่อน";
+
+update();
+
+return;
+
+}
+
+let placed=new Set();
+
+if(assignment){
+
+(assignment.pool||[]).forEach(uid=>{
+
+if(memberByUid[uid]){
+pool.appendChild(createMember(memberByUid[uid]));
+placed.add(uid);
+}
+
+});
+
+let boxes=document.querySelectorAll(".teamBox");
+
+(assignment.teams||[]).forEach((team,i)=>{
+
+team.forEach(uid=>{
+
+if(memberByUid[uid]&&boxes[i]){
+boxes[i].appendChild(createMember(memberByUid[uid]));
+placed.add(uid);
+}
+
+});
+
+});
+
+}
+
+// members registered but not yet placed anywhere go into the pool
+members.forEach(m=>{
+
+if(!placed.has(m.uid)){
+pool.appendChild(createMember(m));
+}
+
+});
+
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน";
+
+update();
+
+}
+
+
+async function refreshMembers(){
+
+await load();
+
+}
+
+
+
+function createTeams(){
+
+teams.innerHTML="";
+
+for(let i=1;i<=8;i++){
+
+let div=document.createElement("div");
+
+div.className="team";
+
+div.innerHTML=`
+<h3>
+ทีม ${i} 
+(<span class="count">0</span>/5)
+</h3>
+
+<div class="members teamBox"></div>
+`;
+
+teams.appendChild(div);
+
+}
+
+}
+
+
+
+let dragItem=null;
+
+
+document.addEventListener("dragover",e=>{
+
+let box=e.target.closest(".members");
+
+if(box){
+e.preventDefault();
+box.classList.add("drag");
+}
+
+});
+
+
+document.addEventListener("dragleave",e=>{
+
+let box=e.target.closest(".members");
+
+if(box)
+box.classList.remove("drag");
+
+});
+
+
+document.addEventListener("drop",e=>{
+
+let box=e.target.closest(".members");
+
+if(!box)return;
+
+box.classList.remove("drag");
+
+let isTeam=box.classList.contains("teamBox");
+
+
+if(isTeam && box.children.length>=5){
+
+alert("ทีมนี้เต็มแล้ว 5/5");
+
+return;
+
+}
+
+
+box.appendChild(dragItem);
+
+save();
+
+update();
+
+});
+
+
+
+function update(){
+
+document.querySelectorAll(".team").forEach(team=>{
+
+let count=team.querySelector(".teamBox").children.length;
+
+team.querySelector(".count").innerText=count;
+
+team.classList.toggle("full",count>=5);
+
+});
+
+}
+
+
+
+async function save(){
+
+let data={
+pool:[...pool.children].map(x=>x.dataset.uid),
+
+teams:[...document.querySelectorAll(".teamBox")]
+.map(box=>[...box.children].map(x=>x.dataset.uid))
+
+};
+
+try{
+
+let result=await window.storage.set("guild-assignment",JSON.stringify(data),false);
+
+if(!result){
+statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ";
+}
+
+}catch(e){
+
+statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message;
+
+}
+
+}
+
+
+
+async function resetAll(){
+
+try{
+
+await window.storage.delete("guild-assignment",false);
+
+}catch(e){
+
+// key may not exist yet, safe to ignore
+
+}
+
+await load();
+
+}
+
+
+
+function randomTeam(){
+
+let all=[
+...pool.children
+];
+
+pool.innerHTML="";
+
+all.sort(()=>Math.random()-0.5);
+
+
+let boxes=document.querySelectorAll(".teamBox");
+
+all.forEach((m,i)=>{
+
+let team=boxes[i%8];
+
+if(team.children.length<5)
+team.appendChild(m);
+
+});
+
+save();
+update();
+
+}
+
+
+
+document.getElementById("search")
+.addEventListener("input",function(){
+
+let key=this.value.toLowerCase();
+
+document.querySelectorAll("#pool .member")
+.forEach(m=>{
+
+let uid=memberByUid[m.dataset.uid];
+
+let text=uid?(uid.name+" "+uid.uid+" "+uid.job).toLowerCase():m.textContent.toLowerCase();
+
+m.style.display=
+text.includes(key)
+?"block":"none";
+
+});
+
+});
+
+
+
+load();
+
+</script>
+
+</body>
+</html>

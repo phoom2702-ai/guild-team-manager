@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ลงทะเบียนสมาชิก Guild</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:15px;
+    background:#151922;
+    color:white;
+    font-family:Arial,sans-serif;
+}
+
+h1{
+    text-align:center;
+    color:#ffd54f;
+}
+
+.nav{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.nav a{
+    color:#ffd54f;
+    text-decoration:none;
+    font-weight:bold;
+    background:#252c3a;
+    padding:8px 14px;
+    border-radius:8px;
+}
+
+.nav a:hover{
+    background:#3d485d;
+}
+
+.card{
+    background:#252c3a;
+    padding:16px;
+    border-radius:12px;
+    max-width:700px;
+    margin:0 auto 20px auto;
+}
+
+.formRow{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr auto;
+    gap:10px;
+    align-items:end;
+}
+
+label{
+    display:block;
+    font-size:13px;
+    color:#aab4c4;
+    margin-bottom:4px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:0;
+    background:#151922;
+    color:white;
+}
+
+input:focus{
+    outline:2px solid #ffd54f;
+}
+
+button{
+    padding:10px 15px;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.add{
+    background:#43a047;
+    color:white;
+    height:42px;
+}
+
+.del{
+    background:#e53935;
+    color:white;
+    padding:6px 10px;
+}
+
+.error{
+    color:#ff6b6b;
+    font-size:13px;
+    margin-top:8px;
+    min-height:16px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    max-width:700px;
+    margin:0 auto;
+}
+
+th,td{
+    padding:10px;
+    text-align:left;
+    border-bottom:1px solid #3d485d;
+}
+
+th{
+    color:#ffd54f;
+}
+
+.empty{
+    text-align:center;
+    color:#8895a7;
+    padding:20px;
+}
+
+.status{
+    text-align:center;
+    color:#8895a7;
+    font-size:13px;
+    margin-top:10px;
+}
+
+@media(max-width:600px){
+    .formRow{
+        grid-template-columns:1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>📋 ลงทะเบียนสมาชิก Guild</h1>
+
+<div class="nav">
+<a href="guild_team_manager.html">🏰 ไปหน้า Guild Team Manager →</a>
+</div>
+
+<div class="card">
+
+<div class="formRow">
+
+<div>
+<label>ชื่อตัวละคร</label>
+<input id="name" placeholder="เช่น Alice">
+</div>
+
+<div>
+<label>UID</label>
+<input id="uid" placeholder="เช่น 100234">
+</div>
+
+<div>
+<label>อาชีพ / คลาส</label>
+<input id="job" list="jobList" placeholder="เช่น Tank">
+<datalist id="jobList">
+<option value="Tank">
+<option value="DPS">
+<option value="Healer">
+<option value="Support">
+<option value="Mage">
+<option value="Archer">
+<option value="Assassin">
+</datalist>
+</div>
+
+<button class="add" onclick="addMember()">➕ เพิ่ม</button>
+
+</div>
+
+<div class="error" id="error"></div>
+
+</div>
+
+<table>
+<thead>
+<tr>
+<th>ชื่อตัวละคร</th>
+<th>UID</th>
+<th>อาชีพ</th>
+<th></th>
+</tr>
+</thead>
+<tbody id="memberList"></tbody>
+</table>
+
+<div class="status" id="status">กำลังโหลดข้อมูล...</div>
+
+<script>
+
+let members=[];
+
+const nameInput=document.getElementById("name");
+const uidInput=document.getElementById("uid");
+const jobInput=document.getElementById("job");
+const errorBox=document.getElementById("error");
+const listBody=document.getElementById("memberList");
+const statusBox=document.getElementById("status");
+
+
+async function loadMembers(){
+
+try{
+
+let result=await window.storage.get("guild-members",false);
+
+members=result?JSON.parse(result.value):[];
+
+}catch(e){
+
+members=[];
+
+}
+
+render();
+
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน (บันทึกอัตโนมัติ)";
+
+}
+
+
+async function saveMembers(){
+
+try{
+
+let result=await window.storage.set("guild-members",JSON.stringify(members),false);
+
+if(!result){
+
+statusBox.textContent="⚠️ บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง";
+
+return;
+
+}
+
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน (บันทึกอัตโนมัติ)";
+
+}catch(e){
+
+statusBox.textContent="⚠️ บันทึกไม่สำเร็จ: "+e.message;
+
+}
+
+}
+
+
+function render(){
+
+listBody.innerHTML="";
+
+if(members.length===0){
+
+listBody.innerHTML=`<tr><td colspan="4" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
+
+return;
+
+}
+
+members.forEach(m=>{
+
+let tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${escapeHtml(m.name)}</td>
+<td>${escapeHtml(m.uid)}</td>
+<td>${escapeHtml(m.job)}</td>
+<td><button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button></td>
+`;
+
+listBody.appendChild(tr);
+
+});
+
+}
+
+
+function escapeHtml(str){
+
+return String(str)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;");
+
+}
+
+
+function escapeAttr(str){
+
+return String(str).replaceAll("'","\\'");
+
+}
+
+
+async function addMember(){
+
+let name=nameInput.value.trim();
+let uid=uidInput.value.trim();
+let job=jobInput.value.trim();
+
+errorBox.textContent="";
+
+if(!name||!uid||!job){
+
+errorBox.textContent="กรุณากรอกชื่อตัวละคร, UID และอาชีพให้ครบ";
+
+return;
+
+}
+
+if(members.some(m=>m.uid===uid)){
+
+errorBox.textContent="UID นี้มีอยู่แล้วในระบบ";
+
+return;
+
+}
+
+members.push({name,uid,job});
+
+nameInput.value="";
+uidInput.value="";
+jobInput.value="";
+nameInput.focus();
+
+render();
+
+await saveMembers();
+
+}
+
+
+async function deleteMember(uid){
+
+members=members.filter(m=>m.uid!==uid);
+
+render();
+
+await saveMembers();
+
+}
+
+
+[nameInput,uidInput,jobInput].forEach(el=>{
+
+el.addEventListener("keydown",e=>{
+
+if(e.key==="Enter")addMember();
+
+});
+
+});
+
+
+loadMembers();
+
+</script>
+
+</body>
+</html>
