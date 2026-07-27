@@ -110,6 +110,27 @@ button{
     margin-right:6px;
 }
 
+.move{
+    background:#546e7a;
+    color:white;
+    padding:6px 10px;
+    margin-right:6px;
+}
+
+.move:disabled{
+    opacity:0.35;
+    cursor:not-allowed;
+}
+
+.searchBox{
+    max-width:700px;
+    margin:0 auto 12px auto;
+}
+
+.searchBox input{
+    margin-bottom:0;
+}
+
 .del{
     background:#e53935;
     color:white;
@@ -121,6 +142,13 @@ button{
     font-size:13px;
     margin-top:8px;
     min-height:16px;
+}
+
+.count{
+    text-align:center;
+    color:#8895a7;
+    font-size:12px;
+    margin-bottom:8px;
 }
 
 table{
@@ -202,6 +230,12 @@ th{
 
 </div>
 
+<div class="searchBox">
+<input id="search" placeholder="🔍 ค้นหารายชื่อตัวละคร">
+</div>
+
+<div class="count" id="count"></div>
+
 <table>
 <thead>
 <tr>
@@ -243,23 +277,38 @@ return "m_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 
 let members=[];
 let editingUid=null;
+let searchQuery="";
 
 const nameInput=document.getElementById("name");
 const jobInput=document.getElementById("job");
 const errorBox=document.getElementById("error");
 const listBody=document.getElementById("memberList");
 const statusBox=document.getElementById("status");
+const countBox=document.getElementById("count");
 const addBtn=document.getElementById("addBtn");
 const cancelBtn=document.getElementById("cancelBtn");
+const searchInput=document.getElementById("search");
 
 
+// เรียงตามฟิลด์ order เสมอ เพื่อให้ลำดับที่ผู้ใช้จัดไว้ไม่ถูก Firebase สลับ key เอง
 function normalizeMembers(raw){
 
 if(!raw)return[];
 
-if(Array.isArray(raw))return raw.filter(Boolean);
+let arr=Array.isArray(raw)?raw.filter(Boolean):Object.values(raw);
 
-return Object.values(raw);
+arr.sort((a,b)=>(a.order??0)-(b.order??0));
+
+return arr;
+
+}
+
+
+function nextOrder(){
+
+if(members.length===0)return 0;
+
+return Math.max(...members.map(m=>m.order??0))+1;
 
 }
 
@@ -316,11 +365,35 @@ if(members.length===0){
 
 listBody.innerHTML=`<tr><td colspan="3" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
 
+countBox.textContent="";
+
 return;
 
 }
 
-members.forEach(m=>{
+let query=searchQuery.trim().toLowerCase();
+
+let visible=query
+?members.filter(m=>m.name.toLowerCase().includes(query))
+:members;
+
+if(visible.length===0){
+
+listBody.innerHTML=`<tr><td colspan="3" class="empty">ไม่พบชื่อที่ตรงกับ "${escapeHtml(searchQuery)}"</td></tr>`;
+
+countBox.textContent="";
+
+return;
+
+}
+
+countBox.textContent=query
+?`พบ ${visible.length} จากทั้งหมด ${members.length} คน`
+:`ทั้งหมด ${members.length} คน`;
+
+visible.forEach(m=>{
+
+let idx=members.findIndex(x=>x.uid===m.uid);
 
 let tr=document.createElement("tr");
 
@@ -328,6 +401,8 @@ tr.innerHTML=`
 <td>${escapeHtml(m.name)}</td>
 <td>${escapeHtml(m.job)}</td>
 <td>
+<button class="move" title="เลื่อนขึ้น" ${idx<=0?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',-1)">⬆️</button>
+<button class="move" title="เลื่อนลง" ${idx>=members.length-1?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',1)">⬇️</button>
 <button class="edit" onclick="editMember('${escapeAttr(m.uid)}')">✏️ แก้ไข</button>
 <button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button>
 </td>
@@ -336,6 +411,33 @@ tr.innerHTML=`
 listBody.appendChild(tr);
 
 });
+
+}
+
+
+async function moveMember(uid,dir){
+
+let idx=members.findIndex(x=>x.uid===uid);
+
+if(idx===-1)return;
+
+let swapIdx=idx+dir;
+
+if(swapIdx<0||swapIdx>=members.length)return;
+
+// สลับค่า order กันระหว่าง 2 คนนี้ (ตัว array เองไม่ต้อง splice ก็ได้ เพราะ render จะเรียงตาม order ใหม่หลัง reload)
+let a=members[idx];
+let b=members[swapIdx];
+
+let tmp=a.order??idx;
+a.order=b.order??swapIdx;
+b.order=tmp;
+
+members.sort((x,y)=>(x.order??0)-(y.order??0));
+
+render();
+
+await saveMembers();
 
 }
 
@@ -438,7 +540,7 @@ return;
 
 }
 
-members.push({uid:makeUid(),name,job});
+members.push({uid:makeUid(),name,job,order:nextOrder()});
 
 }
 
@@ -471,6 +573,15 @@ el.addEventListener("keydown",e=>{
 if(e.key==="Enter")addMember();
 
 });
+
+});
+
+
+searchInput.addEventListener("input",function(){
+
+searchQuery=this.value;
+
+render();
 
 });
 
