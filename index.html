@@ -507,7 +507,7 @@ const statusBox=document.getElementById("status");
 // ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
 // และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
 // (ต้องเป็นบัญชีเดียวกับที่ตั้งไว้ในไฟล์ index.html)
-auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 let isAdmin=false;
 
