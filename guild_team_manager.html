@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>จัดการสมาชิกกิลด์</title>
+<title>Guild Team Manager</title>
 
 <style>
 *{box-sizing:border-box}
@@ -106,6 +106,8 @@ button{
     border-radius:12px;
     width:260px;
     flex:0 0 260px;
+    position:sticky;
+    top:15px;
 }
 
 input{
@@ -128,12 +130,39 @@ input{
     overflow-y:auto;
 }
 
+.teamsWrap{
+    flex:1;
+    min-width:0;
+}
+
+.category{
+    margin-bottom:24px;
+}
+
+.category-title{
+    text-align:center;
+    background:#1c2230;
+    border-radius:10px;
+    padding:8px 12px;
+    margin-bottom:12px;
+    font-size:16px;
+    font-weight:bold;
+}
+
+.category-title.main{
+    color:#ffd54f;
+    border:1px solid #ffd54f55;
+}
+
+.category-title.sub{
+    color:#7ee6c9;
+    border:1px solid #7ee6c955;
+}
+
 .container{
     display:grid;
     grid-template-columns:repeat(3,1fr);
     gap:12px;
-    flex:1;
-    min-width:0;
 }
 
 @media(max-width:1100px){
@@ -143,6 +172,7 @@ input{
     .pool{
         width:100%;
         flex:none;
+        position:static;
     }
     .poolBox{
         height:180px;
@@ -197,10 +227,10 @@ input{
 
 <body>
 
-<h1>🏰 จัดการสมาชิกกิลด์ 🏰</h1>
+<h1>🏰 Guild Team Manager</h1>
 
 <div class="nav">
-<a href="index.html">ไปหน้าลงทะเบียนสมาชิก</a>
+<a href="member_registration.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
 </div>
 
 <div class="btn">
@@ -212,20 +242,32 @@ input{
 <div class="status" id="status"></div>
 
 <div class="legend">
-<span class="chip" style="background:#c0392b">ไนท์</span>
-<span class="chip" style="background:#2e8b57">พระ</span>
-<span class="chip" style="background:#7b3fa0">วิ</span>
-<span class="chip" style="background:#16a085">ดูอิด</span>
-<span class="chip" style="background:#556b2f">สไน</span>
-<span class="chip" style="background:#d4ac0d">พ่อค้า</span>
-<span class="chip" style="background:#34495e">แอส</span>
-<span class="chip" style="background:#1e5fa8">ปืน</span>
+<span class="chip" style="background:#c0392b">🛡️ ไนท์</span>
+<span class="chip" style="background:#2e8b57">⛑️ พระ</span>
+<span class="chip" style="background:#7b3fa0">🔮 วิ</span>
+<span class="chip" style="background:#16a085">🌿 ดูอิด</span>
+<span class="chip" style="background:#556b2f">🎯 สไน</span>
+<span class="chip" style="background:#d4ac0d">💰 พ่อค้า</span>
+<span class="chip" style="background:#34495e">🗡️ แอส</span>
+<span class="chip" style="background:#1e5fa8">🔫 ปืน</span>
 </div>
 
 
 <div class="layout">
 
-<div id="teams" class="container"></div>
+<div class="teamsWrap">
+
+<div class="category">
+<div class="category-title main">🏆 ทีมหลัก (12 ทีม)</div>
+<div id="teamsMain" class="container"></div>
+</div>
+
+<div class="category">
+<div class="category-title sub">🥈 ทีมรอง (18 ทีม)</div>
+<div id="teamsSub" class="container"></div>
+</div>
+
+</div>
 
 <div class="pool">
 
@@ -243,8 +285,12 @@ input{
 <script>
 
 const pool=document.getElementById("pool");
-const teams=document.getElementById("teams");
+const teamsMain=document.getElementById("teamsMain");
+const teamsSub=document.getElementById("teamsSub");
 const statusBox=document.getElementById("status");
+
+const MAIN_COUNT=12;
+const SUB_COUNT=18;
 
 let members=[]; // [{name,uid,job}] loaded from the registration page
 let memberByUid={};
@@ -262,14 +308,14 @@ const JOB_COLORS={
 };
 
 const JOB_LABELS={
-"ไนท์":"ไนท์",
-"พระ":"พระ",
-"วิ":"วิ",
-"ดูอิด":"ดูอิด",
-"สไน":"สไน",
-"พ่อค้า":"พ่อค้า",
-"แอส":"แอส",
-"ปืน":"ปืน"
+"ไนท์":"🛡️ ไนท์",
+"พระ":"⛑️ พระ",
+"วิ":"🔮 วิ",
+"ดูอิด":"🌿 ดูอิด",
+"สไน":"🎯 สไน",
+"พ่อค้า":"💰 พ่อค้า",
+"แอส":"🗡️ แอส",
+"ปืน":"🔫 ปืน"
 };
 
 
@@ -379,7 +425,7 @@ placed.add(uid);
 
 });
 
-let boxes=document.querySelectorAll(".teamBox");
+let boxes=getAllTeamBoxes();
 
 (assignment.teams||[]).forEach((team,i)=>{
 
@@ -419,12 +465,11 @@ await load();
 }
 
 
+function buildTeamGroup(container,count,label){
 
-function createTeams(){
+container.innerHTML="";
 
-teams.innerHTML="";
-
-for(let i=1;i<=8;i++){
+for(let i=1;i<=count;i++){
 
 let div=document.createElement("div");
 
@@ -432,16 +477,34 @@ div.className="team";
 
 div.innerHTML=`
 <h3>
-ทีม ${i} 
+${label} ${i}
 (<span class="count">0</span>/5)
 </h3>
 
 <div class="members teamBox"></div>
 `;
 
-teams.appendChild(div);
+container.appendChild(div);
 
 }
+
+}
+
+
+function createTeams(){
+
+buildTeamGroup(teamsMain,MAIN_COUNT,"ทีมหลัก");
+buildTeamGroup(teamsSub,SUB_COUNT,"ทีมรอง");
+
+}
+
+
+function getAllTeamBoxes(){
+
+return [
+...teamsMain.querySelectorAll(".teamBox"),
+...teamsSub.querySelectorAll(".teamBox")
+];
 
 }
 
@@ -523,7 +586,7 @@ async function save(){
 let data={
 pool:[...pool.children].map(x=>x.dataset.uid),
 
-teams:[...document.querySelectorAll(".teamBox")]
+teams:getAllTeamBoxes()
 .map(box=>[...box.children].map(x=>x.dataset.uid))
 
 };
@@ -563,11 +626,11 @@ pool.innerHTML="";
 all.sort(()=>Math.random()-0.5);
 
 
-let boxes=document.querySelectorAll(".teamBox");
+let boxes=getAllTeamBoxes();
 
 all.forEach((m,i)=>{
 
-let team=boxes[i%8];
+let team=boxes[i%boxes.length];
 
 if(team.children.length<5)
 team.appendChild(m);
