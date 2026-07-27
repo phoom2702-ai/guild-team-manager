@@ -69,7 +69,17 @@ input{
     color:white;
 }
 
-input:focus{
+select{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:0;
+    background:#151922;
+    color:white;
+    height:42px;
+}
+
+input:focus,select:focus{
     outline:2px solid #ffd54f;
 }
 
@@ -162,16 +172,14 @@ th{
 
 <div>
 <label>อาชีพ / คลาส</label>
-<input id="job" list="jobList" placeholder="เช่น Tank">
-<datalist id="jobList">
-<option value="Tank">
-<option value="DPS">
-<option value="Healer">
-<option value="Support">
-<option value="Mage">
-<option value="Archer">
-<option value="Assassin">
-</datalist>
+<select id="job">
+<option value="" disabled selected>เลือกอาชีพ</option>
+<option value="แท้ง">🛡️ แท้ง</option>
+<option value="พระ">⛑️ พระ</option>
+<option value="ดีล">⚔️ ดีล</option>
+<option value="ซัพ">🎗️ ซัพ</option>
+<option value="คุม">🌀 คุม</option>
+</select>
 </div>
 
 <button class="add" onclick="addMember()">➕ เพิ่ม</button>
