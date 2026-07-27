@@ -3,26 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>ลงทะเบียนสมาชิก Guild</title>
+<title>Guild Team Manager</title>
 
 <style>
 *{box-sizing:border-box}
 
 body{
-    margin:15px;
-    background:#151922;
-    color:white;
-    font-family:Arial,sans-serif;
+    margin:0;
+    padding:18px;
+    background:#1b2130;
+    color:#e8ecf3;
+    font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+    line-height:1.5;
 }
 
 h1{
     text-align:center;
     color:#ffd54f;
+    letter-spacing:0.5px;
+    margin:6px 0 16px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.4);
+}
+
+button{
+    padding:11px 18px;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    margin:5px;
+    font-weight:bold;
+    font-size:14px;
+    letter-spacing:0.3px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+    transition:transform 0.12s ease,filter 0.12s ease,box-shadow 0.12s ease;
+}
+
+button:hover{
+    filter:brightness(1.12);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+button:active{
+    transform:translateY(0);
+    filter:brightness(0.95);
+}
+
+.btn{
+    text-align:center;
+}
+
+.reset{
+    background:#e53935;
+    color:white;
+}
+
+.random{
+    background:#43a047;
+    color:white;
+}
+
+.refresh{
+    background:#1e88e5;
+    color:white;
 }
 
 .nav{
     text-align:center;
-    margin-bottom:15px;
+    margin-bottom:14px;
 }
 
 .nav a{
@@ -30,8 +78,9 @@ h1{
     text-decoration:none;
     font-weight:bold;
     background:#252c3a;
-    padding:8px 14px;
-    border-radius:8px;
+    padding:9px 16px;
+    border-radius:10px;
+    transition:background 0.15s ease;
 }
 
 .nav a:hover{
@@ -41,8 +90,8 @@ h1{
 .adminBadge{
     display:inline-block;
     margin-left:8px;
-    padding:8px 14px;
-    border-radius:8px;
+    padding:9px 14px;
+    border-radius:10px;
     font-weight:bold;
     font-size:13px;
     cursor:pointer;
@@ -56,217 +105,373 @@ h1{
     color:white;
 }
 
-.card{
-    background:#252c3a;
-    padding:16px;
-    border-radius:12px;
-    max-width:700px;
-    margin:0 auto 20px auto;
-}
-
-.formRow{
-    display:grid;
-    grid-template-columns:1fr 1fr auto auto;
-    gap:10px;
-    align-items:end;
-}
-
-label{
-    display:block;
-    font-size:13px;
+.status{
+    text-align:center;
     color:#aab4c4;
-    margin-bottom:4px;
+    font-size:13.5px;
+    margin-bottom:16px;
+    min-height:18px;
+}
+
+.legend{
+    text-align:center;
+    margin-bottom:18px;
+    line-height:2;
+}
+
+.chip{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:bold;
+    color:white;
+    margin:3px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
+
+.uid{
+    font-size:10px;
+    color:#aab4c4;
+    display:block;
+}
+
+.layout{
+    display:flex;
+    gap:15px;
+    align-items:flex-start;
+}
+
+.pool{
+    background:#252c3a;
+    padding:14px;
+    border-radius:14px;
+    width:260px;
+    flex:0 0 260px;
+    position:sticky;
+    top:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
+
+.pool h2{
+    font-size:16px;
+    margin:2px 0 12px;
+    color:#ffd54f;
 }
 
 input{
     width:100%;
-    padding:10px;
+    padding:11px;
     border-radius:8px;
     border:0;
-    background:#151922;
-    color:white;
+    margin-bottom:12px;
+    font-size:14px;
+    color:#1b2130;
 }
 
-select{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:0;
-    background:#151922;
-    color:white;
-    height:42px;
-}
-
-input:focus,select:focus{
+input:focus{
     outline:2px solid #ffd54f;
 }
 
-button{
-    padding:10px 15px;
-    border:0;
-    border-radius:8px;
-    cursor:pointer;
+.members{
+    min-height:50px;
+    padding:8px;
+    border:2px dashed #566078;
+    border-radius:10px;
+}
+
+.poolBox{
+    height:240px;
+    overflow-y:auto;
+}
+
+.teamsWrap{
+    flex:1;
+    min-width:0;
+}
+
+.category{
+    margin-bottom:22px;
+}
+
+.category-title{
+    text-align:center;
+    background:#1c2230;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:16px;
     font-weight:bold;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
 }
 
-.add{
-    background:#43a047;
-    color:white;
-    height:42px;
-}
-
-.cancel{
-    background:#607d8b;
-    color:white;
-    height:42px;
-}
-
-.edit{
-    background:#1e88e5;
-    color:white;
-    padding:6px 10px;
-    margin-right:6px;
-}
-
-.move{
-    background:#546e7a;
-    color:white;
-    padding:6px 10px;
-    margin-right:6px;
-}
-
-.move:disabled{
-    opacity:0.35;
-    cursor:not-allowed;
-}
-
-.searchBox{
-    max-width:700px;
-    margin:0 auto 12px auto;
-}
-
-.searchBox input{
-    margin-bottom:0;
-}
-
-.del{
-    background:#e53935;
-    color:white;
-    padding:6px 10px;
-}
-
-.error{
-    color:#ff6b6b;
-    font-size:13px;
-    margin-top:8px;
-    min-height:16px;
-}
-
-.count{
-    text-align:center;
-    color:#8895a7;
-    font-size:12px;
-    margin-bottom:8px;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    max-width:700px;
-    margin:0 auto;
-}
-
-th,td{
-    padding:10px;
-    text-align:left;
-    border-bottom:1px solid #3d485d;
-}
-
-th{
+.category-title.main{
     color:#ffd54f;
+    border:1px solid #ffd54f55;
 }
 
-.empty{
-    text-align:center;
-    color:#8895a7;
-    padding:20px;
+.category-title.sub{
+    color:#7ee6c9;
+    border:1px solid #7ee6c955;
 }
 
-.status{
+.container{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:6px;
+}
+
+@media(max-width:1100px){
+    .layout{
+        flex-direction:column;
+    }
+    .pool{
+        width:100%;
+        flex:none;
+        position:static;
+    }
+    .poolBox{
+        height:180px;
+    }
+}
+
+.team{
+    background:#252c3a;
+    padding:5px;
+    border-radius:9px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+}
+
+.team h3{
     text-align:center;
-    color:#8895a7;
-    font-size:13px;
-    margin-top:10px;
+    color:#ffd54f;
+    font-size:10.5px;
+    margin:2px 0 6px;
+    letter-spacing:0.1px;
+}
+
+.member{
+    background:#3d485d;
+    padding:5px 7px;
+    margin:3px 0;
+    border-radius:6px;
+    font-size:11.5px;
+    font-weight:bold;
+    cursor:grab;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    transition:filter 0.12s ease,transform 0.12s ease;
+}
+
+.member:hover{
+    filter:brightness(1.2);
+    transform:translateY(-1px);
+}
+
+.full{
+    border:2px solid #ef5350;
+    box-shadow:0 0 0 1px rgba(239,83,80,0.35);
+}
+
+.drag{
+    border-color:#66bb6a;
+}
+
+@media(max-width:1100px){
+    .container{
+        grid-template-columns:repeat(4,1fr);
+    }
+}
+
+@media(max-width:900px){
+    .container{
+        grid-template-columns:repeat(3,1fr);
+    }
 }
 
 @media(max-width:600px){
-    .formRow{
-        grid-template-columns:1fr;
+    .container{
+        grid-template-columns:repeat(2,1fr);
     }
 }
+
+/* ===== เลขลำดับ 1-5 ในช่องทีม ===== */
+.teamBox{
+    counter-reset:slot;
+}
+
+.teamBox .member{
+    counter-increment:slot;
+    position:relative;
+    padding-left:20px;
+}
+
+.teamBox .member::before{
+    content:counter(slot)". ";
+    position:absolute;
+    left:6px;
+    top:5px;
+    font-weight:bold;
+    font-size:11px;
+    color:#ffe082;
+    text-shadow:0 0 3px #000, 0 0 3px #000;
+}
+
+.teamBox .slot-empty{
+    background:transparent;
+    border:1px dashed #566;
+    color:#5c6b80;
+    font-style:italic;
+    cursor:default;
+    font-weight:normal;
+}
+
+.teamBox .slot-empty:hover{
+    filter:none;
+}
+
+.teamBox .slot-empty::before{
+    color:#5c6b80;
+    text-shadow:none;
+}
+
+/* ===== Popup ยืนยัน ===== */
+.modalOverlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,12,18,0.65);
+    backdrop-filter:blur(2px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modalOverlay.show{
+    display:flex;
+}
+
+.modalBox{
+    background:#252c3a;
+    border-radius:14px;
+    padding:22px 24px;
+    width:320px;
+    max-width:90vw;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    border:1px solid #3d485d;
+    text-align:center;
+    animation:popIn 0.15s ease;
+}
+
+@keyframes popIn{
+    from{opacity:0;transform:scale(0.94);}
+    to{opacity:1;transform:scale(1);}
+}
+
+.modalBox h3{
+    margin:0 0 10px;
+    color:#ffd54f;
+    font-size:17px;
+}
+
+.modalBox p{
+    margin:0 0 20px;
+    color:#c7cedb;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.modalBtns{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.modalBtns button{
+    flex:1;
+    margin:0;
+}
+
+.modalCancel{
+    background:#3d485d;
+    color:#e8ecf3;
+}
+
+.modalConfirm{
+    background:#e53935;
+    color:white;
+}
 </style>
+
 </head>
 
 <body>
 
-<h1>📋 ลงทะเบียนสมาชิก Guild</h1>
+<h1>🏰 Guild Team Manager</h1>
 
 <div class="nav">
-<a href="guild_team_manager.html">🏰 ไปหน้า Guild Team Manager →</a>
+<a href="index.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
 <span class="adminBadge" id="adminBadge" onclick="toggleAdmin()">🔒 โหมดแอดมิน</span>
 </div>
 
-<div class="card">
-
-<div class="formRow">
-
-<div>
-<label>ชื่อตัวละคร</label>
-<input id="name" placeholder="เช่น Alice">
+<div class="btn">
+<button class="random" onclick="confirmAction('random')">🎲 สุ่มแบ่งทีม</button>
+<button class="refresh" onclick="confirmAction('refresh')">🔁 รีเฟรชสมาชิก</button>
+<button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
 </div>
 
-<div>
-<label>อาชีพ / คลาส</label>
-<select id="job">
-<option value="" disabled selected>เลือกอาชีพ</option>
-<option value="ไนท์">🛡️ ไนท์</option>
-<option value="พระ">⛑️ พระ</option>
-<option value="วิ">🔮 วิ</option>
-<option value="ดูอิด">🌿 ดูอิด</option>
-<option value="สไน">🎯 สไน</option>
-<option value="พ่อค้า">💰 พ่อค้า</option>
-<option value="แอส">🗡️ แอส</option>
-<option value="ปืน">🔫 ปืน</option>
-</select>
+<div class="modalOverlay" id="modalOverlay">
+<div class="modalBox">
+<h3 id="modalTitle">ยืนยันการทำรายการ</h3>
+<p id="modalMessage">คุณแน่ใจหรือไม่?</p>
+<div class="modalBtns">
+<button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
+<button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
+</div>
+</div>
 </div>
 
-<button class="add" id="addBtn" onclick="addMember()">➕ เพิ่ม</button>
-<button class="cancel" id="cancelBtn" onclick="cancelEdit()" style="display:none">✖ ยกเลิก</button>
+<div class="status" id="status"></div>
+
+<div class="legend">
+<span class="chip" style="background:#e53935">⚔️ ไนท์</span>
+<span class="chip" style="background:#1b5e20">🙏 พระ</span>
+<span class="chip" style="background:#29b6f6;color:#111">🧙‍♂️ วิ</span>
+<span class="chip" style="background:#81c784;color:#111">🌿 ดูอิด</span>
+<span class="chip" style="background:#fdd835;color:#111">🎯 สไน</span>
+<span class="chip" style="background:#a1887f;color:#111">💰 พ่อค้า</span>
+<span class="chip" style="background:#34495e">🗡️ แอส</span>
+<span class="chip" style="background:#5d4037">🔫 ปืน</span>
+</div>
+
+
+<div class="layout">
+
+<div class="teamsWrap">
+
+<div class="category">
+<div class="category-title main">🏆 ทีมหลัก (12 ทีม)</div>
+<div id="teamsMain" class="container"></div>
+</div>
+
+<div class="category">
+<div class="category-title sub">🥈 ทีมรอง (18 ทีม)</div>
+<div id="teamsSub" class="container"></div>
+</div>
 
 </div>
 
-<div class="error" id="error"></div>
+<div class="pool">
+
+<h2>👥 รายชื่อสมาชิกทั้งหมด</h2>
+
+<input id="search" placeholder="🔍 ค้นหารายชื่อ">
+
+<div id="pool" class="members poolBox"></div>
 
 </div>
 
-<div class="searchBox">
-<input id="search" placeholder="🔍 ค้นหารายชื่อตัวละคร">
 </div>
 
-<div class="count" id="count"></div>
-
-<table>
-<thead>
-<tr>
-<th>ชื่อตัวละคร</th>
-<th>อาชีพ</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="memberList"></tbody>
-</table>
-
-<div class="status" id="status">กำลังโหลดข้อมูล...</div>
 
 <!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -275,6 +480,8 @@ th{
 
 <script>
 
+// ⚠️ แทนที่ config ด้านล่างนี้ด้วยค่าจากโปรเจกต์ Firebase ของคุณ
+// (Project settings > Your apps > Web app > firebaseConfig)
 const firebaseConfig={
   apiKey:"AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
   authDomain:"gulid-75b53.firebaseapp.com",
@@ -289,13 +496,22 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 const auth=firebase.auth();
 const membersRef=db.ref("members");
+const assignmentRef=db.ref("assignment");
+
+const pool=document.getElementById("pool");
+const teamsMain=document.getElementById("teamsMain");
+const teamsSub=document.getElementById("teamsSub");
+const statusBox=document.getElementById("status");
 
 // ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
 // ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
 // และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
+// (ต้องเป็นบัญชีเดียวกับที่ตั้งไว้ในไฟล์ index.html)
 auth.setPersistence(firebase.auth.Auth.Persistence.SESSION);
 
 let isAdmin=false;
+
+const adminBadge=document.getElementById("adminBadge");
 
 auth.onAuthStateChanged(user=>{
 isAdmin=!!user;
@@ -352,184 +568,72 @@ await checkAdmin();
 
 function updateAdminUI(){
 
-let badge=document.getElementById("adminBadge");
-
-badge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
-badge.classList.toggle("on",isAdmin);
+adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
+adminBadge.classList.toggle("on",isAdmin);
 
 }
 
-function makeUid(){
-
-return "m_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
-
-}
-
-let members=[];
-let editingUid=null;
-let searchQuery="";
-
-const nameInput=document.getElementById("name");
-const jobInput=document.getElementById("job");
-const errorBox=document.getElementById("error");
-const listBody=document.getElementById("memberList");
-const statusBox=document.getElementById("status");
-const countBox=document.getElementById("count");
-const addBtn=document.getElementById("addBtn");
-const cancelBtn=document.getElementById("cancelBtn");
-const searchInput=document.getElementById("search");
-
-
-// เรียงตามฟิลด์ order เสมอ เพื่อให้ลำดับที่ผู้ใช้จัดไว้ไม่ถูก Firebase สลับ key เอง
-function normalizeMembers(raw){
-
-if(!raw)return[];
-
-let arr=Array.isArray(raw)?raw.filter(Boolean):Object.values(raw);
-
-arr.sort((a,b)=>(a.order??0)-(b.order??0));
-
-return arr;
-
-}
-
-
-function nextOrder(){
-
-if(members.length===0)return 0;
-
-return Math.max(...members.map(m=>m.order??0))+1;
-
-}
-
-
-function loadMembers(){
-
-statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
-
-membersRef.on("value",snap=>{
-
-members=normalizeMembers(snap.val());
-
-// ถ้ากำลังแก้ไขอยู่ ก็ยัง render ตารางได้ตามปกติ
-// (ช่องกรอกด้านบนไม่ได้ผูกกับ members array เลยไม่ถูกทับ)
-render();
-
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
-
-},err=>{
-
-statusBox.textContent="⚠️ เชื่อมต่อ Firebase ไม่สำเร็จ: "+err.message;
-
-});
-
-}
-
-
-async function saveMembers(){
-
-try{
-
-let obj={};
-
-members.forEach(m=>{
-obj[m.uid]=m;
-});
-
-await membersRef.set(obj);
-
-}catch(e){
-
-statusBox.textContent="⚠️ บันทึกไม่สำเร็จ: "+e.message;
-
-}
-
-}
-
-
-function render(){
-
-listBody.innerHTML="";
-
-if(members.length===0){
-
-listBody.innerHTML=`<tr><td colspan="3" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
-
-countBox.textContent="";
-
-return;
-
-}
-
-let query=searchQuery.trim().toLowerCase();
-
-let visible=query
-?members.filter(m=>m.name.toLowerCase().includes(query))
-:members;
-
-if(visible.length===0){
-
-listBody.innerHTML=`<tr><td colspan="3" class="empty">ไม่พบชื่อที่ตรงกับ "${escapeHtml(searchQuery)}"</td></tr>`;
-
-countBox.textContent="";
-
-return;
-
-}
-
-countBox.textContent=query
-?`พบ ${visible.length} จากทั้งหมด ${members.length} คน`
-:`ทั้งหมด ${members.length} คน`;
-
-visible.forEach(m=>{
-
-let idx=members.findIndex(x=>x.uid===m.uid);
-
-let tr=document.createElement("tr");
-
-tr.innerHTML=`
-<td>${escapeHtml(m.name)}</td>
-<td>${escapeHtml(m.job)}</td>
-<td>
-<button class="move" title="เลื่อนขึ้น" ${idx<=0?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',-1)">⬆️</button>
-<button class="move" title="เลื่อนลง" ${idx>=members.length-1?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',1)">⬇️</button>
-<button class="edit" onclick="editMember('${escapeAttr(m.uid)}')">✏️ แก้ไข</button>
-<button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button>
-</td>
-`;
-
-listBody.appendChild(tr);
-
-});
-
-}
-
-
-async function moveMember(uid,dir){
-
-if(!(await checkAdmin()))return;
-
-let idx=members.findIndex(x=>x.uid===uid);
-
-if(idx===-1)return;
-
-let swapIdx=idx+dir;
-
-if(swapIdx<0||swapIdx>=members.length)return;
-
-// สลับค่า order กันระหว่าง 2 คนนี้ (ตัว array เองไม่ต้อง splice ก็ได้ เพราะ render จะเรียงตาม order ใหม่หลัง reload)
-let a=members[idx];
-let b=members[swapIdx];
-
-let tmp=a.order??idx;
-a.order=b.order??swapIdx;
-b.order=tmp;
-
-members.sort((x,y)=>(x.order??0)-(y.order??0));
-
-render();
-
-await saveMembers();
+const MAIN_COUNT=12;
+const SUB_COUNT=18;
+const TEAM_SIZE=5;
+
+let members=[]; // [{name,uid,job}] loaded from the registration page
+let memberByUid={};
+
+
+const JOB_COLORS={
+"ไนท์":"#e53935",
+"พระ":"#1b5e20",
+"วิ":"#29b6f6",
+"ดูอิด":"#81c784",
+"สไน":"#fdd835",
+"พ่อค้า":"#a1887f",
+"แอส":"#34495e",
+"ปืน":"#5d4037"
+};
+
+// สีข้อความสำหรับพื้นหลังโทนอ่อน จะได้อ่านง่ายขึ้น
+const JOB_TEXT_COLORS={
+"ไนท์":"#fff",
+"พระ":"#fff",
+"วิ":"#111",
+"ดูอิด":"#111",
+"สไน":"#111",
+"พ่อค้า":"#111",
+"แอส":"#fff",
+"ปืน":"#fff"
+};
+
+const JOB_LABELS={
+"ไนท์":"⚔️ ไนท์",
+"พระ":"🙏 พระ",
+"วิ":"🧙‍♂️ วิ",
+"ดูอิด":"🌿 ดูอิด",
+"สไน":"🎯 สไน",
+"พ่อค้า":"💰 พ่อค้า",
+"แอส":"🗡️ แอส",
+"ปืน":"🔫 ปืน"
+};
+
+
+function createMember(m){
+
+let div=document.createElement("div");
+
+div.className="member";
+div.draggable=true;
+div.dataset.uid=m.uid;
+div.title="UID: "+m.uid;
+div.style.background=JOB_COLORS[m.job]||"#3d485d";
+div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
+
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})`;
+
+div.ondragstart=()=>{
+dragItem=div;
+};
+
+return div;
 
 }
 
@@ -544,147 +648,484 @@ return String(str)
 }
 
 
-function escapeAttr(str){
+// ค่าล่าสุดที่ได้รับจาก Firebase (อัปเดตแบบ realtime ผ่าน listener ด้านล่าง)
+let latestAssignment=null;
+let firebaseReady=false;
 
-return String(str).replaceAll("'","\\'");
+// true ระหว่างที่เรากำลังลาก/วางเอง กัน listener ของตัวเองมาวาดทับ DOM จนกระตุก
+let isDragging=false;
 
-}
 
+function normalizeMembers(raw){
 
-function editMember(uid){
+// Firebase เก็บ object {uid: {...}} เวลาเขียนด้วย key เป็น uid
+// รองรับกรณีเป็น array ตรงๆ ด้วยเผื่อไว้
+if(!raw)return[];
 
-let m=members.find(x=>x.uid===uid);
+if(Array.isArray(raw))return raw.filter(Boolean);
 
-if(!m)return;
-
-editingUid=uid;
-
-nameInput.value=m.name;
-jobInput.value=m.job;
-
-errorBox.textContent="";
-
-addBtn.textContent="💾 บันทึก";
-cancelBtn.style.display="inline-block";
-
-nameInput.focus();
+return Object.values(raw);
 
 }
 
 
-function cancelEdit(){
+function renderFromState(){
 
-editingUid=null;
+if(!firebaseReady)return;
 
-nameInput.value="";
-jobInput.value="";
+pool.innerHTML="";
 
-errorBox.textContent="";
+createTeams();
 
-addBtn.textContent="➕ เพิ่ม";
-cancelBtn.style.display="none";
+if(members.length===0){
+
+statusBox.textContent="ยังไม่มีสมาชิก กรุณาไปหน้าลงทะเบียนสมาชิกก่อน";
+
+update();
+
+return;
+
+}
+
+let placed=new Set();
+
+let assignment=latestAssignment;
+
+if(assignment){
+
+(assignment.pool||[]).forEach(uid=>{
+
+if(memberByUid[uid]){
+pool.appendChild(createMember(memberByUid[uid]));
+placed.add(uid);
+}
+
+});
+
+let boxes=getAllTeamBoxes();
+
+(assignment.teams||[]).forEach((team,i)=>{
+
+(team||[]).forEach(uid=>{
+
+if(memberByUid[uid]&&boxes[i]){
+boxes[i].appendChild(createMember(memberByUid[uid]));
+placed.add(uid);
+}
+
+});
+
+});
+
+}
+
+// members registered but not yet placed anywhere go into the pool
+members.forEach(m=>{
+
+if(!placed.has(m.uid)){
+pool.appendChild(createMember(m));
+}
+
+});
+
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
+
+update();
 
 }
 
 
-async function addMember(){
+function attachRealtimeListeners(){
+
+membersRef.on("value",snap=>{
+
+members=normalizeMembers(snap.val());
+
+memberByUid={};
+
+members.forEach(m=>{
+memberByUid[m.uid]=m;
+});
+
+firebaseReady=true;
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ: "+err.message;
+
+});
+
+
+assignmentRef.on("value",snap=>{
+
+latestAssignment=snap.val()||null;
+
+if(isDragging)return; // ระหว่างลากในเครื่องตัวเอง ไม่ต้อง re-render ทับ
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ: "+err.message;
+
+});
+
+}
+
+
+async function load(){
+
+statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
+
+createTeams();
+
+attachRealtimeListeners();
+
+}
+
+
+async function refreshMembers(){
+
+// ข้อมูลมาแบบ realtime อยู่แล้ว ปุ่มนี้ไว้บังคับวาดใหม่เผื่อ DOM ค้าง
+renderFromState();
+
+}
+
+
+function buildTeamGroup(container,count,label){
+
+container.innerHTML="";
+
+for(let i=1;i<=count;i++){
+
+let div=document.createElement("div");
+
+div.className="team";
+
+div.innerHTML=`
+<h3>
+${label} ${i}
+(<span class="count">0</span>/${TEAM_SIZE})
+</h3>
+
+<div class="members teamBox"></div>
+`;
+
+container.appendChild(div);
+
+}
+
+}
+
+
+function createTeams(){
+
+buildTeamGroup(teamsMain,MAIN_COUNT,"ทีมหลัก");
+buildTeamGroup(teamsSub,SUB_COUNT,"ทีมรอง");
+
+}
+
+
+function getAllTeamBoxes(){
+
+return [
+...teamsMain.querySelectorAll(".teamBox"),
+...teamsSub.querySelectorAll(".teamBox")
+];
+
+}
+
+
+// นับเฉพาะสมาชิกจริง (ไม่นับช่องว่างที่ใส่ไว้เพื่อโชว์เลข)
+function realMembersIn(box){
+
+return [...box.children].filter(c=>c.dataset.uid);
+
+}
+
+
+
+let dragItem=null;
+
+
+document.addEventListener("dragover",e=>{
+
+let box=e.target.closest(".members");
+
+if(box){
+e.preventDefault();
+box.classList.add("drag");
+}
+
+});
+
+
+document.addEventListener("dragleave",e=>{
+
+let box=e.target.closest(".members");
+
+if(box)
+box.classList.remove("drag");
+
+});
+
+
+document.addEventListener("drop",async e=>{
+
+let box=e.target.closest(".members");
+
+if(!box)return;
+
+box.classList.remove("drag");
+
+if(!dragItem)return;
 
 if(!(await checkAdmin()))return;
 
-let name=nameInput.value.trim();
-let job=jobInput.value.trim();
+let dropTarget=e.target.closest(".member");
 
-errorBox.textContent="";
-
-if(!name||!job){
-
-errorBox.textContent="กรุณากรอกชื่อตัวละครและอาชีพให้ครบ";
-
-return;
-
+// ช่องว่าง (placeholder เลข) ไม่ใช่เป้าหมายสลับตำแหน่งได้ ให้ถือว่าปล่อยลงกล่องเฉยๆ
+if(dropTarget && dropTarget.classList.contains("slot-empty")){
+dropTarget=null;
 }
 
-if(editingUid){
+// ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
+if(dropTarget && dropTarget!==dragItem){
 
-let current=members.find(x=>x.uid===editingUid);
+let dragParent=dragItem.parentElement;
 
-if(name!==current.name&&members.some(m=>m.name===name&&m.uid!==editingUid)){
+let placeholder=document.createElement("div");
 
-errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
+dragParent.insertBefore(placeholder,dragItem);
 
-return;
+dropTarget.parentElement.insertBefore(dragItem,dropTarget);
 
-}
+dragParent.insertBefore(dropTarget,placeholder);
 
-current.name=name;
-current.job=job;
-
-editingUid=null;
-
-addBtn.textContent="➕ เพิ่ม";
-cancelBtn.style.display="none";
+dragParent.removeChild(placeholder);
 
 }else{
 
-if(members.some(m=>m.name===name)){
+let isTeam=box.classList.contains("teamBox");
 
-errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
+if(isTeam && realMembersIn(box).length>=TEAM_SIZE){
+
+alert("ทีมนี้เต็มแล้ว "+TEAM_SIZE+"/"+TEAM_SIZE);
 
 return;
 
 }
 
-members.push({uid:makeUid(),name,job,order:nextOrder()});
-
-}
-
-nameInput.value="";
-jobInput.value="";
-nameInput.focus();
-
-render();
-
-await saveMembers();
+box.appendChild(dragItem);
 
 }
 
 
-async function deleteMember(uid){
+isDragging=true;
 
-if(!(await checkAdmin()))return;
+update();
 
-members=members.filter(m=>m.uid!==uid);
-
-render();
-
-await saveMembers();
-
-}
-
-
-[nameInput,jobInput].forEach(el=>{
-
-el.addEventListener("keydown",e=>{
-
-if(e.key==="Enter")addMember();
-
+save().finally(()=>{
+isDragging=false;
 });
 
 });
 
 
-searchInput.addEventListener("input",function(){
 
-searchQuery=this.value;
+function update(){
 
-render();
+document.querySelectorAll(".team").forEach(team=>{
+
+let box=team.querySelector(".teamBox");
+
+// ลบช่องว่างเดิมทิ้งก่อน แล้วค่อยเติมใหม่ให้ครบ ให้เลขเรียงถูกต้องเสมอ
+box.querySelectorAll(".slot-empty").forEach(el=>el.remove());
+
+let count=realMembersIn(box).length;
+
+for(let i=count;i<TEAM_SIZE;i++){
+
+let ph=document.createElement("div");
+
+ph.className="member slot-empty";
+ph.draggable=false;
+
+box.appendChild(ph);
+
+}
+
+team.querySelector(".count").innerText=count;
+
+team.classList.toggle("full",count>=TEAM_SIZE);
 
 });
+
+}
+
+
+
+async function save(){
+
+let data={
+pool:[...pool.children].map(x=>x.dataset.uid),
+
+teams:getAllTeamBoxes()
+.map(box=>realMembersIn(box).map(x=>x.dataset.uid))
+
+};
+
+latestAssignment=data; // อัปเดตแคชในเครื่องทันที ไม่ต้องรอ echo กลับมาจาก Firebase
+
+try{
+
+await assignmentRef.set(data);
+
+}catch(e){
+
+statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message;
+
+}
+
+}
+
+
+
+async function resetAll(){
+
+try{
+
+await assignmentRef.remove();
+
+}catch(e){
+
+statusBox.textContent="⚠️ รีเซ็ตไม่สำเร็จ: "+e.message;
+
+}
+
+}
+
+
+
+function randomTeam(){
+
+let all=[
+...pool.children
+];
+
+pool.innerHTML="";
+
+all.sort(()=>Math.random()-0.5);
+
+
+let boxes=getAllTeamBoxes();
+
+all.forEach((m,i)=>{
+
+let team=boxes[i%boxes.length];
+
+if(realMembersIn(team).length<TEAM_SIZE)
+team.appendChild(m);
+
+});
+
+isDragging=true;
+
+update();
+
+save().finally(()=>{
+isDragging=false;
+});
+
+}
+
+
+
+// ===== Popup ยืนยัน =====
+const modalOverlay=document.getElementById("modalOverlay");
+const modalTitle=document.getElementById("modalTitle");
+const modalMessage=document.getElementById("modalMessage");
+const modalConfirmBtn=document.getElementById("modalConfirmBtn");
+
+const ACTIONS={
+random:{
+title:"ยืนยันการสุ่มแบ่งทีม",
+message:"ระบบจะสุ่มจัดสมาชิกทั้งหมดในกล่องรายชื่อลงทีมใหม่ ต้องการดำเนินการต่อหรือไม่?",
+run:randomTeam
+},
+refresh:{
+title:"ยืนยันการรีเฟรชสมาชิก",
+message:"ระบบจะโหลดข้อมูลล่าสุดมาวาดใหม่ทั้งหมด ต้องการดำเนินการต่อหรือไม่?",
+run:refreshMembers
+},
+reset:{
+title:"ยืนยันการรีเซ็ต",
+message:"การจัดทีมทั้งหมดจะถูกล้างและย้ายสมาชิกกลับไปที่กล่องรายชื่อ ต้องการดำเนินการต่อหรือไม่?",
+run:resetAll
+}
+};
+
+async function confirmAction(key){
+
+let action=ACTIONS[key];
+
+if(!action)return;
+
+// รีเฟรชไม่ได้แก้ไขข้อมูลอะไร เลยไม่ต้องเช็กสิทธิ์
+if(key!=="refresh" && !(await checkAdmin()))return;
+
+modalTitle.textContent=action.title;
+modalMessage.textContent=action.message;
+
+modalConfirmBtn.onclick=()=>{
+closeModal();
+action.run();
+};
+
+modalOverlay.classList.add("show");
+
+}
+
+function closeModal(){
+modalOverlay.classList.remove("show");
+}
+
+modalOverlay.addEventListener("click",e=>{
+if(e.target===modalOverlay)closeModal();
+});
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape")closeModal();
+});
+
+
+document.getElementById("search")
+.addEventListener("input",function(){
+
+let key=this.value.toLowerCase();
+
+document.querySelectorAll("#pool .member")
+.forEach(m=>{
+
+let uid=memberByUid[m.dataset.uid];
+
+let text=uid?(uid.name+" "+uid.uid+" "+uid.job).toLowerCase():m.textContent.toLowerCase();
+
+m.style.display=
+text.includes(key)
+?"block":"none";
+
+});
+
+});
+
 
 
 updateAdminUI();
 
-loadMembers();
+load();
 
 </script>
 
