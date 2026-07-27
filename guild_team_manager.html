@@ -230,7 +230,7 @@ input{
 <h1>🏰 Guild Team Manager</h1>
 
 <div class="nav">
-<a href="index.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
+<a href="member_registration.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
 </div>
 
 <div class="btn">
@@ -242,14 +242,14 @@ input{
 <div class="status" id="status"></div>
 
 <div class="legend">
-<span class="chip" style="background:#c0392b"> ไนท์</span>
-<span class="chip" style="background:#2e8b57"> พระ</span>
-<span class="chip" style="background:#7b3fa0"> วิ</span>
-<span class="chip" style="background:#16a085"> ดูอิด</span>
-<span class="chip" style="background:#556b2f"> สไน</span>
-<span class="chip" style="background:#d4ac0d"> พ่อค้า</span>
-<span class="chip" style="background:#34495e"> แอส</span>
-<span class="chip" style="background:#1e5fa8"> ปืน</span>
+<span class="chip" style="background:#c0392b">🛡️ ไนท์</span>
+<span class="chip" style="background:#2e8b57">⛑️ พระ</span>
+<span class="chip" style="background:#7b3fa0">🔮 วิ</span>
+<span class="chip" style="background:#16a085">🌿 ดูอิด</span>
+<span class="chip" style="background:#556b2f">🎯 สไน</span>
+<span class="chip" style="background:#d4ac0d">💰 พ่อค้า</span>
+<span class="chip" style="background:#34495e">🗡️ แอส</span>
+<span class="chip" style="background:#1e5fa8">🔫 ปืน</span>
 </div>
 
 
@@ -282,7 +282,28 @@ input{
 </div>
 
 
+<!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+
 <script>
+
+// ⚠️ แทนที่ config ด้านล่างนี้ด้วยค่าจากโปรเจกต์ Firebase ของคุณ
+// (Project settings > Your apps > Web app > firebaseConfig)
+const firebaseConfig={
+  apiKey:"AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
+  authDomain:"gulid-75b53.firebaseapp.com",
+  databaseURL:"https://gulid-75b53-default-rtdb.firebaseio.com",
+  projectId:"gulid-75b53",
+  storageBucket:"gulid-75b53.firebasestorage.app",
+  messagingSenderId:"697549334189",
+  appId:"1:697549334189:web:0b7b8bf2ceaa87bce84824"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const membersRef=db.ref("members");
+const assignmentRef=db.ref("assignment");
 
 const pool=document.getElementById("pool");
 const teamsMain=document.getElementById("teamsMain");
@@ -350,53 +371,30 @@ return String(str)
 }
 
 
-async function fetchMembers(){
+// ค่าล่าสุดที่ได้รับจาก Firebase (อัปเดตแบบ realtime ผ่าน listener ด้านล่าง)
+let latestAssignment=null;
+let firebaseReady=false;
 
-try{
+// true ระหว่างที่เรากำลังลาก/วางเอง กัน listener ของตัวเองมาวาดทับ DOM จนกระตุก
+let isDragging=false;
 
-let raw=localStorage.getItem("guild-members");
 
-members=raw?JSON.parse(raw):[];
+function normalizeMembers(raw){
 
-}catch(e){
+// Firebase เก็บ object {uid: {...}} เวลาเขียนด้วย key เป็น uid
+// รองรับกรณีเป็น array ตรงๆ ด้วยเผื่อไว้
+if(!raw)return[];
 
-members=[];
+if(Array.isArray(raw))return raw.filter(Boolean);
 
-}
-
-memberByUid={};
-
-members.forEach(m=>{
-memberByUid[m.uid]=m;
-});
+return Object.values(raw);
 
 }
 
 
-async function fetchAssignment(){
+function renderFromState(){
 
-try{
-
-let raw=localStorage.getItem("guild-assignment");
-
-return raw?JSON.parse(raw):null;
-
-}catch(e){
-
-return null;
-
-}
-
-}
-
-
-async function load(){
-
-statusBox.textContent="กำลังโหลดข้อมูลสมาชิก...";
-
-await fetchMembers();
-
-let assignment=await fetchAssignment();
+if(!firebaseReady)return;
 
 pool.innerHTML="";
 
@@ -414,6 +412,8 @@ return;
 
 let placed=new Set();
 
+let assignment=latestAssignment;
+
 if(assignment){
 
 (assignment.pool||[]).forEach(uid=>{
@@ -429,7 +429,7 @@ let boxes=getAllTeamBoxes();
 
 (assignment.teams||[]).forEach((team,i)=>{
 
-team.forEach(uid=>{
+(team||[]).forEach(uid=>{
 
 if(memberByUid[uid]&&boxes[i]){
 boxes[i].appendChild(createMember(memberByUid[uid]));
@@ -451,16 +451,68 @@ pool.appendChild(createMember(m));
 
 });
 
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน";
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
 
 update();
 
 }
 
 
+function attachRealtimeListeners(){
+
+membersRef.on("value",snap=>{
+
+members=normalizeMembers(snap.val());
+
+memberByUid={};
+
+members.forEach(m=>{
+memberByUid[m.uid]=m;
+});
+
+firebaseReady=true;
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ: "+err.message;
+
+});
+
+
+assignmentRef.on("value",snap=>{
+
+latestAssignment=snap.val()||null;
+
+if(isDragging)return; // ระหว่างลากในเครื่องตัวเอง ไม่ต้อง re-render ทับ
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ: "+err.message;
+
+});
+
+}
+
+
+async function load(){
+
+statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
+
+createTeams();
+
+attachRealtimeListeners();
+
+}
+
+
 async function refreshMembers(){
 
-await load();
+// ข้อมูลมาแบบ realtime อยู่แล้ว ปุ่มนี้ไว้บังคับวาดใหม่เผื่อ DOM ค้าง
+renderFromState();
 
 }
 
@@ -555,11 +607,15 @@ return;
 }
 
 
+isDragging=true;
+
 box.appendChild(dragItem);
 
-save();
-
 update();
+
+save().finally(()=>{
+isDragging=false;
+});
 
 });
 
@@ -591,9 +647,11 @@ teams:getAllTeamBoxes()
 
 };
 
+latestAssignment=data; // อัปเดตแคชในเครื่องทันที ไม่ต้องรอ echo กลับมาจาก Firebase
+
 try{
 
-localStorage.setItem("guild-assignment",JSON.stringify(data));
+await assignmentRef.set(data);
 
 }catch(e){
 
@@ -607,9 +665,15 @@ statusBox.textContent="⚠️ บันทึกการจัดทีมไ�
 
 async function resetAll(){
 
-localStorage.removeItem("guild-assignment");
+try{
 
-await load();
+await assignmentRef.remove();
+
+}catch(e){
+
+statusBox.textContent="⚠️ รีเซ็ตไม่สำเร็จ: "+e.message;
+
+}
 
 }
 
@@ -637,8 +701,13 @@ team.appendChild(m);
 
 });
 
-save();
+isDragging=true;
+
 update();
+
+save().finally(()=>{
+isDragging=false;
+});
 
 }
 
