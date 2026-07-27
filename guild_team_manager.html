@@ -87,6 +87,24 @@ button:active{
     background:#3d485d;
 }
 
+.adminBadge{
+    display:inline-block;
+    margin-left:8px;
+    padding:9px 14px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:13px;
+    cursor:pointer;
+    background:#3d485d;
+    color:#aab4c4;
+    vertical-align:middle;
+}
+
+.adminBadge.on{
+    background:#2e7d32;
+    color:white;
+}
+
 .status{
     text-align:center;
     color:#aab4c4;
@@ -391,6 +409,7 @@ input:focus{
 
 <div class="nav">
 <a href="index.html">📋 ไปหน้าลงทะเบียนสมาชิก →</a>
+<span class="adminBadge" id="adminBadge" onclick="toggleAdmin()">🔒 โหมดแอดมิน</span>
 </div>
 
 <div class="btn">
@@ -480,6 +499,58 @@ const pool=document.getElementById("pool");
 const teamsMain=document.getElementById("teamsMain");
 const teamsSub=document.getElementById("teamsSub");
 const statusBox=document.getElementById("status");
+
+// ===== ระบบล็อกสิทธิ์แบบง่าย (รหัสผ่านเดียว ไม่ใช่ระบบ auth เต็มรูปแบบ) =====
+// ⚠️ รหัสนี้อยู่ในโค้ดฝั่งหน้าเว็บ ใครเปิด View Source ก็เห็นได้ ใช้กันแค่คนทั่วไปพลาดกด ไม่ใช่กันแฮกเกอร์
+const ADMIN_PASSWORD="guild2026"; // เปลี่ยนรหัสตรงนี้ได้ตามต้องการ
+
+let isAdmin=sessionStorage.getItem("isAdmin")==="true";
+
+const adminBadge=document.getElementById("adminBadge");
+
+function checkAdmin(){
+
+if(isAdmin)return true;
+
+let pass=prompt("กรอกรหัสผ่านแอดมินเพื่อทำรายการนี้:");
+
+if(pass===null)return false;
+
+if(pass===ADMIN_PASSWORD){
+isAdmin=true;
+sessionStorage.setItem("isAdmin","true");
+updateAdminUI();
+return true;
+}
+
+alert("รหัสผ่านไม่ถูกต้อง");
+
+return false;
+
+}
+
+function toggleAdmin(){
+
+if(isAdmin){
+
+isAdmin=false;
+sessionStorage.removeItem("isAdmin");
+updateAdminUI();
+
+}else{
+
+checkAdmin();
+
+}
+
+}
+
+function updateAdminUI(){
+
+adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
+adminBadge.classList.toggle("on",isAdmin);
+
+}
 
 const MAIN_COUNT=12;
 const SUB_COUNT=18;
@@ -790,6 +861,8 @@ box.classList.remove("drag");
 
 if(!dragItem)return;
 
+if(!checkAdmin())return;
+
 let dropTarget=e.target.closest(".member");
 
 // ช่องว่าง (placeholder เลข) ไม่ใช่เป้าหมายสลับตำแหน่งได้ ให้ถือว่าปล่อยลงกล่องเฉยๆ
@@ -979,6 +1052,9 @@ let action=ACTIONS[key];
 
 if(!action)return;
 
+// รีเฟรชไม่ได้แก้ไขข้อมูลอะไร เลยไม่ต้องเช็กสิทธิ์
+if(key!=="refresh" && !checkAdmin())return;
+
 modalTitle.textContent=action.title;
 modalMessage.textContent=action.message;
 
@@ -1025,6 +1101,8 @@ text.includes(key)
 });
 
 
+
+updateAdminUI();
 
 load();
 
