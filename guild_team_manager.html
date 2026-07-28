@@ -647,8 +647,7 @@ input:focus{
 
 <div class="toastContainer" id="toastContainer"></div>
 
-<div class="btn">
-<button class="refresh" onclick="confirmAction('refresh')">🔁 รีเฟรชสมาชิก</button>
+<div class="btn" id="actionButtons" style="display:none">
 <button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
 <button class="copy" onclick="exportTeamImage()">🖼️ ส่งออกเป็นรูปภาพ</button>
 </div>
@@ -946,6 +945,9 @@ adminBadge.classList.toggle("on",isAdmin);
 // กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
 document.getElementById("poolSection").style.display=isAdmin?"":"none";
 document.getElementById("poolLockedNotice").style.display=isAdmin?"none":"";
+
+// ปุ่มรีเซ็ต/ส่งออกรูปภาพ ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
+document.getElementById("actionButtons").style.display=isAdmin?"":"none";
 
 }
 
@@ -1456,11 +1458,6 @@ const modalMessage=document.getElementById("modalMessage");
 const modalConfirmBtn=document.getElementById("modalConfirmBtn");
 
 const ACTIONS={
-refresh:{
-title:"ยืนยันการรีเฟรชสมาชิก",
-message:"ระบบจะโหลดข้อมูลล่าสุดทั้งหมด ต้องการดำเนินการต่อหรือไม่?",
-run:refreshMembers
-},
 reset:{
 title:"ยืนยันการรีเซ็ต",
 message:"การจัดทีมทั้งหมดจะถูกล้างและย้ายสมาชิกกลับไปที่กล่องรายชื่อ ต้องการดำเนินการต่อหรือไม่?",
@@ -1474,8 +1471,7 @@ let action=ACTIONS[key];
 
 if(!action)return;
 
-// รีเฟรชไม่ได้แก้ไขข้อมูลอะไร เลยไม่ต้องเช็กสิทธิ์
-if(key!=="refresh" && !(await checkAdmin()))return;
+if(!(await checkAdmin()))return;
 
 modalTitle.textContent=action.title;
 modalMessage.textContent=action.message;
