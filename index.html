@@ -176,6 +176,29 @@ table{
     margin:0 auto;
 }
 
+.jobGroup{
+    max-width:700px;
+    margin:0 auto 18px auto;
+}
+
+.jobGroupHeader{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:#ffd54f;
+    font-weight:bold;
+    font-size:14px;
+    padding:6px 4px;
+    border-bottom:2px solid #3d485d;
+    margin-bottom:2px;
+}
+
+.jobGroupCount{
+    color:#8895a7;
+    font-weight:normal;
+    font-size:12px;
+}
+
 th,td{
     padding:10px;
     text-align:left;
@@ -199,10 +222,237 @@ th{
     margin-top:10px;
 }
 
+.pendingSection{
+    max-width:700px;
+    margin:0 auto 20px auto;
+    background:#2b2410;
+    border:1px solid #6b5a1e;
+    border-radius:12px;
+    padding:14px 16px;
+}
+
+.pendingSection h2{
+    color:#ffd54f;
+    font-size:16px;
+    margin:0 0 10px 0;
+}
+
+.pendingRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px solid #46391a;
+}
+
+.pendingRow:last-child{
+    border-bottom:0;
+}
+
+.pendingInfo{
+    color:#f0e6c8;
+    font-size:14px;
+}
+
+.pendingActions button{
+    padding:6px 10px;
+    font-size:13px;
+    margin-left:6px;
+}
+
+.approve{
+    background:#43a047;
+    color:white;
+}
+
+.reject{
+    background:#e53935;
+    color:white;
+}
+
+.pendingBadge{
+    display:inline-block;
+    background:#e53935;
+    color:white;
+    border-radius:999px;
+    font-size:11px;
+    padding:1px 7px;
+    margin-left:6px;
+    vertical-align:middle;
+}
+
+.statusTag{
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:999px;
+    margin-left:6px;
+    background:#4a3d15;
+    color:#ffd54f;
+}
+
+.formHint{
+    text-align:center;
+    color:#8895a7;
+    font-size:12px;
+    margin:-8px auto 14px auto;
+    max-width:700px;
+}
+
+.editRow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:center;
+    padding:8px 0;
+}
+
+.editRow input,
+.editRow select{
+    width:auto;
+    flex:1 1 140px;
+    padding:8px 10px;
+}
+
+.editRow .save{
+    background:#43a047;
+    color:white;
+    padding:6px 10px;
+}
+
+.editRow .rowCancel{
+    background:#607d8b;
+    color:white;
+    padding:6px 10px;
+}
+
 @media(max-width:600px){
     .formRow{
         grid-template-columns:1fr;
     }
+}
+
+.toastContainer{
+    position:fixed;
+    top:16px;
+    right:16px;
+    z-index:2000;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:320px;
+    pointer-events:none;
+}
+
+.toast{
+    background:#252c3a;
+    color:#e8ecf3;
+    padding:12px 16px;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45);
+    font-size:13.5px;
+    font-weight:bold;
+    border-left:4px solid #3f6f9e;
+    opacity:0;
+    animation:toastIn 0.25s ease forwards,toastOut 0.3s ease 2.7s forwards;
+}
+
+.toast.success{border-left-color:#3f8055;}
+.toast.error{border-left-color:#b1544e;}
+.toast.info{border-left-color:#3f6f9e;}
+
+@keyframes toastIn{
+    from{opacity:0;transform:translateX(30px);}
+    to{opacity:1;transform:translateX(0);}
+}
+
+@keyframes toastOut{
+    from{opacity:1;transform:translateX(0);}
+    to{opacity:0;transform:translateX(30px);}
+}
+
+.modalOverlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,12,18,0.65);
+    backdrop-filter:blur(2px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modalOverlay.show{
+    display:flex;
+}
+
+.modalBox{
+    background:#252c3a;
+    border-radius:14px;
+    padding:22px 24px;
+    width:320px;
+    max-width:90vw;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    border:1px solid #3d485d;
+    text-align:center;
+    animation:popIn 0.15s ease;
+}
+
+@keyframes popIn{
+    from{opacity:0;transform:scale(0.94);}
+    to{opacity:1;transform:scale(1);}
+}
+
+.modalBox h3{
+    margin:0 0 10px;
+    color:#d9b46a;
+    font-size:17px;
+}
+
+.modalBox p{
+    margin:0 0 20px;
+    color:#c7cedb;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.modalBtns{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.modalBtns button{
+    flex:1;
+    margin:0;
+}
+
+.modalCancel{
+    background:#3d485d;
+    color:#e8ecf3;
+}
+
+.loginConfirm{
+    background:#3f8055;
+    color:white;
+}
+
+.modalBox input{
+    margin-bottom:12px;
+    text-align:left;
+}
+
+.modalBox input:last-of-type{
+    margin-bottom:6px;
+}
+
+.loginError{
+    color:#d17b74;
+    font-size:12.5px;
+    min-height:16px;
+    margin:0 0 10px;
+    text-align:center;
 }
 </style>
 </head>
@@ -214,6 +464,21 @@ th{
 <div class="nav">
 <a href="guild_team_manager.html">🏰 ไปหน้า Guild Team Manager →</a>
 <span class="adminBadge" id="adminBadge" onclick="toggleAdmin()">🔒 โหมดแอดมิน</span>
+</div>
+
+<div class="toastContainer" id="toastContainer"></div>
+
+<div class="modalOverlay" id="loginModalOverlay">
+<div class="modalBox">
+<h3>🔑 เข้าสู่โหมดแอดมิน</h3>
+<input type="email" id="loginEmail" placeholder="อีเมลแอดมิน" autocomplete="username">
+<input type="password" id="loginPassword" placeholder="รหัสผ่าน" autocomplete="current-password">
+<p class="loginError" id="loginError"></p>
+<div class="modalBtns">
+<button class="modalCancel" id="loginCancelBtn">ยกเลิก</button>
+<button class="loginConfirm" id="loginConfirmBtn">เข้าสู่ระบบ</button>
+</div>
+</div>
 </div>
 
 <div class="card">
@@ -250,22 +515,20 @@ th{
 
 </div>
 
-<div class="searchBox">
+<div class="formHint" id="formHint"></div>
+
+<div class="pendingSection" id="pendingSection" style="display:none">
+<h2>🕓 รายชื่อรอการอนุมัติ <span class="pendingBadge" id="pendingCount">0</span></h2>
+<div id="pendingList"></div>
+</div>
+
+<div class="searchBox" id="searchBox">
 <input id="search" placeholder="🔍 ค้นหารายชื่อตัวละคร">
 </div>
 
 <div class="count" id="count"></div>
 
-<table>
-<thead>
-<tr>
-<th>ชื่อตัวละคร</th>
-<th>อาชีพ</th>
-<th></th>
-</tr>
-</thead>
-<tbody id="memberList"></tbody>
-</table>
+<div id="memberList"></div>
 
 <div class="status" id="status">กำลังโหลดข้อมูล...</div>
 
@@ -294,34 +557,140 @@ const membersRef=db.ref("members");
 // ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
 // ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
 // และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
+//
+// ⚠️ สำคัญ: การเช็ค isAdmin ในไฟล์นี้เป็นแค่การซ่อน/แสดงปุ่มฝั่งหน้าเว็บเท่านั้น
+// ไม่ได้ป้องกันการเขียนข้อมูลจริง ต้องไปตั้งค่า Firebase Realtime Database Rules
+// ที่ Console > Realtime Database > Rules ให้สอดคล้องกับฟีเจอร์ "รออนุมัติ" นี้ เช่น
+// - อนุญาตให้ทุกคน "เพิ่ม" รายชื่อใหม่ที่มี status="pending" ได้ (สมัครเอง)
+// - อนุญาตให้ "แก้ไข/ลบ/เปลี่ยน status เป็น approved" ได้เฉพาะผู้ที่ login (auth != null) เท่านั้น
+// ถ้าไม่ตั้ง Rules ให้ตรงกัน คนทั่วไปอาจเขียนข้อมูลอนุมัติตัวเองได้ หรือเพิ่มชื่อไม่ได้เลย
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 let isAdmin=false;
 
 auth.onAuthStateChanged(user=>{
+
+let wasAdmin=isAdmin;
+
 isAdmin=!!user;
+
 updateAdminUI();
+
+if(isAdmin && !wasAdmin){
+showToast("🔓 เข้าสู่โหมดแอดมินแล้ว","success");
+}else if(!isAdmin && wasAdmin){
+showToast("🔒 ออกจากโหมดแอดมินแล้ว","info");
+}
+
 });
+
+// ===== แจ้งเตือนแบบ toast มุมขวาบน =====
+function showToast(message,type="info",duration=3000){
+
+let container=document.getElementById("toastContainer");
+
+if(!container)return;
+
+let el=document.createElement("div");
+
+el.className="toast "+type;
+el.textContent=message;
+
+container.appendChild(el);
+
+setTimeout(()=>el.remove(),duration);
+
+}
+
+// ===== Popup ล็อกอินแอดมิน (แทน prompt() ของเบราว์เซอร์ ให้เด้งตรงกลางสวยๆ เหมือนหน้า Guild Team Manager) =====
+const loginModalOverlay=document.getElementById("loginModalOverlay");
+const loginEmailInput=document.getElementById("loginEmail");
+const loginPasswordInput=document.getElementById("loginPassword");
+const loginError=document.getElementById("loginError");
+const loginConfirmBtn=document.getElementById("loginConfirmBtn");
+const loginCancelBtn=document.getElementById("loginCancelBtn");
+
+function showLoginModal(){
+
+return new Promise(resolve=>{
+
+loginEmailInput.value="";
+loginPasswordInput.value="";
+loginError.textContent="";
+
+loginModalOverlay.classList.add("show");
+
+setTimeout(()=>loginEmailInput.focus(),50);
+
+function cleanup(){
+
+loginModalOverlay.classList.remove("show");
+loginConfirmBtn.onclick=null;
+loginCancelBtn.onclick=null;
+loginModalOverlay.onclick=null;
+document.removeEventListener("keydown",onKey);
+
+}
+
+function submit(){
+
+let email=loginEmailInput.value.trim();
+let password=loginPasswordInput.value;
+
+if(!email||!password){
+loginError.textContent="กรุณากรอกอีเมลและรหัสผ่านให้ครบ";
+return;
+}
+
+cleanup();
+resolve({email,password});
+
+}
+
+function cancel(){
+cleanup();
+resolve(null);
+}
+
+function onKey(e){
+
+if(e.key==="Escape"){
+cancel();
+}else if(e.key==="Enter"){
+e.preventDefault();
+submit();
+}
+
+}
+
+loginConfirmBtn.onclick=submit;
+loginCancelBtn.onclick=cancel;
+
+loginModalOverlay.onclick=e=>{
+if(e.target===loginModalOverlay)cancel();
+};
+
+document.addEventListener("keydown",onKey);
+
+});
+
+}
 
 async function loginPrompt(){
 
-let email=prompt("กรอกอีเมลแอดมิน:");
+let creds=await showLoginModal();
 
-if(email===null)return false;
-
-let password=prompt("กรอกรหัสผ่านแอดมิน:");
-
-if(password===null)return false;
+if(!creds)return false;
 
 try{
 
-await auth.signInWithEmailAndPassword(email.trim(),password);
+await auth.signInWithEmailAndPassword(creds.email,creds.password);
 
 return true;
 
 }catch(e){
 
-alert("เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code));
+showToast("⚠️ เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code),"error");
 
 return false;
 
@@ -358,11 +727,62 @@ let badge=document.getElementById("adminBadge");
 badge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
 badge.classList.toggle("on",isAdmin);
 
+// แอดมินเพิ่มชื่อแล้วอนุมัติทันที ส่วนคนทั่วไปต้องกรอกแล้วรอแอดมินตรวจสอบก่อน
+addBtn.textContent=isAdmin?"➕ เพิ่ม (อนุมัติทันที)":"📩 ส่งคำขอลงทะเบียน";
+
+formHint.textContent=isAdmin
+?""
+:"กรอกชื่อ-อาชีพแล้วกด \"ส่งคำขอลงทะเบียน\" รายชื่อจะเข้าสู่สถานะรออนุมัติ จนกว่าแอดมินจะตรวจสอบและอนุมัติให้";
+
+pendingSection.style.display=isAdmin?"block":"none";
+
+// รายชื่อสมาชิกทั้งหมดให้เห็นเฉพาะแอดมินเท่านั้น
+searchBox.style.display=isAdmin?"block":"none";
+
+if(!isAdmin){
+editingUid=null;
+}
+
+renderPending();
+render();
+
 }
 
 function makeUid(){
 
 return "m_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+
+}
+
+// ลำดับ/ป้ายแสดงผลของแต่ละอาชีพ ใช้จัดกลุ่มรายชื่อสมาชิกในหน้ารายการ
+// (ต้องตรงกับ <option> ใน dropdown เลือกอาชีพด้านบน)
+const JOB_ORDER=["ไนท์","พระ","พระทุบNo.1","วิ","ดูอิด","สไน","พ่อค้า","แอส","ปืน"];
+
+const JOB_LABELS={
+"ไนท์":"⚔️ ไนท์",
+"พระ":"🙏 พระ",
+"พระทุบNo.1":"🦯 พระทุบNo.1",
+"วิ":"🧙‍♂️ วิ",
+"ดูอิด":"🌿 ดูอิด",
+"สไน":"🎯 สไน",
+"พ่อค้า":"💰 พ่อค้า",
+"แอส":"🗡️ แอส",
+"ปืน":"🔫 ปืน"
+};
+
+function jobLabel(job){
+return JOB_LABELS[job]||job;
+}
+
+// สร้างตัวเลือกอาชีพสำหรับ dropdown ตอนแก้ไขแบบ inline ในตาราง
+// ถ้าอาชีพปัจจุบันของสมาชิกไม่อยู่ใน JOB_ORDER (ข้อมูลเก่า) ก็ยังใส่เป็นตัวเลือกไว้ให้เลือกกลับได้
+function jobOptionsHtml(currentJob){
+
+let jobs=[...JOB_ORDER];
+
+if(currentJob&&!jobs.includes(currentJob))jobs.push(currentJob);
+
+return jobs.map(j=>`<option value="${escapeAttr(j)}" ${j===currentJob?"selected":""}>${escapeHtml(jobLabel(j))}</option>`).join("");
 
 }
 
@@ -379,6 +799,11 @@ const countBox=document.getElementById("count");
 const addBtn=document.getElementById("addBtn");
 const cancelBtn=document.getElementById("cancelBtn");
 const searchInput=document.getElementById("search");
+const formHint=document.getElementById("formHint");
+const pendingSection=document.getElementById("pendingSection");
+const pendingList=document.getElementById("pendingList");
+const pendingCountBox=document.getElementById("pendingCount");
+const searchBox=document.getElementById("searchBox");
 
 
 // เรียงตามฟิลด์ order เสมอ เพื่อให้ลำดับที่ผู้ใช้จัดไว้ไม่ถูก Firebase สลับ key เอง
@@ -415,8 +840,9 @@ members=normalizeMembers(snap.val());
 // ถ้ากำลังแก้ไขอยู่ ก็ยัง render ตารางได้ตามปกติ
 // (ช่องกรอกด้านบนไม่ได้ผูกกับ members array เลยไม่ถูกทับ)
 render();
+renderPending();
 
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
+statusBox.textContent="สมาชิกที่ยืนยันแล้ว "+approvedMembers().length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
 
 },err=>{
 
@@ -448,13 +874,35 @@ statusBox.textContent="⚠️ บันทึกไม่สำเร็จ: "+e
 }
 
 
+// สมาชิกที่ยืนยัน/อนุมัติแล้วเท่านั้นที่นับเป็นสมาชิกจริง (ใช้จัดทีมได้)
+// รายชื่อเก่าที่ไม่มีฟิลด์ status (จากก่อนอัปเดตฟีเจอร์นี้) ถือว่าอนุมัติแล้วโดยอัตโนมัติ
+function approvedMembers(){
+return members.filter(m=>(m.status||"approved")==="approved");
+}
+
+function pendingMembers(){
+return members.filter(m=>m.status==="pending");
+}
+
+
 function render(){
+
+if(!isAdmin){
+
+listBody.innerHTML="";
+countBox.textContent="";
+
+return;
+
+}
+
+let approved=approvedMembers();
 
 listBody.innerHTML="";
 
-if(members.length===0){
+if(approved.length===0){
 
-listBody.innerHTML=`<tr><td colspan="3" class="empty">ยังไม่มีสมาชิก เพิ่มรายชื่อด้านบนได้เลย</td></tr>`;
+listBody.innerHTML=`<div class="empty">ยังไม่มีสมาชิกที่ยืนยันแล้ว</div>`;
 
 countBox.textContent="";
 
@@ -465,12 +913,12 @@ return;
 let query=searchQuery.trim().toLowerCase();
 
 let visible=query
-?members.filter(m=>m.name.toLowerCase().includes(query))
-:members;
+?approved.filter(m=>m.name.toLowerCase().includes(query))
+:approved;
 
 if(visible.length===0){
 
-listBody.innerHTML=`<tr><td colspan="3" class="empty">ไม่พบชื่อที่ตรงกับ "${escapeHtml(searchQuery)}"</td></tr>`;
+listBody.innerHTML=`<div class="empty">ไม่พบชื่อที่ตรงกับ "${escapeHtml(searchQuery)}"</div>`;
 
 countBox.textContent="";
 
@@ -479,27 +927,115 @@ return;
 }
 
 countBox.textContent=query
-?`พบ ${visible.length} จากทั้งหมด ${members.length} คน`
-:`ทั้งหมด ${members.length} คน`;
+?`พบ ${visible.length} จากทั้งหมด ${approved.length} คน`
+:`ทั้งหมด ${approved.length} คน`;
 
-visible.forEach(m=>{
+// เรียงหมวดอาชีพตามลำดับใน JOB_ORDER ก่อน ส่วนอาชีพแปลกที่ไม่อยู่ในลิสต์ (ข้อมูลเก่า) ต่อท้ายแบบเรียงตามตัวอักษร
+let jobsPresent=[...new Set(visible.map(m=>m.job))];
 
-let idx=members.findIndex(x=>x.uid===m.uid);
+jobsPresent.sort((a,b)=>{
+let ia=JOB_ORDER.indexOf(a);
+let ib=JOB_ORDER.indexOf(b);
+if(ia===-1&&ib===-1)return a.localeCompare(b);
+if(ia===-1)return 1;
+if(ib===-1)return -1;
+return ia-ib;
+});
 
-let tr=document.createElement("tr");
+jobsPresent.forEach(job=>{
 
-tr.innerHTML=`
+// อันดับขึ้น/ลงคำนวณภายในหมวดอาชีพเดียวกันเท่านั้น (ไม่รวมข้าม group)
+let groupAll=approved.filter(m=>m.job===job).sort((a,b)=>(a.order??0)-(b.order??0));
+let groupVisible=visible.filter(m=>m.job===job);
+
+let section=document.createElement("div");
+section.className="jobGroup";
+
+let rows=groupVisible.map(m=>{
+
+let idx=groupAll.findIndex(x=>x.uid===m.uid);
+
+if(editingUid===m.uid){
+
+return `
+<tr>
+<td colspan="2">
+<div class="editRow">
+<input id="editName_${escapeAttr(m.uid)}" value="${escapeHtml(m.name)}" placeholder="ชื่อตัวละคร">
+<select id="editJob_${escapeAttr(m.uid)}">${jobOptionsHtml(m.job)}</select>
+<button class="save" onclick="saveRowEdit('${escapeAttr(m.uid)}')">💾 บันทึก</button>
+<button class="rowCancel" onclick="cancelRowEdit()">✖ ยกเลิก</button>
+</div>
+</td>
+</tr>
+`;
+
+}
+
+return `
+<tr>
 <td>${escapeHtml(m.name)}</td>
-<td>${escapeHtml(m.job)}</td>
 <td>
 <button class="move" title="เลื่อนขึ้น" ${idx<=0?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',-1)">⬆️</button>
-<button class="move" title="เลื่อนลง" ${idx>=members.length-1?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',1)">⬇️</button>
+<button class="move" title="เลื่อนลง" ${idx>=groupAll.length-1?"disabled":""} onclick="moveMember('${escapeAttr(m.uid)}',1)">⬇️</button>
 <button class="edit" onclick="editMember('${escapeAttr(m.uid)}')">✏️ แก้ไข</button>
 <button class="del" onclick="deleteMember('${escapeAttr(m.uid)}')">ลบ</button>
 </td>
+</tr>
 `;
 
-listBody.appendChild(tr);
+}).join("");
+
+section.innerHTML=`
+<div class="jobGroupHeader">
+<span>${escapeHtml(jobLabel(job))}</span>
+<span class="jobGroupCount">${groupVisible.length} คน</span>
+</div>
+<table>
+<tbody>${rows}</tbody>
+</table>
+`;
+
+listBody.appendChild(section);
+
+});
+
+}
+
+
+// แสดงคิวรออนุมัติ (เห็นเฉพาะแอดมิน) พร้อมปุ่มอนุมัติ/ปฏิเสธ
+function renderPending(){
+
+if(!isAdmin)return;
+
+let pending=pendingMembers();
+
+pendingCountBox.textContent=pending.length;
+
+if(pending.length===0){
+
+pendingList.innerHTML=`<div class="pendingInfo">ไม่มีรายชื่อรออนุมัติ</div>`;
+
+return;
+
+}
+
+pendingList.innerHTML="";
+
+pending.forEach(m=>{
+
+let row=document.createElement("div");
+row.className="pendingRow";
+
+row.innerHTML=`
+<span class="pendingInfo">${escapeHtml(m.name)} — ${escapeHtml(m.job)}</span>
+<span class="pendingActions">
+<button class="approve" onclick="approveMember('${escapeAttr(m.uid)}')">✅ อนุมัติ</button>
+<button class="reject" onclick="rejectMember('${escapeAttr(m.uid)}')">❌ ปฏิเสธ</button>
+</span>
+`;
+
+pendingList.appendChild(row);
 
 });
 
@@ -510,17 +1046,24 @@ async function moveMember(uid,dir){
 
 if(!(await checkAdmin()))return;
 
-let idx=members.findIndex(x=>x.uid===uid);
+let m=members.find(x=>x.uid===uid);
+
+if(!m)return;
+
+// สลับลำดับกันเฉพาะภายในสมาชิกที่อนุมัติแล้วและอยู่อาชีพเดียวกัน (เพราะหน้ารายชื่อตอนนี้แยกเป็นกลุ่มตามอาชีพ)
+let group=approvedMembers().filter(x=>x.job===m.job).sort((a,b)=>(a.order??0)-(b.order??0));
+
+let idx=group.findIndex(x=>x.uid===uid);
 
 if(idx===-1)return;
 
 let swapIdx=idx+dir;
 
-if(swapIdx<0||swapIdx>=members.length)return;
+if(swapIdx<0||swapIdx>=group.length)return;
 
 // สลับค่า order กันระหว่าง 2 คนนี้ (ตัว array เองไม่ต้อง splice ก็ได้ เพราะ render จะเรียงตาม order ใหม่หลัง reload)
-let a=members[idx];
-let b=members[swapIdx];
+let a=group[idx];
+let b=group[swapIdx];
 
 let tmp=a.order??idx;
 a.order=b.order??swapIdx;
@@ -552,7 +1095,9 @@ return String(str).replaceAll("'","\\'");
 }
 
 
-function editMember(uid){
+async function editMember(uid){
+
+if(!(await checkAdmin()))return;
 
 let m=members.find(x=>x.uid===uid);
 
@@ -560,37 +1105,84 @@ if(!m)return;
 
 editingUid=uid;
 
-nameInput.value=m.name;
-jobInput.value=m.job;
+render();
 
-errorBox.textContent="";
+// โฟกัสช่องกรอกชื่อในแถวที่กำลังแก้ไข หลัง render เสร็จ
+setTimeout(()=>{
+let el=document.getElementById("editName_"+uid);
+if(el)el.focus();
+},0);
 
-addBtn.textContent="💾 บันทึก";
-cancelBtn.style.display="inline-block";
+}
 
-nameInput.focus();
+
+// ยกเลิกการแก้ไขแบบ inline ในตาราง (ไม่เกี่ยวกับฟอร์มเพิ่มสมาชิกด้านบน)
+function cancelRowEdit(){
+
+editingUid=null;
+
+render();
+
+}
+
+
+// บันทึกชื่อ/อาชีพที่แก้ไขแบบ inline ตรงในแถวของตารางเลย
+async function saveRowEdit(uid){
+
+if(!(await checkAdmin()))return;
+
+let nameEl=document.getElementById("editName_"+uid);
+let jobEl=document.getElementById("editJob_"+uid);
+
+if(!nameEl||!jobEl)return;
+
+let name=nameEl.value.trim();
+let job=jobEl.value.trim();
+
+if(!name||!job){
+
+alert("กรุณากรอกชื่อตัวละครและอาชีพให้ครบ");
+
+return;
+
+}
+
+let current=members.find(x=>x.uid===uid);
+
+if(!current)return;
+
+if(name!==current.name&&members.some(m=>m.name===name&&m.uid!==uid)){
+
+alert("ชื่อตัวละครนี้มีอยู่แล้วในระบบ");
+
+return;
+
+}
+
+current.name=name;
+current.job=job;
+
+editingUid=null;
+
+render();
+renderPending();
+
+await saveMembers();
 
 }
 
 
 function cancelEdit(){
 
-editingUid=null;
-
 nameInput.value="";
 jobInput.value="";
 
 errorBox.textContent="";
 
-addBtn.textContent="➕ เพิ่ม";
-cancelBtn.style.display="none";
-
 }
 
 
 async function addMember(){
-
-if(!(await checkAdmin()))return;
 
 let name=nameInput.value.trim();
 let job=jobInput.value.trim();
@@ -605,47 +1197,38 @@ return;
 
 }
 
-if(editingUid){
-
-let current=members.find(x=>x.uid===editingUid);
-
-if(name!==current.name&&members.some(m=>m.name===name&&m.uid!==editingUid)){
-
-errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
-
-return;
-
-}
-
-current.name=name;
-current.job=job;
-
-editingUid=null;
-
-addBtn.textContent="➕ เพิ่ม";
-cancelBtn.style.display="none";
-
-}else{
-
+// ชื่อซ้ำต้องเช็คกับทั้งรายชื่อที่อนุมัติแล้วและที่รออนุมัติอยู่ กันชื่อชนกันตอนอนุมัติทีหลัง
 if(members.some(m=>m.name===name)){
 
-errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ";
+errorBox.textContent="ชื่อตัวละครนี้มีอยู่แล้วในระบบ หรือกำลังรออนุมัติอยู่";
 
 return;
 
 }
 
-members.push({uid:makeUid(),name,job,order:nextOrder()});
-
-}
+// แอดมินเพิ่มเอง = อนุมัติทันที / คนทั่วไปกรอกเอง = เข้าคิวรออนุมัติก่อน
+members.push({
+uid:makeUid(),
+name,
+job,
+order:nextOrder(),
+status:isAdmin?"approved":"pending"
+});
 
 nameInput.value="";
 jobInput.value="";
 nameInput.focus();
 
 render();
+renderPending();
 
 await saveMembers();
+
+if(!isAdmin){
+errorBox.style.color="#66bb6a";
+errorBox.textContent="✅ ส่งคำขอลงทะเบียนแล้ว รอแอดมินตรวจสอบและอนุมัติ";
+setTimeout(()=>{errorBox.style.color="";errorBox.textContent="";},4000);
+}
 
 }
 
@@ -657,6 +1240,45 @@ if(!(await checkAdmin()))return;
 members=members.filter(m=>m.uid!==uid);
 
 render();
+renderPending();
+
+await saveMembers();
+
+}
+
+
+// อนุมัติสมาชิกที่รออยู่ ให้กลายเป็นสมาชิกจริงที่ใช้จัดทีมได้
+async function approveMember(uid){
+
+if(!(await checkAdmin()))return;
+
+let m=members.find(x=>x.uid===uid);
+
+if(!m)return;
+
+m.status="approved";
+
+if(m.order===undefined)m.order=nextOrder();
+
+render();
+renderPending();
+
+await saveMembers();
+
+}
+
+
+// ปฏิเสธคำขอ = ลบรายชื่อนั้นออกจากคิวเลย
+async function rejectMember(uid){
+
+if(!(await checkAdmin()))return;
+
+if(!confirm("ยืนยันปฏิเสธคำขอลงทะเบียนนี้? รายชื่อจะถูกลบออก"))return;
+
+members=members.filter(m=>m.uid!==uid);
+
+render();
+renderPending();
 
 await saveMembers();
 
