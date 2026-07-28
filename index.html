@@ -433,6 +433,11 @@ th{
     color:#e8ecf3;
 }
 
+.modalConfirm{
+    background:#b1544e;
+    color:white;
+}
+
 .loginConfirm{
     background:#3f8055;
     color:white;
@@ -477,6 +482,17 @@ th{
 <div class="modalBtns">
 <button class="modalCancel" id="loginCancelBtn">ยกเลิก</button>
 <button class="loginConfirm" id="loginConfirmBtn">เข้าสู่ระบบ</button>
+</div>
+</div>
+</div>
+
+<div class="modalOverlay" id="confirmModalOverlay">
+<div class="modalBox">
+<h3 id="confirmModalTitle">ยืนยันการทำรายการ</h3>
+<p id="confirmModalMessage">คุณแน่ใจหรือไม่?</p>
+<div class="modalBtns">
+<button class="modalCancel" id="confirmModalCancelBtn">ยกเลิก</button>
+<button class="modalConfirm" id="confirmModalOkBtn">ยืนยัน</button>
 </div>
 </div>
 </div>
@@ -668,6 +684,66 @@ loginCancelBtn.onclick=cancel;
 
 loginModalOverlay.onclick=e=>{
 if(e.target===loginModalOverlay)cancel();
+};
+
+document.addEventListener("keydown",onKey);
+
+});
+
+}
+
+// ===== Popup ยืนยัน/ยกเลิก (แทน confirm() ของเบราว์เซอร์ ให้เด้งตรงกลางสวยๆ เหมือนอันอื่น) =====
+const confirmModalOverlay=document.getElementById("confirmModalOverlay");
+const confirmModalTitle=document.getElementById("confirmModalTitle");
+const confirmModalMessage=document.getElementById("confirmModalMessage");
+const confirmModalOkBtn=document.getElementById("confirmModalOkBtn");
+const confirmModalCancelBtn=document.getElementById("confirmModalCancelBtn");
+
+function showConfirmModal(message,title="ยืนยันการทำรายการ"){
+
+return new Promise(resolve=>{
+
+confirmModalTitle.textContent=title;
+confirmModalMessage.textContent=message;
+
+confirmModalOverlay.classList.add("show");
+
+function cleanup(){
+
+confirmModalOverlay.classList.remove("show");
+confirmModalOkBtn.onclick=null;
+confirmModalCancelBtn.onclick=null;
+confirmModalOverlay.onclick=null;
+document.removeEventListener("keydown",onKey);
+
+}
+
+function ok(){
+cleanup();
+resolve(true);
+}
+
+function cancel(){
+cleanup();
+resolve(false);
+}
+
+function onKey(e){
+
+if(e.key==="Escape"){
+cancel();
+}else if(e.key==="Enter"){
+e.preventDefault();
+ok();
+}
+
+}
+
+confirmModalOkBtn.onclick=ok;
+confirmModalCancelBtn.onclick=cancel;
+
+confirmModalOverlay.onclick=e=>{
+if(e.target===confirmModalOverlay)cancel();
 };
 
 document.addEventListener("keydown",onKey);
@@ -1300,7 +1376,7 @@ async function rejectMember(uid){
 
 if(!(await checkAdmin()))return;
 
-if(!confirm("ยืนยันปฏิเสธคำขอลงทะเบียนนี้? รายชื่อจะถูกลบออก"))return;
+if(!(await showConfirmModal("ยืนยันปฏิเสธคำขอลงทะเบียนนี้? รายชื่อจะถูกลบออก")))return;
 
 members=members.filter(m=>m.uid!==uid);
 
