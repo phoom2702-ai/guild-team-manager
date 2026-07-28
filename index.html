@@ -1207,13 +1207,15 @@ return;
 }
 
 // แอดมินเพิ่มเอง = อนุมัติทันที / คนทั่วไปกรอกเอง = เข้าคิวรออนุมัติก่อน
-members.push({
+let newMember={
 uid:makeUid(),
 name,
 job,
 order:nextOrder(),
 status:isAdmin?"approved":"pending"
-});
+};
+
+members.push(newMember);
 
 nameInput.value="";
 jobInput.value="";
@@ -1222,7 +1224,32 @@ nameInput.focus();
 render();
 renderPending();
 
+try{
+
+if(isAdmin){
+// แอดมินมีสิทธิ์เขียนทั้งก้อนอยู่แล้ว ใช้ saveMembers() แบบเดิมได้
 await saveMembers();
+}else{
+// คนทั่วไป (ยังไม่ login) ต้องเขียนแค่ node ใหม่ของตัวเองเท่านั้น
+// ห้ามใช้ membersRef.set(obj) เพราะเป็นการเขียนทับทั้ง /members ซึ่ง Rules ไม่อนุญาตให้คนทั่วไปทำ (ทำให้เจอ PERMISSION_DENIED)
+// ต้องคู่กับ Database Rules ที่อนุญาตให้สร้าง node ใหม่ที่ status="pending" ได้แบบ public (ดูตัวอย่าง Rules ท้ายไฟล์นี้)
+await membersRef.child(newMember.uid).set(newMember);
+}
+
+}catch(e){
+
+// เขียนไม่สำเร็จ (เช่น Rules ยังไม่ได้ตั้งให้ตรงกัน) -> ตัดรายการที่เพิ่ง push ออกจาก local array แล้วแจ้ง error ให้ผู้ใช้เห็น
+members=members.filter(m=>m.uid!==newMember.uid);
+render();
+renderPending();
+
+statusBox.textContent="⚠️ บันทึกไม่สำเร็จ: "+e.message;
+errorBox.style.color="";
+errorBox.textContent="⚠️ ส่งคำขอไม่สำเร็จ: "+e.message;
+
+return;
+
+}
 
 if(!isAdmin){
 errorBox.style.color="#66bb6a";
