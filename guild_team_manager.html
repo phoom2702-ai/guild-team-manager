@@ -942,9 +942,9 @@ function updateAdminUI(){
 adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
 adminBadge.classList.toggle("on",isAdmin);
 
-// กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
-document.getElementById("poolSection").style.display=isAdmin?"":"none";
-document.getElementById("poolLockedNotice").style.display=isAdmin?"none":"";
+// กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นทุกคน (ทั้งโหมดแอดมินและไม่ใช่แอดมิน)
+document.getElementById("poolSection").style.display="";
+document.getElementById("poolLockedNotice").style.display="none";
 
 // ปุ่มรีเซ็ต/ส่งออกรูปภาพ ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
 document.getElementById("actionButtons").style.display=isAdmin?"":"none";
