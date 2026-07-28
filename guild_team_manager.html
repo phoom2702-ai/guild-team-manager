@@ -1565,7 +1565,7 @@ lookupMessage.innerHTML=matches.map(m=>{
 let jobLabel=JOB_LABELS[m.job]||m.job;
 let teamLabel=findTeamLabelForUid(m.uid)||"ไม่พบตำแหน่ง (ข้อมูลยังไม่โหลดหรือยังไม่จัดทีม)";
 
-return "<b>"+escapeHtml(m.name)+"</b> ("+escapeHtml(jobLabel)+")<br>📍 "+escapeHtml(teamLabel);
+return "<b>"+escapeHtml(m.name)+"</b> ("+escapeHtml(jobLabel)+")<br> "+escapeHtml(teamLabel);
 
 }).join("<hr style='border-color:#3d485d;margin:10px 0'>");
 
