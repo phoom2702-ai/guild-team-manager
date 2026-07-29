@@ -1313,13 +1313,14 @@ if(!isAdmin)return;
 
 let dropTarget=e.target.closest(".member");
 
-// ช่องว่าง (placeholder เลข) ไม่ใช่เป้าหมายสลับตำแหน่งได้ ให้ถือว่าปล่อยลงกล่องเฉยๆ
+// ปล่อยลงช่องว่างที่มีเลขระบุตำแหน่ง (1-5) ให้แทรกเข้าไปตรงตำแหน่งนั้นเลย
 if(dropTarget && dropTarget.classList.contains("slot-empty")){
-dropTarget=null;
-}
 
+dropTarget.parentElement.insertBefore(dragItem,dropTarget);
+
+}
 // ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
-if(dropTarget && dropTarget!==dragItem){
+else if(dropTarget && dropTarget!==dragItem){
 
 let dragParent=dragItem.parentElement;
 
