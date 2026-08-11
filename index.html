@@ -512,13 +512,15 @@ th{
 <option value="" disabled selected>เลือกอาชีพ</option>
 <option value="ไนท์">⚔️ ไนท์</option>
 <option value="พระ">🙏 พระ</option>
-<option value="พระทุบNo.1">🦯 พระทุบNo.1</option>
+<option value="ผู้นำ">👑 ผู้นำ</option>
 <option value="วิ">🧙‍♂️ วิ</option>
 <option value="ดูอิด">🌿 ดูอิด</option>
 <option value="สไน">🎯 สไน</option>
 <option value="พ่อค้า">💰 พ่อค้า</option>
 <option value="แอส">🗡️ แอส</option>
 <option value="ปืน">🔫 ปืน</option>
+<option value="ม๊อง">👊 ม๊อง</option>
+<option value="พาราดิน">🛡️ พาราดิน</option>
 </select>
 </div>
 
@@ -832,18 +834,20 @@ return "m_"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 
 // ลำดับ/ป้ายแสดงผลของแต่ละอาชีพ ใช้จัดกลุ่มรายชื่อสมาชิกในหน้ารายการ
 // (ต้องตรงกับ <option> ใน dropdown เลือกอาชีพด้านบน)
-const JOB_ORDER=["ไนท์","พระ","พระทุบNo.1","วิ","ดูอิด","สไน","พ่อค้า","แอส","ปืน"];
+const JOB_ORDER=["ไนท์","พระ","ผู้นำ","วิ","ดูอิด","สไน","พ่อค้า","แอส","ปืน","ม๊อง","พาราดิน"];
 
 const JOB_LABELS={
 "ไนท์":"⚔️ ไนท์",
 "พระ":"🙏 พระ",
-"พระทุบNo.1":"🦯 พระทุบNo.1",
+"ผู้นำ":"👑 ผู้นำ",
 "วิ":"🧙‍♂️ วิ",
 "ดูอิด":"🌿 ดูอิด",
 "สไน":"🎯 สไน",
 "พ่อค้า":"💰 พ่อค้า",
 "แอส":"🗡️ แอส",
-"ปืน":"🔫 ปืน"
+"ปืน":"🔫 ปืน",
+"ม๊อง":"👊 ม๊อง",
+"พาราดิน":"🛡️ พาราดิน"
 };
 
 function jobLabel(job){
