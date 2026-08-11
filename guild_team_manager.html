@@ -424,7 +424,7 @@ input:focus{
     transform:translateY(-1px);
 }
 
-/* ===== เอฟเฟคฟรุ้งฟริ้งสำหรับ พระทุบNo.1 ===== */
+/* ===== เอฟเฟคฟรุ้งฟริ้งสำหรับ ผู้นำ ===== */
 @keyframes sparkleRainbowMove{
     0%{background-position:0% 50%;}
     100%{background-position:300% 50%;}
@@ -700,12 +700,15 @@ input:focus{
 <div class="legend">
 <span class="chip" data-job="ไนท์" style="background:#b1544e">⚔️ไนท์ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="พระ" style="background:#2f6b46">🙏พระ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ผู้นำ" style="background:#8f6e1f">👑ผู้นำ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="วิ" style="background:#3f6f9e">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="ดูอิด" style="background:#3f8f79">🌿ดูอิด <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="สไน" style="background:#b8933a;color:#20242e">🎯สไน <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="พ่อค้า" style="background:#8a6a52">💰พ่อค้า <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="แอส" style="background:#5f5480">🗡️แอส <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="ปืน" style="background:#7a4f3f">🔫ปืน <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ม๊อง" style="background:#c2703a">👊ม๊อง <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พาราดิน" style="background:#4a5d8f">🛡️พาราดิน <span class="jobCount">(0)</span></span>
 </div>
 <div class="legendHint" id="legendHint">👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด</div>
 
@@ -963,38 +966,44 @@ let memberByUid={};
 const JOB_COLORS={
 "ไนท์":"#b1544e",
 "พระ":"#2f6b46",
-"พระทุบNo.1":"#2f6b46",
+"ผู้นำ":"#8f6e1f",
 "วิ":"#3f6f9e",
 "ดูอิด":"#3f8f79",
 "สไน":"#b8933a",
 "พ่อค้า":"#8a6a52",
 "แอส":"#5f5480",
-"ปืน":"#7a4f3f"
+"ปืน":"#7a4f3f",
+"ม๊อง":"#c2703a",
+"พาราดิน":"#4a5d8f"
 };
 
 // สีข้อความสำหรับพื้นหลังโทนอ่อน จะได้อ่านง่ายขึ้น
 const JOB_TEXT_COLORS={
 "ไนท์":"#fff",
 "พระ":"#fff",
-"พระทุบNo.1":"#fff",
+"ผู้นำ":"#fff",
 "วิ":"#fff",
 "ดูอิด":"#fff",
 "สไน":"#20242e",
 "พ่อค้า":"#fff",
 "แอส":"#fff",
-"ปืน":"#fff"
+"ปืน":"#fff",
+"ม๊อง":"#fff",
+"พาราดิน":"#fff"
 };
 
 const JOB_LABELS={
 "ไนท์":"⚔️ไนท์",
 "พระ":"🙏พระ",
-"พระทุบNo.1":"🦯พระทุบNo.1",
+"ผู้นำ":"👑ผู้นำ",
 "วิ":"🧙‍♂️วิ",
 "ดูอิด":"🌿ดูอิด",
 "สไน":"🎯สไน",
 "พ่อค้า":"💰พ่อค้า",
 "แอส":"🗡️แอส",
-"ปืน":"🔫ปืน"
+"ปืน":"🔫ปืน",
+"ม๊อง":"👊ม๊อง",
+"พาราดิน":"🛡️พาราดิน"
 };
 
 
@@ -1009,9 +1018,7 @@ div.title="UID: "+m.uid;
 div.style.background=JOB_COLORS[m.job]||"#3d485d";
 div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
 
-if(m.job==="พระทุบNo.1"){
-div.classList.add("sparkle-job");
-}
+// เดิม ผู้นำ มีเอฟเฟกต์ฟรุ้งฟริ้ง แต่ปัจจุบันเอาออกแล้ว ใช้สีพื้นธรรมดาแทน
 
 div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})`;
 
@@ -1066,9 +1073,6 @@ let counts={};
 members.forEach(m=>{
 
 let job=m.job;
-
-// นับ "พระทุบNo.1" รวมเข้ากับ "พระ" ด้วย เพราะเป็นอาชีพพระเหมือนกัน
-if(job==="พระทุบNo.1")job="พระ";
 
 counts[job]=(counts[job]||0)+1;
 
@@ -1693,7 +1697,6 @@ let text=uid?(uid.name+" "+uid.uid+" "+uid.job).toLowerCase():m.textContent.toLo
 let matchesSearch=text.includes(key);
 
 let job=uid?uid.job:null;
-if(job==="พระทุบNo.1")job="พระ"; // ให้พระทุบนับรวมเป็นอาชีพพระตอนกรองด้วย
 
 let matchesJob=!activeJobFilter||job===activeJobFilter;
 
