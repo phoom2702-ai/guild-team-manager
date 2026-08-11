@@ -408,8 +408,9 @@ input:focus{
 }
 
 .member{
+    position:relative;
     background:#3d485d;
-    padding:5px 7px;
+    padding:5px 20px 5px 7px;
     margin:3px 0;
     border-radius:6px;
     font-size:11.5px;
@@ -422,6 +423,32 @@ input:focus{
 .member:hover{
     filter:brightness(1.12);
     transform:translateY(-1px);
+}
+
+.member-remove{
+    display:none;
+}
+
+/* ปุ่มยกเลิก/นำสมาชิกออกจากทีม โชว์เฉพาะการ์ดที่อยู่ในกล่องทีม ไม่โชว์ในกล่องรายชื่อทั้งหมด */
+.teamBox .member .member-remove{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:absolute;
+    top:3px;
+    right:3px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:rgba(0,0,0,0.35);
+    color:#fff;
+    font-size:9.5px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.teamBox .member .member-remove:hover{
+    background:#c0495a;
 }
 
 /* ===== เอฟเฟคฟรุ้งฟริ้งสำหรับ ผู้นำ ===== */
@@ -527,11 +554,23 @@ input:focus{
     text-shadow:0 0 3px #000, 0 0 3px #000;
 }
 
+.slot-empty-label{
+    font-size:10px;
+    font-style:italic;
+    line-height:1.25;
+    display:inline-block;
+}
+
+.teamBox .slot-empty{
+    min-height:34px;
+    display:flex;
+    align-items:center;
+}
+
 .teamBox .slot-empty{
     background:transparent;
     border:1px dashed #566;
     color:#5c6b80;
-    font-style:italic;
     cursor:default;
     font-weight:normal;
 }
@@ -700,7 +739,6 @@ input:focus{
 <div class="legend">
 <span class="chip" data-job="ไนท์" style="background:#b1544e">⚔️ไนท์ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="พระ" style="background:#2f6b46">🙏พระ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ผู้นำ" style="background:#8f6e1f">👑ผู้นำ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="วิ" style="background:#3f6f9e">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="ดูอิด" style="background:#3f8f79">🌿ดูอิด <span class="jobCount">(0)</span></span>
 <span class="chip" data-job="สไน" style="background:#b8933a;color:#20242e">🎯สไน <span class="jobCount">(0)</span></span>
@@ -1018,9 +1056,11 @@ div.title="UID: "+m.uid;
 div.style.background=JOB_COLORS[m.job]||"#3d485d";
 div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
 
-// เดิม ผู้นำ มีเอฟเฟกต์ฟรุ้งฟริ้ง แต่ปัจจุบันเอาออกแล้ว ใช้สีพื้นธรรมดาแทน
+if(m.job==="ผู้นำ"){
+div.classList.add("sparkle-job");
+}
 
-div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})`;
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})<span class="member-remove" title="นำออกจากทีม">✕</span>`;
 
 div.ondragstart=(e)=>{
 if(!isAdmin){
@@ -1029,6 +1069,30 @@ return;
 }
 dragItem=div;
 };
+
+div.querySelector(".member-remove").addEventListener("click",(e)=>{
+
+e.stopPropagation();
+
+if(!isAdmin)return;
+
+let parent=div.parentElement;
+
+// ถ้าอยู่ในกล่องทีม ต้องเติมช่องว่างคืนที่ตำแหน่งเดิมด้วย ไม่ให้ทีมขาดช่อง
+if(parent && parent.classList.contains("teamBox")){
+parent.replaceChild(makeEmptySlot(),div);
+}
+
+// นำสมาชิกออกจากทีม กลับไปไว้ในกล่องรายชื่อทั้งหมด
+pool.appendChild(div);
+
+isDragging=true;
+update();
+save().finally(()=>{
+isDragging=false;
+});
+
+});
 
 return div;
 
@@ -1131,14 +1195,32 @@ let boxes=getAllTeamBoxes();
 
 (assignment.teams||[]).forEach((team,i)=>{
 
-(team||[]).forEach(uid=>{
+let box=boxes[i];
 
-if(memberByUid[uid]&&boxes[i]){
-boxes[i].appendChild(createMember(memberByUid[uid]));
-placed.add(uid);
+if(!box)return;
+
+let arr=Array.isArray(team)?team:Object.values(team||{});
+
+for(let slotIdx=0;slotIdx<TEAM_SIZE;slotIdx++){
+
+let uid=arr[slotIdx];
+
+if(uid&&memberByUid[uid]){
+
+let memberEl=createMember(memberByUid[uid]);
+let emptySlot=box.children[slotIdx];
+
+if(emptySlot){
+box.replaceChild(memberEl,emptySlot);
+}else{
+box.appendChild(memberEl);
 }
 
-});
+placed.add(uid);
+
+}
+
+}
 
 });
 
@@ -1246,6 +1328,13 @@ ${label} ${i}
 
 container.appendChild(div);
 
+let box=div.querySelector(".teamBox");
+
+// สร้างช่องว่างตายตัวไว้ล่วงหน้าให้ครบตามจำนวนที่นั่งในทีม แต่ละช่องมีตำแหน่งของตัวเอง ไม่เลื่อนไปมา
+for(let s=0;s<TEAM_SIZE;s++){
+box.appendChild(makeEmptySlot());
+}
+
 }
 
 }
@@ -1273,6 +1362,21 @@ return [
 function realMembersIn(box){
 
 return [...box.children].filter(c=>c.dataset.uid);
+
+}
+
+
+// สร้างช่องว่าง 1 ช่อง ไว้ใช้แทนที่ตำแหน่งที่ยังไม่มีคน หรือแทนที่ตำแหน่งที่เพิ่งมีคนย้ายออกไป
+function makeEmptySlot(){
+
+let ph=document.createElement("div");
+
+ph.className="member slot-empty";
+ph.draggable=false;
+
+ph.innerHTML=`<span class="slot-empty-label">ช่องว่าง</span>`;
+
+return ph;
 
 }
 
@@ -1315,17 +1419,47 @@ if(!dragItem)return;
 
 if(!isAdmin)return;
 
+let isTargetTeam=box.classList.contains("teamBox");
+
+let originBox=dragItem.parentElement;
+let originIsTeam=originBox && originBox.classList.contains("teamBox");
+
+if(!isTargetTeam){
+
+// ปล่อยลงกล่องรายชื่อทั้งหมด: ไม่มีช่องตายตัว ถ้าย้ายออกจากทีมมาก็เติมช่องว่างคืนให้ทีมเดิม
+if(originIsTeam){
+originBox.replaceChild(makeEmptySlot(),dragItem);
+}
+
 let dropTarget=e.target.closest(".member");
 
-// ปล่อยลงช่องว่างที่มีเลขระบุตำแหน่ง (1-5) ให้แทรกเข้าไปตรงตำแหน่งนั้นเลย
-if(dropTarget && dropTarget.classList.contains("slot-empty")){
-
+if(dropTarget && dropTarget!==dragItem){
 dropTarget.parentElement.insertBefore(dragItem,dropTarget);
-
+}else{
+box.appendChild(dragItem);
 }
-// ถ้าปล่อยทับสมาชิกคนอื่น (ไม่ใช่ตัวเอง) ให้สลับตำแหน่งกัน
-else if(dropTarget && dropTarget!==dragItem){
 
+}else{
+
+let dropTarget=e.target.closest(".member");
+
+// ต้องปล่อยลงบนช่องใดช่องหนึ่งของทีมโดยเฉพาะ ถึงจะถือว่าเลือกช่องนั้น ไม่มีการไล่เรียงอัตโนมัติ
+if(!dropTarget || dropTarget===dragItem){
+return;
+}
+
+if(dropTarget.classList.contains("slot-empty")){
+
+// ย้ายเข้าช่องว่างที่เลือกโดยเฉพาะ ช่องอื่นๆ ในทีมไม่ถูกกระทบ
+if(originIsTeam){
+originBox.replaceChild(makeEmptySlot(),dragItem);
+}
+
+box.replaceChild(dragItem,dropTarget);
+
+}else{
+
+// ปล่อยทับสมาชิกอีกคน (ไม่ว่าจะทีมเดียวกันหรือคนละทีม) ให้สลับตำแหน่งกันตรงๆ
 let dragParent=dragItem.parentElement;
 
 let placeholder=document.createElement("div");
@@ -1338,20 +1472,9 @@ dragParent.insertBefore(dropTarget,placeholder);
 
 dragParent.removeChild(placeholder);
 
-}else{
-
-let isTeam=box.classList.contains("teamBox");
-
-if(isTeam && realMembersIn(box).length>=TEAM_SIZE){
-
-return;
-
 }
 
-box.appendChild(dragItem);
-
 }
-
 
 isDragging=true;
 
@@ -1371,21 +1494,7 @@ document.querySelectorAll(".team").forEach(team=>{
 
 let box=team.querySelector(".teamBox");
 
-// ลบช่องว่างเดิมทิ้งก่อน แล้วค่อยเติมใหม่ให้ครบ ให้เลขเรียงถูกต้องเสมอ
-box.querySelectorAll(".slot-empty").forEach(el=>el.remove());
-
 let count=realMembersIn(box).length;
-
-for(let i=count;i<TEAM_SIZE;i++){
-
-let ph=document.createElement("div");
-
-ph.className="member slot-empty";
-ph.draggable=false;
-
-box.appendChild(ph);
-
-}
 
 team.querySelector(".count").innerText=count;
 
@@ -1403,8 +1512,9 @@ function currentAssignmentFromDOM(){
 return{
 pool:[...pool.children].map(x=>x.dataset.uid),
 
+// เก็บเป็น array ความยาวคงที่ต่อทีม (ช่องว่าง = "") เพื่อให้ตำแหน่งแต่ละช่องไม่เลื่อนไปมา
 teams:getAllTeamBoxes()
-.map(box=>realMembersIn(box).map(x=>x.dataset.uid))
+.map(box=>[...box.children].map(x=>x.dataset.uid||""))
 
 };
 
