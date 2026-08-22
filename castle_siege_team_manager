@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Guild Castle Siege Team Manager</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    padding:18px;
+    background:#1b2130;
+    color:#e8ecf3;
+    font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+    line-height:1.5;
+}
+
+h1{
+    text-align:center;
+    color:#d9b46a;
+    letter-spacing:0.5px;
+    margin:6px 0 16px;
+    text-shadow:0 1px 3px rgba(0,0,0,0.35);
+}
+
+button{
+    padding:11px 18px;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    margin:5px;
+    font-weight:bold;
+    font-size:14px;
+    letter-spacing:0.3px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+    transition:transform 0.12s ease,filter 0.12s ease,box-shadow 0.12s ease;
+}
+
+button:hover{
+    filter:brightness(1.12);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+button:active{
+    transform:translateY(0);
+    filter:brightness(0.95);
+}
+
+.btn{
+    text-align:center;
+}
+
+.reset{
+    background:#b1544e;
+    color:white;
+}
+
+.refresh{
+    background:#3f6f9e;
+    color:white;
+}
+
+.copy{
+    background:#7a5a96;
+    color:white;
+}
+
+button:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+    filter:none !important;
+    transform:none !important;
+    box-shadow:0 2px 6px rgba(0,0,0,0.35);
+}
+
+.toastContainer{
+    position:fixed;
+    top:16px;
+    right:16px;
+    z-index:2000;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    max-width:320px;
+    pointer-events:none;
+}
+
+.toast{
+    background:#252c3a;
+    color:#e8ecf3;
+    padding:12px 16px;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45);
+    font-size:13.5px;
+    font-weight:bold;
+    border-left:4px solid #3f6f9e;
+    opacity:0;
+    animation:toastIn 0.25s ease forwards,toastOut 0.3s ease 2.7s forwards;
+}
+
+.toast.success{border-left-color:#3f8055;}
+.toast.error{border-left-color:#b1544e;}
+.toast.info{border-left-color:#3f6f9e;}
+
+@keyframes toastIn{
+    from{opacity:0;transform:translateX(30px);}
+    to{opacity:1;transform:translateX(0);}
+}
+
+@keyframes toastOut{
+    from{opacity:1;transform:translateX(0);}
+    to{opacity:0;transform:translateX(30px);}
+}
+
+.lookupBar{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:8px;
+    margin:0 0 16px;
+    flex-wrap:wrap;
+}
+
+.lookupBar input{
+    width:230px;
+    margin-bottom:0;
+}
+
+.lookupBar button{
+    background:#3f6f9e;
+    color:white;
+    margin:0;
+}
+
+.lookupWrap{
+    position:relative;
+    display:inline-block;
+}
+
+.lookupSuggest{
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    right:0;
+    background:#252c3a;
+    border:1px solid #3d485d;
+    border-radius:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.45);
+    z-index:1500;
+    max-height:220px;
+    overflow-y:auto;
+    text-align:left;
+}
+
+.lookupSuggest.show{
+    display:block;
+}
+
+.lookupSuggest .sgItem{
+    padding:9px 12px;
+    cursor:pointer;
+    font-size:13.5px;
+    color:#e8ecf3;
+    border-bottom:1px solid #313a4a;
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:center;
+}
+
+.lookupSuggest .sgItem:last-child{
+    border-bottom:none;
+}
+
+.lookupSuggest .sgItem:hover,
+.lookupSuggest .sgItem.active{
+    background:#3f6f9e;
+}
+
+.lookupSuggest .sgJob{
+    font-size:11.5px;
+    color:#a9b3c4;
+    white-space:nowrap;
+}
+
+.lookupSuggest .sgItem:hover .sgJob,
+.lookupSuggest .sgItem.active .sgJob{
+    color:#e8ecf3;
+}
+
+.lookupSuggest .sgEmpty{
+    padding:9px 12px;
+    font-size:13px;
+    color:#a9b3c4;
+    text-align:center;
+}
+
+.nav{
+    text-align:center;
+    margin-bottom:14px;
+}
+
+.nav a{
+    color:#d9b46a;
+    text-decoration:none;
+    font-weight:bold;
+    background:#252c3a;
+    padding:9px 16px;
+    border-radius:10px;
+    transition:background 0.15s ease;
+}
+
+.nav a:hover{
+    background:#3d485d;
+}
+
+.adminBadge{
+    display:inline-block;
+    margin-left:8px;
+    padding:9px 14px;
+    border-radius:10px;
+    font-weight:bold;
+    font-size:13px;
+    cursor:pointer;
+    background:#3d485d;
+    color:#aab4c4;
+    vertical-align:middle;
+}
+
+.adminBadge.on{
+    background:#3f8055;
+    color:white;
+}
+
+.status{
+    text-align:center;
+    color:#aab4c4;
+    font-size:13.5px;
+    margin-bottom:16px;
+    min-height:18px;
+}
+
+.legend{
+    text-align:center;
+    margin-bottom:18px;
+    line-height:2;
+}
+
+.legendHint{
+    text-align:center;
+    color:#aab4c4;
+    font-size:12px;
+    margin-top:-10px;
+    margin-bottom:16px;
+}
+
+.chip{
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12.5px;
+    font-weight:bold;
+    color:white;
+    margin:3px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    cursor:pointer;
+    user-select:none;
+    transition:transform 0.12s ease,box-shadow 0.12s ease,outline 0.12s ease;
+}
+
+.chip:hover{
+    transform:translateY(-1px);
+}
+
+.chip.active{
+    outline:2px solid #d9b46a;
+    outline-offset:2px;
+    box-shadow:0 0 8px rgba(217,180,106,0.55);
+}
+
+.jobCount{
+    opacity:0.85;
+    font-weight:normal;
+}
+
+.uid{
+    font-size:10px;
+    color:#aab4c4;
+    display:block;
+}
+
+.layout{
+    display:flex;
+    gap:15px;
+    align-items:flex-start;
+}
+
+.pool{
+    background:#252c3a;
+    padding:14px;
+    border-radius:14px;
+    width:260px;
+    flex:0 0 260px;
+    position:sticky;
+    top:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.3);
+}
+
+.pool h2{
+    font-size:16px;
+    margin:2px 0 12px;
+    color:#d9b46a;
+}
+
+input{
+    width:100%;
+    padding:11px;
+    border-radius:8px;
+    border:0;
+    margin-bottom:12px;
+    font-size:14px;
+    color:#1b2130;
+}
+
+input:focus{
+    outline:2px solid #d9b46a;
+}
+
+.members{
+    min-height:50px;
+    padding:8px;
+    border:2px dashed #566078;
+    border-radius:10px;
+}
+
+.poolBox{
+    height:240px;
+    overflow-y:auto;
+}
+
+.teamsWrap{
+    flex:1;
+    min-width:0;
+}
+
+.category{
+    margin-bottom:22px;
+}
+
+.category-title{
+    text-align:center;
+    background:#1c2230;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-bottom:14px;
+    font-size:16px;
+    font-weight:bold;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+}
+
+.category-title.main{
+    color:#d9b46a;
+    border:1px solid #d9b46a55;
+}
+
+.category-title.sub{
+    color:#6fbfa1;
+    border:1px solid #6fbfa155;
+}
+
+.category-title.castle{
+    color:#d97fa8;
+    border:1px solid #d97fa855;
+}
+
+.container{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:6px;
+}
+
+@media(max-width:1100px){
+    .layout{
+        flex-direction:column;
+    }
+    .pool{
+        width:100%;
+        flex:none;
+        position:static;
+    }
+    .poolBox{
+        height:180px;
+    }
+}
+
+.team{
+    background:#252c3a;
+    padding:5px;
+    border-radius:9px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+}
+
+.team h3{
+    text-align:center;
+    color:#d9b46a;
+    font-size:10.5px;
+    margin:2px 0 6px;
+    letter-spacing:0.1px;
+}
+
+.member{
+    position:relative;
+    background:#3d485d;
+    padding:5px 20px 5px 7px;
+    margin:3px 0;
+    border-radius:6px;
+    font-size:11.5px;
+    font-weight:bold;
+    cursor:grab;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+    transition:filter 0.12s ease,transform 0.12s ease;
+}
+
+.member:hover{
+    filter:brightness(1.12);
+    transform:translateY(-1px);
+}
+
+.member-remove{
+    display:none;
+}
+
+/* ปุ่มยกเลิก/นำสมาชิกออกจากทีม โชว์เฉพาะการ์ดที่อยู่ในกล่องทีม ไม่โชว์ในกล่องรายชื่อทั้งหมด */
+.teamBox .member .member-remove{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:absolute;
+    top:3px;
+    right:3px;
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:rgba(0,0,0,0.35);
+    color:#fff;
+    font-size:9.5px;
+    line-height:1;
+    cursor:pointer;
+}
+
+.teamBox .member .member-remove:hover{
+    background:#c0495a;
+}
+
+/* ===== เอฟเฟคฟรุ้งฟริ้งสำหรับ ผู้นำ ===== */
+@keyframes sparkleRainbowMove{
+    0%{background-position:0% 50%;}
+    100%{background-position:300% 50%;}
+}
+
+@keyframes sparkleGlow{
+    0%,100%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,127,168,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    25%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,180,106,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    50%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(95,168,201,0.4),0 1px 3px rgba(0,0,0,0.25);}
+    75%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(154,127,192,0.4),0 1px 3px rgba(0,0,0,0.25);}
+}
+
+@keyframes sparkleTwinkle{
+    0%,100%{opacity:0.25;transform:scale(0.7) rotate(0deg);}
+    50%{opacity:1;transform:scale(1.25) rotate(20deg);}
+}
+
+@keyframes sparkleDots{
+    0%{background-position:0% 0%,0% 0%,0% 0%,0% 0%;}
+    100%{background-position:120px 60px,-80px 90px,60px -70px,-100px -50px;}
+}
+
+.sparkle-job{
+    position:relative;
+    overflow:hidden;
+    background:
+        radial-gradient(circle,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0) 60%) 10% 20%/10px 10px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 70% 60%/8px 8px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 40% 80%/7px 7px no-repeat,
+        radial-gradient(circle,rgba(255,255,255,0.8) 0%,rgba(255,255,255,0) 60%) 85% 15%/6px 6px no-repeat,
+        linear-gradient(90deg,#d97fa8,#d9b46a,#6fbfa1,#5fa8c9,#9a7fc0,#d97fa8) !important;
+    background-size:100% 100%,100% 100%,100% 100%,100% 100%,300% 100%;
+    animation:sparkleRainbowMove 4s linear infinite,sparkleGlow 2.4s ease-in-out infinite,sparkleDots 3s linear infinite;
+    color:#fff;
+    text-shadow:0 0 3px rgba(0,0,0,0.6),0 0 6px rgba(255,255,255,0.35);
+}
+
+.sparkle-job::after{
+    content:"✨";
+    position:absolute;
+    top:-3px;
+    right:1px;
+    font-size:10px;
+    animation:sparkleTwinkle 1.1s ease-in-out infinite;
+    pointer-events:none;
+    text-shadow:none;
+}
+
+.legend .sparkle-job{
+    display:inline-block;
+}
+
+.full{
+    border:2px solid #b1544e;
+    box-shadow:0 0 0 1px rgba(177,84,78,0.3);
+}
+
+.drag{
+    border-color:#4f9f6b;
+}
+
+@media(max-width:1100px){
+    .container{
+        grid-template-columns:repeat(4,1fr);
+    }
+}
+
+@media(max-width:900px){
+    .container{
+        grid-template-columns:repeat(3,1fr);
+    }
+}
+
+@media(max-width:600px){
+    .container{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+/* ===== เลขลำดับ 1-5 ในช่องทีม ===== */
+.teamBox{
+    counter-reset:slot;
+}
+
+.teamBox .member{
+    counter-increment:slot;
+    position:relative;
+    padding-left:20px;
+    min-height:27px;
+}
+
+.teamBox .member::before{
+    content:counter(slot)". ";
+    position:absolute;
+    left:6px;
+    top:5px;
+    font-weight:bold;
+    font-size:11px;
+    color:#e6c988;
+    text-shadow:0 0 3px #000, 0 0 3px #000;
+}
+
+.slot-empty-label{
+    font-size:10px;
+    font-style:italic;
+    line-height:1.25;
+    display:inline-block;
+}
+
+.teamBox .slot-empty{
+    min-height:34px;
+    display:flex;
+    align-items:center;
+}
+
+.teamBox .slot-empty{
+    background:transparent;
+    border:1px dashed #566;
+    color:#5c6b80;
+    cursor:default;
+    font-weight:normal;
+}
+
+.teamBox .slot-empty:hover{
+    filter:none;
+}
+
+.teamBox .slot-empty::before{
+    color:#5c6b80;
+    text-shadow:none;
+}
+
+/* ===== Popup ยืนยัน ===== */
+.modalOverlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,12,18,0.65);
+    backdrop-filter:blur(2px);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+}
+
+.modalOverlay.show{
+    display:flex;
+}
+
+.modalBox{
+    background:#252c3a;
+    border-radius:14px;
+    padding:22px 24px;
+    width:320px;
+    max-width:90vw;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    border:1px solid #3d485d;
+    text-align:center;
+    animation:popIn 0.15s ease;
+}
+
+@keyframes popIn{
+    from{opacity:0;transform:scale(0.94);}
+    to{opacity:1;transform:scale(1);}
+}
+
+.modalBox h3{
+    margin:0 0 10px;
+    color:#d9b46a;
+    font-size:17px;
+}
+
+.modalBox p{
+    margin:0 0 20px;
+    color:#c7cedb;
+    font-size:14px;
+    line-height:1.6;
+}
+
+.modalBtns{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+
+.modalBtns button{
+    flex:1;
+    margin:0;
+}
+
+.modalCancel{
+    background:#3d485d;
+    color:#e8ecf3;
+}
+
+.modalConfirm{
+    background:#b1544e;
+    color:white;
+}
+
+.loginConfirm{
+    background:#3f8055;
+    color:white;
+}
+
+.modalBox input{
+    margin-bottom:12px;
+    text-align:left;
+}
+
+.modalBox input:last-of-type{
+    margin-bottom:6px;
+}
+
+.loginError{
+    color:#d17b74;
+    font-size:12.5px;
+    min-height:16px;
+    margin:0 0 10px;
+    text-align:center;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>🏰ทีมชิงปราสาท🏰</h1>
+
+<div class="nav">
+<a href="index.html">หน้าลงทะเบียนสมาชิก →</a>
+<a href="guild_team_manager.html">🏆 ทีมหลัก/ทีมรอง →</a>
+<span class="adminBadge" id="adminBadge" onclick="toggleAdmin()">🔒โหมดแอดมิน</span>
+</div>
+
+<div class="toastContainer" id="toastContainer"></div>
+
+<div class="btn" id="actionButtons" style="display:none">
+<button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
+<button class="copy" onclick="exportTeamImage()">🖼️ ส่งออกเป็นรูปภาพ</button>
+</div>
+
+<div class="lookupBar">
+<div class="lookupWrap">
+<input id="lookupName" placeholder="🔍 พิมพ์ชื่อเพื่อดูว่าอยู่ทีมไหน" autocomplete="off" onkeydown="handleLookupKeydown(event)">
+<div class="lookupSuggest" id="lookupSuggest"></div>
+</div>
+<button onclick="lookupTeam()">ค้นหาทีม</button>
+</div>
+
+<div class="modalOverlay" id="lookupModalOverlay">
+<div class="modalBox">
+<h3>ผลการค้นหา</h3>
+<p id="lookupMessage">-</p>
+<div class="modalBtns">
+<button class="modalCancel" onclick="closeLookupModal()">ปิด</button>
+</div>
+</div>
+</div>
+
+<div class="modalOverlay" id="modalOverlay">
+<div class="modalBox">
+<h3 id="modalTitle">ยืนยันการทำรายการ</h3>
+<p id="modalMessage">คุณแน่ใจหรือไม่?</p>
+<div class="modalBtns">
+<button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
+<button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
+</div>
+</div>
+</div>
+
+<div class="modalOverlay" id="loginModalOverlay">
+<div class="modalBox">
+<h3>🔑 เข้าสู่โหมดแอดมิน</h3>
+<input type="email" id="loginEmail" placeholder="อีเมลแอดมิน" autocomplete="username">
+<input type="password" id="loginPassword" placeholder="รหัสผ่าน" autocomplete="current-password">
+<p class="loginError" id="loginError"></p>
+<div class="modalBtns">
+<button class="modalCancel" id="loginCancelBtn">ยกเลิก</button>
+<button class="loginConfirm" id="loginConfirmBtn">เข้าสู่ระบบ</button>
+</div>
+</div>
+</div>
+
+<div class="status" id="status"></div>
+
+<div class="legend">
+<span class="chip" data-job="ไนท์" style="background:#b1544e">⚔️ไนท์ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พระ" style="background:#2f6b46">🙏พระ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="วิ" style="background:#3f6f9e">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ดูอิด" style="background:#3f8f79">🌿ดูอิด <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="สไน" style="background:#b8933a;color:#20242e">🎯สไน <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พ่อค้า" style="background:#8a6a52">💰พ่อค้า <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="แอส" style="background:#5f5480">🗡️แอส <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ปืน" style="background:#7a4f3f">🔫ปืน <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="ม๊อง" style="background:#c2703a">👊ม๊อง <span class="jobCount">(0)</span></span>
+<span class="chip" data-job="พาราดิน" style="background:#4a5d8f">🛡️พาราดิน <span class="jobCount">(0)</span></span>
+</div>
+<div class="legendHint" id="legendHint">👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด</div>
+
+
+<div class="layout">
+
+<div class="teamsWrap">
+
+<div class="category">
+<div class="category-title main">🏰 ชิงปราสาท ชุด 1 (10 ทีม)</div>
+<div id="teamsSet1" class="container"></div>
+</div>
+
+<div class="category">
+<div class="category-title sub">🏰 ชิงปราสาท ชุด 2 (10 ทีม)</div>
+<div id="teamsSet2" class="container"></div>
+</div>
+
+<div class="category">
+<div class="category-title castle">🏰 ชิงปราสาท ชุด 3 (10 ทีม)</div>
+<div id="teamsSet3" class="container"></div>
+</div>
+
+</div>
+
+<div class="pool" id="poolSection">
+
+<h2>👥   รายชื่อสมาชิกทั้งหมด</h2>
+
+<input id="search" placeholder="🔍 ค้นหารายชื่อ">
+
+<div id="pool" class="members poolBox"></div>
+
+</div>
+
+<div class="pool" id="poolLockedNotice" style="display:none;text-align:center;color:#aab4c4;font-size:13px;">
+🔒 กล่องรายชื่อสมาชิกทั้งหมด แสดงเฉพาะโหมดแอดมิน
+</div>
+
+</div>
+
+
+<!-- html2canvas สำหรับฟีเจอร์ส่งออกบอร์ดทีมเป็นรูปภาพ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+
+<script>
+
+// ⚠️ แทนที่ config ด้านล่างนี้ด้วยค่าจากโปรเจกต์ Firebase ของคุณ
+// (Project settings > Your apps > Web app > firebaseConfig)
+const firebaseConfig={
+  apiKey:"AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
+  authDomain:"gulid-75b53.firebaseapp.com",
+  databaseURL:"https://gulid-75b53-default-rtdb.firebaseio.com",
+  projectId:"gulid-75b53",
+  storageBucket:"gulid-75b53.firebasestorage.app",
+  messagingSenderId:"697549334189",
+  appId:"1:697549334189:web:0b7b8bf2ceaa87bce84824"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
+const auth=firebase.auth();
+const membersRef=db.ref("members");
+const assignmentRef=db.ref("assignmentCastle");
+
+const pool=document.getElementById("pool");
+const teamsSet1=document.getElementById("teamsSet1");
+const teamsSet2=document.getElementById("teamsSet2");
+const teamsSet3=document.getElementById("teamsSet3");
+const statusBox=document.getElementById("status");
+
+// ===== ระบบแจ้งเตือนแบบ toast (มุมขวาบน) =====
+function showToast(message,type="info",duration=3000){
+
+let container=document.getElementById("toastContainer");
+
+if(!container)return;
+
+let el=document.createElement("div");
+
+el.className="toast "+type;
+el.textContent=message;
+
+container.appendChild(el);
+
+setTimeout(()=>el.remove(),duration);
+
+}
+
+// ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
+// ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
+// และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
+// (ต้องเป็นบัญชีเดียวกับที่ตั้งไว้ในไฟล์ index.html)
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+let isAdmin=false;
+
+const adminBadge=document.getElementById("adminBadge");
+
+auth.onAuthStateChanged(user=>{
+
+let wasAdmin=isAdmin;
+
+isAdmin=!!user;
+
+updateAdminUI();
+
+if(isAdmin && !wasAdmin){
+showToast("🔓 เข้าสู่โหมดแอดมินแล้ว","success");
+}else if(!isAdmin && wasAdmin){
+showToast("🔒 ออกจากโหมดแอดมินแล้ว","info");
+}
+
+});
+
+// ===== Popup ล็อกอินแอดมิน (แทน prompt() ของเบราว์เซอร์ ให้เด้งตรงกลางสวยๆ) =====
+const loginModalOverlay=document.getElementById("loginModalOverlay");
+const loginEmailInput=document.getElementById("loginEmail");
+const loginPasswordInput=document.getElementById("loginPassword");
+const loginError=document.getElementById("loginError");
+const loginConfirmBtn=document.getElementById("loginConfirmBtn");
+const loginCancelBtn=document.getElementById("loginCancelBtn");
+
+function showLoginModal(){
+
+return new Promise(resolve=>{
+
+loginEmailInput.value="";
+loginPasswordInput.value="";
+loginError.textContent="";
+
+loginModalOverlay.classList.add("show");
+
+setTimeout(()=>loginEmailInput.focus(),50);
+
+function cleanup(){
+
+loginModalOverlay.classList.remove("show");
+loginConfirmBtn.onclick=null;
+loginCancelBtn.onclick=null;
+loginModalOverlay.onclick=null;
+document.removeEventListener("keydown",onKey);
+
+}
+
+function submit(){
+
+let email=loginEmailInput.value.trim();
+let password=loginPasswordInput.value;
+
+if(!email||!password){
+loginError.textContent="กรุณากรอกอีเมลและรหัสผ่านให้ครบ";
+return;
+}
+
+cleanup();
+resolve({email,password});
+
+}
+
+function cancel(){
+cleanup();
+resolve(null);
+}
+
+function onKey(e){
+
+if(e.key==="Escape"){
+cancel();
+}else if(e.key==="Enter"){
+e.preventDefault();
+submit();
+}
+
+}
+
+loginConfirmBtn.onclick=submit;
+loginCancelBtn.onclick=cancel;
+
+loginModalOverlay.onclick=e=>{
+if(e.target===loginModalOverlay)cancel();
+};
+
+document.addEventListener("keydown",onKey);
+
+});
+
+}
+
+async function loginPrompt(){
+
+let creds=await showLoginModal();
+
+if(!creds)return false;
+
+try{
+
+await auth.signInWithEmailAndPassword(creds.email,creds.password);
+
+return true;
+
+}catch(e){
+
+showToast("⚠️ เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code),"error");
+
+return false;
+
+}
+
+}
+
+async function checkAdmin(){
+
+if(isAdmin)return true;
+
+return await loginPrompt();
+
+}
+
+async function toggleAdmin(){
+
+if(isAdmin){
+
+await auth.signOut();
+
+}else{
+
+await checkAdmin();
+
+}
+
+}
+
+function updateAdminUI(){
+
+adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
+adminBadge.classList.toggle("on",isAdmin);
+
+// กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นทุกคน (ทั้งโหมดแอดมินและไม่ใช่แอดมิน)
+document.getElementById("poolSection").style.display="";
+document.getElementById("poolLockedNotice").style.display="none";
+
+// ปุ่มรีเซ็ต/ส่งออกรูปภาพ ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
+document.getElementById("actionButtons").style.display=isAdmin?"":"none";
+
+}
+
+const SET1_COUNT=10;
+const SET2_COUNT=10;
+const SET3_COUNT=10;
+const TEAM_SIZE=5;
+
+let members=[]; // [{name,uid,job}] loaded from the registration page
+let memberByUid={};
+
+
+const JOB_COLORS={
+"ไนท์":"#b1544e",
+"พระ":"#2f6b46",
+"ผู้นำ":"#8f6e1f",
+"วิ":"#3f6f9e",
+"ดูอิด":"#3f8f79",
+"สไน":"#b8933a",
+"พ่อค้า":"#8a6a52",
+"แอส":"#5f5480",
+"ปืน":"#7a4f3f",
+"ม๊อง":"#c2703a",
+"พาราดิน":"#4a5d8f"
+};
+
+// สีข้อความสำหรับพื้นหลังโทนอ่อน จะได้อ่านง่ายขึ้น
+const JOB_TEXT_COLORS={
+"ไนท์":"#fff",
+"พระ":"#fff",
+"ผู้นำ":"#fff",
+"วิ":"#fff",
+"ดูอิด":"#fff",
+"สไน":"#20242e",
+"พ่อค้า":"#fff",
+"แอส":"#fff",
+"ปืน":"#fff",
+"ม๊อง":"#fff",
+"พาราดิน":"#fff"
+};
+
+const JOB_LABELS={
+"ไนท์":"⚔️ไนท์",
+"พระ":"🙏พระ",
+"ผู้นำ":"👑ผู้นำ",
+"วิ":"🧙‍♂️วิ",
+"ดูอิด":"🌿ดูอิด",
+"สไน":"🎯สไน",
+"พ่อค้า":"💰พ่อค้า",
+"แอส":"🗡️แอส",
+"ปืน":"🔫ปืน",
+"ม๊อง":"👊ม๊อง",
+"พาราดิน":"🛡️พาราดิน"
+};
+
+
+function createMember(m){
+
+let div=document.createElement("div");
+
+div.className="member";
+div.draggable=true;
+div.dataset.uid=m.uid;
+div.title="UID: "+m.uid;
+div.style.background=JOB_COLORS[m.job]||"#3d485d";
+div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
+
+if(m.job==="ผู้นำ"){
+div.classList.add("sparkle-job");
+}
+
+div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})<span class="member-remove" title="นำออกจากทีม">✕</span>`;
+
+div.ondragstart=(e)=>{
+if(!isAdmin){
+e.preventDefault();
+return;
+}
+dragItem=div;
+};
+
+div.querySelector(".member-remove").addEventListener("click",(e)=>{
+
+e.stopPropagation();
+
+if(!isAdmin)return;
+
+let parent=div.parentElement;
+
+// ถ้าอยู่ในกล่องทีม ต้องเติมช่องว่างคืนที่ตำแหน่งเดิมด้วย ไม่ให้ทีมขาดช่อง
+if(parent && parent.classList.contains("teamBox")){
+parent.replaceChild(makeEmptySlot(),div);
+}
+
+// นำสมาชิกออกจากทีม กลับไปไว้ในกล่องรายชื่อทั้งหมด
+pool.appendChild(div);
+
+isDragging=true;
+update();
+save().finally(()=>{
+isDragging=false;
+});
+
+});
+
+return div;
+
+}
+
+
+function escapeHtml(str){
+
+return String(str)
+.replaceAll("&","&amp;")
+.replaceAll("<","&lt;")
+.replaceAll(">","&gt;");
+
+}
+
+
+// ค่าล่าสุดที่ได้รับจาก Firebase (อัปเดตแบบ realtime ผ่าน listener ด้านล่าง)
+let latestAssignment=null;
+let firebaseReady=false;
+
+// true ระหว่างที่เรากำลังลาก/วางเอง กัน listener ของตัวเองมาวาดทับ DOM จนกระตุก
+let isDragging=false;
+
+
+function normalizeMembers(raw){
+
+// Firebase เก็บ object {uid: {...}} เวลาเขียนด้วย key เป็น uid
+// รองรับกรณีเป็น array ตรงๆ ด้วยเผื่อไว้
+if(!raw)return[];
+
+if(Array.isArray(raw))return raw.filter(Boolean);
+
+return Object.values(raw);
+
+}
+
+
+function updateLegendCounts(){
+
+let counts={};
+
+members.forEach(m=>{
+
+let job=m.job;
+
+counts[job]=(counts[job]||0)+1;
+
+});
+
+document.querySelectorAll(".legend .chip").forEach(chip=>{
+
+let job=chip.dataset.job;
+let countEl=chip.querySelector(".jobCount");
+
+if(countEl){
+countEl.textContent="("+(counts[job]||0)+")";
+}
+
+});
+
+}
+
+
+function renderFromState(){
+
+if(!firebaseReady)return;
+
+pool.innerHTML="";
+
+createTeams();
+
+updateLegendCounts();
+
+if(members.length===0){
+
+statusBox.textContent="ยังไม่มีสมาชิก กรุณาไปหน้าลงทะเบียนสมาชิกก่อน";
+
+update();
+
+return;
+
+}
+
+let placed=new Set();
+
+let assignment=latestAssignment;
+
+if(assignment){
+
+(assignment.pool||[]).forEach(uid=>{
+
+if(memberByUid[uid]){
+pool.appendChild(createMember(memberByUid[uid]));
+placed.add(uid);
+}
+
+});
+
+let boxes=getAllTeamBoxes();
+
+(assignment.teams||[]).forEach((team,i)=>{
+
+let box=boxes[i];
+
+if(!box)return;
+
+let arr=Array.isArray(team)?team:Object.values(team||{});
+
+for(let slotIdx=0;slotIdx<TEAM_SIZE;slotIdx++){
+
+let uid=arr[slotIdx];
+
+if(uid&&memberByUid[uid]){
+
+let memberEl=createMember(memberByUid[uid]);
+let emptySlot=box.children[slotIdx];
+
+if(emptySlot){
+box.replaceChild(memberEl,emptySlot);
+}else{
+box.appendChild(memberEl);
+}
+
+placed.add(uid);
+
+}
+
+}
+
+});
+
+}
+
+// members registered but not yet placed anywhere go into the pool
+members.forEach(m=>{
+
+if(!placed.has(m.uid)){
+pool.appendChild(createMember(m));
+}
+
+});
+
+statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
+
+update();
+
+applyPoolFilter();
+
+}
+
+
+function attachRealtimeListeners(){
+
+membersRef.on("value",snap=>{
+
+members=normalizeMembers(snap.val());
+
+memberByUid={};
+
+members.forEach(m=>{
+memberByUid[m.uid]=m;
+});
+
+firebaseReady=true;
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ: "+err.message;
+showToast("⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ","error");
+
+});
+
+
+assignmentRef.on("value",snap=>{
+
+latestAssignment=snap.val()||null;
+
+if(isDragging)return; // ระหว่างลากในเครื่องตัวเอง ไม่ต้อง re-render ทับ
+
+renderFromState();
+
+},err=>{
+
+statusBox.textContent="⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ: "+err.message;
+showToast("⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ","error");
+
+});
+
+}
+
+
+async function load(){
+
+statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
+
+createTeams();
+
+attachRealtimeListeners();
+
+}
+
+
+async function refreshMembers(){
+
+// ข้อมูลมาแบบ realtime อยู่แล้ว ปุ่มนี้ไว้บังคับวาดใหม่เผื่อ DOM ค้าง
+renderFromState();
+
+showToast("🔁 รีเฟรชข้อมูลแล้ว","success");
+
+}
+
+
+function buildTeamGroup(container,count,label){
+
+container.innerHTML="";
+
+for(let i=1;i<=count;i++){
+
+let div=document.createElement("div");
+
+div.className="team";
+
+div.innerHTML=`
+<h3>
+${label} ${i}
+(<span class="count">0</span>/${TEAM_SIZE})
+</h3>
+
+<div class="members teamBox"></div>
+`;
+
+container.appendChild(div);
+
+let box=div.querySelector(".teamBox");
+
+// สร้างช่องว่างตายตัวไว้ล่วงหน้าให้ครบตามจำนวนที่นั่งในทีม แต่ละช่องมีตำแหน่งของตัวเอง ไม่เลื่อนไปมา
+for(let s=0;s<TEAM_SIZE;s++){
+box.appendChild(makeEmptySlot());
+}
+
+}
+
+}
+
+
+function createTeams(){
+
+buildTeamGroup(teamsSet1,SET1_COUNT,"ชุด1 ทีม");
+buildTeamGroup(teamsSet2,SET2_COUNT,"ชุด2 ทีม");
+buildTeamGroup(teamsSet3,SET3_COUNT,"ชุด3 ทีม");
+
+}
+
+
+function getAllTeamBoxes(){
+
+return [
+...teamsSet1.querySelectorAll(".teamBox"),
+...teamsSet2.querySelectorAll(".teamBox"),
+...teamsSet3.querySelectorAll(".teamBox")
+];
+
+}
+
+
+// นับเฉพาะสมาชิกจริง (ไม่นับช่องว่างที่ใส่ไว้เพื่อโชว์เลข)
+function realMembersIn(box){
+
+return [...box.children].filter(c=>c.dataset.uid);
+
+}
+
+
+// สร้างช่องว่าง 1 ช่อง ไว้ใช้แทนที่ตำแหน่งที่ยังไม่มีคน หรือแทนที่ตำแหน่งที่เพิ่งมีคนย้ายออกไป
+function makeEmptySlot(){
+
+let ph=document.createElement("div");
+
+ph.className="member slot-empty";
+ph.draggable=false;
+
+ph.innerHTML=`<span class="slot-empty-label">ช่องว่าง</span>`;
+
+return ph;
+
+}
+
+
+
+let dragItem=null;
+
+
+document.addEventListener("dragover",e=>{
+
+let box=e.target.closest(".members");
+
+if(box){
+e.preventDefault();
+box.classList.add("drag");
+}
+
+});
+
+
+document.addEventListener("dragleave",e=>{
+
+let box=e.target.closest(".members");
+
+if(box)
+box.classList.remove("drag");
+
+});
+
+
+document.addEventListener("drop",async e=>{
+
+let box=e.target.closest(".members");
+
+if(!box)return;
+
+box.classList.remove("drag");
+
+if(!dragItem)return;
+
+if(!isAdmin)return;
+
+let isTargetTeam=box.classList.contains("teamBox");
+
+let originBox=dragItem.parentElement;
+let originIsTeam=originBox && originBox.classList.contains("teamBox");
+
+if(!isTargetTeam){
+
+// ปล่อยลงกล่องรายชื่อทั้งหมด: ไม่มีช่องตายตัว ถ้าย้ายออกจากทีมมาก็เติมช่องว่างคืนให้ทีมเดิม
+if(originIsTeam){
+originBox.replaceChild(makeEmptySlot(),dragItem);
+}
+
+let dropTarget=e.target.closest(".member");
+
+if(dropTarget && dropTarget!==dragItem){
+dropTarget.parentElement.insertBefore(dragItem,dropTarget);
+}else{
+box.appendChild(dragItem);
+}
+
+}else{
+
+let dropTarget=e.target.closest(".member");
+
+// ต้องปล่อยลงบนช่องใดช่องหนึ่งของทีมโดยเฉพาะ ถึงจะถือว่าเลือกช่องนั้น ไม่มีการไล่เรียงอัตโนมัติ
+if(!dropTarget || dropTarget===dragItem){
+return;
+}
+
+if(dropTarget.classList.contains("slot-empty")){
+
+// ย้ายเข้าช่องว่างที่เลือกโดยเฉพาะ ช่องอื่นๆ ในทีมไม่ถูกกระทบ
+if(originIsTeam){
+originBox.replaceChild(makeEmptySlot(),dragItem);
+}
+
+box.replaceChild(dragItem,dropTarget);
+
+}else{
+
+// ปล่อยทับสมาชิกอีกคน (ไม่ว่าจะทีมเดียวกันหรือคนละทีม) ให้สลับตำแหน่งกันตรงๆ
+let dragParent=dragItem.parentElement;
+
+let placeholder=document.createElement("div");
+
+dragParent.insertBefore(placeholder,dragItem);
+
+dropTarget.parentElement.insertBefore(dragItem,dropTarget);
+
+dragParent.insertBefore(dropTarget,placeholder);
+
+dragParent.removeChild(placeholder);
+
+}
+
+}
+
+isDragging=true;
+
+update();
+
+save().finally(()=>{
+isDragging=false;
+});
+
+});
+
+
+
+function update(){
+
+document.querySelectorAll(".team").forEach(team=>{
+
+let box=team.querySelector(".teamBox");
+
+let count=realMembersIn(box).length;
+
+team.querySelector(".count").innerText=count;
+
+team.classList.toggle("full",count>=TEAM_SIZE);
+
+});
+
+}
+
+
+
+// อ่านสถานะปัจจุบันจาก DOM (ใครอยู่กล่องรายชื่อ ใครอยู่ทีมไหน)
+function currentAssignmentFromDOM(){
+
+return{
+pool:[...pool.children].map(x=>x.dataset.uid),
+
+// เก็บเป็น array ความยาวคงที่ต่อทีม (ช่องว่าง = "") เพื่อให้ตำแหน่งแต่ละช่องไม่เลื่อนไปมา
+teams:getAllTeamBoxes()
+.map(box=>[...box.children].map(x=>x.dataset.uid||""))
+
+};
+
+}
+
+
+async function save(){
+
+let data=currentAssignmentFromDOM();
+
+latestAssignment=data; // อัปเดตแคชในเครื่องทันที ไม่ต้องรอ echo กลับมาจาก Firebase
+
+try{
+
+await assignmentRef.set(data);
+
+}catch(e){
+
+statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message;
+showToast("⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message,"error");
+
+}
+
+}
+
+
+
+async function resetAll(){
+
+try{
+
+await assignmentRef.remove();
+
+showToast("🔄 รีเซ็ตทีมเรียบร้อยแล้ว","success");
+
+}catch(e){
+
+statusBox.textContent="⚠️ รีเซ็ตไม่สำเร็จ: "+e.message;
+showToast("⚠️ รีเซ็ตไม่สำเร็จ: "+e.message,"error");
+
+}
+
+}
+
+
+
+
+
+
+
+// ===== Popup ยืนยัน =====
+const modalOverlay=document.getElementById("modalOverlay");
+const modalTitle=document.getElementById("modalTitle");
+const modalMessage=document.getElementById("modalMessage");
+const modalConfirmBtn=document.getElementById("modalConfirmBtn");
+
+const ACTIONS={
+reset:{
+title:"ยืนยันการรีเซ็ต",
+message:"การจัดทีมทั้งหมดจะถูกล้างและย้ายสมาชิกกลับไปที่กล่องรายชื่อ ต้องการดำเนินการต่อหรือไม่?",
+run:resetAll
+}
+};
+
+async function confirmAction(key){
+
+let action=ACTIONS[key];
+
+if(!action)return;
+
+if(!(await checkAdmin()))return;
+
+modalTitle.textContent=action.title;
+modalMessage.textContent=action.message;
+
+modalConfirmBtn.onclick=()=>{
+closeModal();
+action.run();
+};
+
+modalOverlay.classList.add("show");
+
+}
+
+function closeModal(){
+modalOverlay.classList.remove("show");
+}
+
+modalOverlay.addEventListener("click",e=>{
+if(e.target===modalOverlay)closeModal();
+});
+
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape"){
+closeModal();
+closeLookupModal();
+}
+});
+
+
+// ===== Popup ค้นหาว่าสมาชิกอยู่ทีมไหน =====
+const lookupModalOverlay=document.getElementById("lookupModalOverlay");
+const lookupMessage=document.getElementById("lookupMessage");
+
+function closeLookupModal(){
+lookupModalOverlay.classList.remove("show");
+}
+
+lookupModalOverlay.addEventListener("click",e=>{
+if(e.target===lookupModalOverlay)closeLookupModal();
+});
+
+// หาไว้ว่า uid นี้อยู่ในกล่องช่องทีมไหน (คืนชื่อทีม) หรืออยู่ในกล่องรายชื่อ หรือไม่พบเลย
+function findTeamLabelForUid(uid){
+
+let boxes=getAllTeamBoxes();
+
+for(let i=0;i<boxes.length;i++){
+
+let found=realMembersIn(boxes[i]).some(c=>c.dataset.uid===uid);
+
+if(found){
+
+let teamDiv=boxes[i].closest(".team");
+let h3=teamDiv?teamDiv.querySelector("h3"):null;
+
+return h3?h3.textContent.split("(")[0].replace(/\s+/g," ").trim():"ทีม?";
+
+}
+
+}
+
+let inPool=[...pool.children].some(c=>c.dataset.uid===uid);
+
+if(inPool)return "อยู่ในกล่องรายชื่อ (ยังไม่ได้จัดทีม)";
+
+return null;
+
+}
+
+function lookupTeam(){
+
+let key=document.getElementById("lookupName").value.trim().toLowerCase();
+
+if(!key){
+
+lookupMessage.textContent="กรุณาพิมพ์ชื่อที่ต้องการค้นหา";
+lookupModalOverlay.classList.add("show");
+
+return;
+
+}
+
+let matches=members.filter(m=>m.name.toLowerCase().includes(key));
+
+if(matches.length===0){
+
+lookupMessage.innerHTML="ไม่พบสมาชิกชื่อ \""+escapeHtml(key)+"\"";
+
+}else{
+
+lookupMessage.innerHTML=matches.map(m=>{
+
+let jobLabel=JOB_LABELS[m.job]||m.job;
+let teamLabel=findTeamLabelForUid(m.uid)||"ไม่พบตำแหน่ง (ข้อมูลยังไม่โหลดหรือยังไม่จัดทีม)";
+
+return "<b>"+escapeHtml(m.name)+"</b> ("+escapeHtml(jobLabel)+")<br> "+escapeHtml(teamLabel);
+
+}).join("<hr style='border-color:#3d485d;margin:10px 0'>");
+
+}
+
+lookupModalOverlay.classList.add("show");
+
+}
+
+
+// ===== แสดงรายชื่อที่กำลังค้นหาแบบเรียลไทม์ (suggestions) =====
+const lookupNameInput=document.getElementById("lookupName");
+const lookupSuggestBox=document.getElementById("lookupSuggest");
+let lookupSuggestIndex=-1;
+
+function renderLookupSuggestions(){
+
+let key=lookupNameInput.value.trim().toLowerCase();
+
+if(!key){
+lookupSuggestBox.classList.remove("show");
+lookupSuggestBox.innerHTML="";
+lookupSuggestIndex=-1;
+return;
+}
+
+let matches=members
+.filter(m=>m.name.toLowerCase().includes(key))
+.slice(0,8);
+
+if(matches.length===0){
+lookupSuggestBox.innerHTML="<div class='sgEmpty'>ไม่พบชื่อที่ตรงกัน</div>";
+}else{
+lookupSuggestBox.innerHTML=matches.map((m,i)=>{
+let jobLabel=JOB_LABELS[m.job]||m.job;
+return "<div class='sgItem' data-idx=\""+i+"\" onmousedown=\"selectLookupSuggestion('"+m.uid+"')\">"
++"<span>"+escapeHtml(m.name)+"</span>"
++"<span class='sgJob'>"+escapeHtml(jobLabel)+"</span>"
++"</div>";
+}).join("");
+}
+
+lookupSuggestIndex=-1;
+lookupSuggestBox.classList.add("show");
+
+}
+
+function selectLookupSuggestion(uid){
+
+let m=members.find(x=>x.uid===uid);
+if(!m)return;
+
+lookupNameInput.value=m.name;
+lookupSuggestBox.classList.remove("show");
+lookupSuggestBox.innerHTML="";
+lookupSuggestIndex=-1;
+
+lookupTeam();
+
+}
+
+function handleLookupKeydown(event){
+
+let items=[...lookupSuggestBox.querySelectorAll(".sgItem")];
+
+if(event.key==="ArrowDown"){
+event.preventDefault();
+if(!items.length)return;
+lookupSuggestIndex=(lookupSuggestIndex+1)%items.length;
+items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
+items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
+return;
+}
+
+if(event.key==="ArrowUp"){
+event.preventDefault();
+if(!items.length)return;
+lookupSuggestIndex=(lookupSuggestIndex-1+items.length)%items.length;
+items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
+items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
+return;
+}
+
+if(event.key==="Enter"){
+if(lookupSuggestIndex>-1&&items[lookupSuggestIndex]){
+items[lookupSuggestIndex].dispatchEvent(new Event("mousedown"));
+}else{
+lookupSuggestBox.classList.remove("show");
+lookupTeam();
+}
+return;
+}
+
+if(event.key==="Escape"){
+lookupSuggestBox.classList.remove("show");
+}
+
+}
+
+lookupNameInput.addEventListener("input",renderLookupSuggestions);
+
+lookupNameInput.addEventListener("blur",()=>{
+setTimeout(()=>lookupSuggestBox.classList.remove("show"),120);
+});
+
+lookupNameInput.addEventListener("focus",()=>{
+if(lookupNameInput.value.trim())renderLookupSuggestions();
+});
+
+let activeJobFilter=null;
+
+function applyPoolFilter(){
+
+let key=document.getElementById("search").value.toLowerCase();
+
+document.querySelectorAll("#pool .member")
+.forEach(m=>{
+
+let uid=memberByUid[m.dataset.uid];
+
+let text=uid?(uid.name+" "+uid.uid+" "+uid.job).toLowerCase():m.textContent.toLowerCase();
+
+let matchesSearch=text.includes(key);
+
+let job=uid?uid.job:null;
+
+let matchesJob=!activeJobFilter||job===activeJobFilter;
+
+m.style.display=
+(matchesSearch&&matchesJob)
+?"block":"none";
+
+});
+
+}
+
+
+document.getElementById("search")
+.addEventListener("input",applyPoolFilter);
+
+
+document.querySelectorAll(".legend .chip").forEach(chip=>{
+
+chip.addEventListener("click",()=>{
+
+let job=chip.dataset.job;
+
+if(activeJobFilter===job){
+// คลิกซ้ำที่ป้ายเดิม = ยกเลิกการกรอง
+activeJobFilter=null;
+}else{
+activeJobFilter=job;
+}
+
+document.querySelectorAll(".legend .chip")
+.forEach(c=>c.classList.toggle("active",c.dataset.job===activeJobFilter));
+
+let hint=document.getElementById("legendHint");
+hint.textContent=activeJobFilter
+?"🔎 กำลังกรองเฉพาะอาชีพ \""+activeJobFilter+"\" • คลิกป้ายเดิมอีกครั้งเพื่อยกเลิก"
+:"👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด";
+
+applyPoolFilter();
+
+});
+
+});
+
+
+async function exportTeamImage(){
+
+statusBox.textContent="🖼️ กำลังสร้างรูปภาพ...";
+
+try{
+
+if(typeof html2canvas!=="function"){
+throw new Error("โหลดไลบรารีสร้างรูปภาพไม่สำเร็จ (ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)");
+}
+
+let target=document.querySelector(".layout");
+
+let canvas=await html2canvas(target,{
+backgroundColor:"#1b2130",
+scale:2,
+useCORS:true
+});
+
+let dataUrl=canvas.toDataURL("image/png");
+
+let ts=new Date()
+.toISOString()
+.slice(0,19)
+.replace(/[:T]/g,"-");
+
+let link=document.createElement("a");
+link.download="guild-teams-"+ts+".png";
+link.href=dataUrl;
+link.click();
+
+statusBox.textContent="✅ ส่งออกรูปภาพเรียบร้อย ตรวจสอบไฟล์ที่ดาวน์โหลด";
+showToast("✅ ส่งออกรูปภาพเรียบร้อยแล้ว","success");
+
+}catch(e){
+
+statusBox.textContent="⚠️ ส่งออกรูปภาพไม่สำเร็จ: "+(e.message||e);
+showToast("⚠️ ส่งออกรูปภาพไม่สำเร็จ: "+(e.message||e),"error");
+
+}
+
+}
+
+
+
+updateAdminUI();
+
+load();
+
+</script>
+
+</body>
+</html>
