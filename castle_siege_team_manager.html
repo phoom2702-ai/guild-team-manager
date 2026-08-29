@@ -379,8 +379,12 @@ input:focus{
 
 .container{
     display:grid;
-    grid-template-columns:repeat(5,1fr);
+    grid-template-columns:repeat(4,1fr);
     gap:6px;
+}
+
+#teamsSet4{
+    grid-template-columns:repeat(2,1fr);
 }
 
 @media(max-width:1100px){
@@ -518,21 +522,9 @@ input:focus{
     border-color:#4f9f6b;
 }
 
-@media(max-width:1100px){
-    .container{
-        grid-template-columns:repeat(4,1fr);
-    }
-}
-
-@media(max-width:900px){
-    .container{
-        grid-template-columns:repeat(3,1fr);
-    }
-}
-
 @media(max-width:600px){
     .container{
-        grid-template-columns:repeat(2,1fr);
+        grid-template-columns:repeat(1,1fr);
     }
 }
 
@@ -762,18 +754,23 @@ input:focus{
 <div class="teamsWrap">
 
 <div class="category">
-<div class="category-title main">🏰 ชิงปราสาท ชุด 1 (10 ทีม)</div>
+<div class="category-title main">🏰 ชิงปราสาท ชุด 1 (8 ทีม)</div>
 <div id="teamsSet1" class="container"></div>
 </div>
 
 <div class="category">
-<div class="category-title sub">🏰 ชิงปราสาท ชุด 2 (10 ทีม)</div>
+<div class="category-title sub">🏰 ชิงปราสาท ชุด 2 (8 ทีม)</div>
 <div id="teamsSet2" class="container"></div>
 </div>
 
 <div class="category">
-<div class="category-title castle">🏰 ชิงปราสาท ชุด 3 (10 ทีม)</div>
+<div class="category-title castle">🏰 ชิงปราสาท ชุด 3 (8 ทีม)</div>
 <div id="teamsSet3" class="container"></div>
+</div>
+
+<div class="category">
+<div class="category-title main">🏰 ชิงปราสาท ชุด 4 (6 ทีม)</div>
+<div id="teamsSet4" class="container"></div>
 </div>
 
 </div>
@@ -827,6 +824,7 @@ const pool=document.getElementById("pool");
 const teamsSet1=document.getElementById("teamsSet1");
 const teamsSet2=document.getElementById("teamsSet2");
 const teamsSet3=document.getElementById("teamsSet3");
+const teamsSet4=document.getElementById("teamsSet4");
 const statusBox=document.getElementById("status");
 
 // ===== ระบบแจ้งเตือนแบบ toast (มุมขวาบน) =====
@@ -1005,9 +1003,10 @@ document.getElementById("actionButtons").style.display=isAdmin?"":"none";
 
 }
 
-const SET1_COUNT=10;
-const SET2_COUNT=10;
-const SET3_COUNT=10;
+const SET1_COUNT=8;
+const SET2_COUNT=8;
+const SET3_COUNT=8;
+const SET4_COUNT=6;
 const TEAM_SIZE=5;
 
 let members=[]; // [{name,uid,job}] loaded from the registration page
@@ -1358,6 +1357,7 @@ function createTeams(){
 buildTeamGroup(teamsSet1,SET1_COUNT,"ชุด1 ทีม");
 buildTeamGroup(teamsSet2,SET2_COUNT,"ชุด2 ทีม");
 buildTeamGroup(teamsSet3,SET3_COUNT,"ชุด3 ทีม");
+buildTeamGroup(teamsSet4,SET4_COUNT,"ชุด4 ทีม");
 
 }
 
@@ -1367,7 +1367,8 @@ function getAllTeamBoxes(){
 return [
 ...teamsSet1.querySelectorAll(".teamBox"),
 ...teamsSet2.querySelectorAll(".teamBox"),
-...teamsSet3.querySelectorAll(".teamBox")
+...teamsSet3.querySelectorAll(".teamBox"),
+...teamsSet4.querySelectorAll(".teamBox")
 ];
 
 }
