@@ -204,6 +204,7 @@
   .event-tabs{
     display:flex; gap:6px; background:var(--panel-2); border:1px solid var(--line-soft);
     border-radius:12px; padding:4px; margin-bottom:12px; width:fit-content;
+    flex-wrap:wrap; max-width:100%;
   }
   .event-tab{
     appearance:none; border:none; background:transparent; color:var(--muted);
@@ -329,6 +330,10 @@
   .section-title.sub-bf{ color:#8fe8dd; }
   .section-title.elite-bf{ color:#ffd166; }
   .section-title.castle-bf{ color:#ffb3c1; }
+  .section-title.castle-set-1{ color:#ff8fa3; }
+  .section-title.castle-set-2{ color:#ffb454; }
+  .section-title.castle-set-3{ color:#b9a4ff; }
+  .section-title.castle-set-4{ color:#5ee6d0; }
   .section-line{ flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
   .section-note{ font-size:11px; color:var(--muted-2); }
 
@@ -343,6 +348,10 @@
   .team-card.sub-bf{ box-shadow: inset 3px 0 0 0 #3fd6c4; }
   .team-card.elite-bf{ box-shadow: inset 3px 0 0 0 #f0b429; }
   .team-card.castle-bf{ box-shadow: inset 3px 0 0 0 var(--castle); }
+  .team-card.castle-set-1{ box-shadow: inset 3px 0 0 0 #ff5f7e; }
+  .team-card.castle-set-2{ box-shadow: inset 3px 0 0 0 #f0a022; }
+  .team-card.castle-set-3{ box-shadow: inset 3px 0 0 0 #8b7cf6; }
+  .team-card.castle-set-4{ box-shadow: inset 3px 0 0 0 #3fd6c4; }
   .team-head{ display:flex; align-items:center; justify-content:space-between; }
   .team-name{ font-size:13px; font-weight:700; letter-spacing:.3px; }
   .team-meta{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); display:flex; gap:6px; align-items:center;}
@@ -420,6 +429,8 @@
     .sidebar{ position:relative; top:0; height:auto; width:100%; min-width:0; border-right:none; border-bottom:1px solid var(--line-soft); max-height:340px; }
     .body-wrap{ flex-direction:column; }
     .topbar{ flex-wrap:wrap; }
+    .event-tabs{ width:100%; justify-content:center; }
+    .event-tab{ padding:7px 10px; font-size:11.5px; }
     .footer-cols{ grid-template-columns:1fr; gap:26px; }
   }
 </style>
@@ -1451,8 +1462,9 @@
       }
     }
     const cardLabel = kind === 'castle-bf' ? `Team ${teamKey.split('_')[2]}` : teamLabel(teamKey);
+    const setClass = kind === 'castle-bf' ? ` castle-set-${teamKey.split('_')[1]}` : '';
     return `
-      <div class="team-card ${kind}">
+      <div class="team-card ${kind}${setClass}">
         <div class="team-head">
           <div class="team-name">${cardLabel}</div>
           <div class="team-meta"><div class="team-fill-dot ${dotClass}"></div>${filledCount}/${SLOTS_PER_TEAM}</div>
@@ -1469,7 +1481,7 @@
         const setKeys = GC_TEAM_KEYS.filter(k => k.startsWith(`gc_${s}_`));
         html += `
         <div class="section-head">
-          <div class="section-title castle-bf">🏰 Guild Castle — ชุด ${s}</div>
+          <div class="section-title castle-bf castle-set-${s}">🏰 Guild Castle — ชุด ${s}</div>
           <div class="section-line"></div>
           <div class="section-note">Teams 1–${GC_TEAMS_PER_SET}</div>
         </div>
