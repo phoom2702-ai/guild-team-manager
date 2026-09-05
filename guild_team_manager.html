@@ -24,6 +24,8 @@
     --amber: #f0b429;
     --red: #ef5a6f;
     --green: #4fd67a;
+    --castle: #ff8fa3;
+    --castle-glow: #ff8fa355;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -213,6 +215,7 @@
   .event-tab.active{ background:var(--panel); color:var(--text); box-shadow:0 1px 0 0 var(--line-soft) inset; }
   .event-tab.active.gl{ color:#c6bdfb; }
   .event-tab.active.pz{ color:#ffd166; }
+  .event-tab.active.gc{ color:var(--castle); }
 
   /* ---------- Layout ---------- */
   .body-wrap{ display:flex; width:100%; align-items:flex-start; }
@@ -284,6 +287,7 @@
   }
   .status-tag.Main{ background:#8b7cf62c; color:#b3a8fb; }
   .status-tag.Sub{ background:#3fd6c42c; color:#7ee8db; }
+  .status-tag.Castle{ background:#ff8fa32c; color:#ffb3c1; }
   .status-tag.Unassigned{ background:#5f688930; color:var(--muted); }
   .assigned-flag{ font-size:9.5px; color:var(--muted-2); font-style:italic; white-space:nowrap; }
   .empty-note{ text-align:center; color:var(--muted-2); font-size:12px; padding:30px 10px; }
@@ -324,6 +328,7 @@
   .section-title.main-bf{ color:#c6bdfb; }
   .section-title.sub-bf{ color:#8fe8dd; }
   .section-title.elite-bf{ color:#ffd166; }
+  .section-title.castle-bf{ color:#ffb3c1; }
   .section-line{ flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
   .section-note{ font-size:11px; color:var(--muted-2); }
 
@@ -337,6 +342,7 @@
   .team-card.main-bf{ box-shadow: inset 3px 0 0 0 #8b7cf6; }
   .team-card.sub-bf{ box-shadow: inset 3px 0 0 0 #3fd6c4; }
   .team-card.elite-bf{ box-shadow: inset 3px 0 0 0 #f0b429; }
+  .team-card.castle-bf{ box-shadow: inset 3px 0 0 0 var(--castle); }
   .team-head{ display:flex; align-items:center; justify-content:space-between; }
   .team-name{ font-size:13px; font-weight:700; letter-spacing:.3px; }
   .team-meta{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); display:flex; gap:6px; align-items:center;}
@@ -455,6 +461,7 @@
       <div class="event-tabs" id="eventTabs">
         <button class="event-tab" data-event="guild_league">🛡️ Guild League</button>
         <button class="event-tab" data-event="polarity_zone">⚡ Polarity Zone</button>
+        <button class="event-tab" data-event="guild_castle">🏰 Guild Castle</button>
       </div>
       <div class="stats" id="statsRow"></div>
       <div class="actions">
@@ -523,22 +530,42 @@
 
   const SLOTS_PER_TEAM = 5; // slot 0 = leader
   const TEAMS_PER_SIDE = 12;
-  const SUB_TEAMS_PER_SIDE = TEAMS_PER_SIDE + 5; // Sub Battlefield has 5 extra teams
+  const SUB_TEAMS_PER_SIDE = TEAMS_PER_SIDE + 6; // Sub Battlefield has 6 extra teams
   const MAIN_TEAM_KEYS  = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`main_${i+1}`);
   const SUB_TEAM_KEYS   = Array.from({length: SUB_TEAMS_PER_SIDE}, (_,i)=>`sub_${i+1}`);
   const ELITE_TEAM_KEYS = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`elite_${i+1}`);
+  const GC_SETS = 4;              // Guild Castle: 4 sets
+  const GC_TEAMS_PER_SET = 8;     // Guild Castle: 8 teams per set
+  const GC_TEAM_KEYS = [];
+  for(let s=1; s<=GC_SETS; s++){
+    for(let i=1; i<=GC_TEAMS_PER_SET; i++){
+      GC_TEAM_KEYS.push(`gc_${s}_${i}`);
+    }
+  }
   const GL_TEAM_KEYS   = [...MAIN_TEAM_KEYS, ...SUB_TEAM_KEYS];   // Guild League
   const PZ_TEAM_KEYS   = [...ELITE_TEAM_KEYS];                    // Polarity Zone
-  const ALL_TEAM_KEYS  = [...GL_TEAM_KEYS, ...PZ_TEAM_KEYS];
+  const GC_ALL_KEYS    = [...GC_TEAM_KEYS];                       // Guild Castle
+  const ALL_TEAM_KEYS  = [...GL_TEAM_KEYS, ...PZ_TEAM_KEYS, ...GC_ALL_KEYS];
 
   const EVENT_KEY = 'tempest_event_v1';
-  let currentEvent = 'guild_league'; // 'guild_league' | 'polarity_zone'
-  function currentTeamKeys(){ return currentEvent === 'polarity_zone' ? PZ_TEAM_KEYS : GL_TEAM_KEYS; }
+  let currentEvent = 'guild_league'; // 'guild_league' | 'polarity_zone' | 'guild_castle'
+  function currentTeamKeys(){
+    if(currentEvent === 'polarity_zone') return PZ_TEAM_KEYS;
+    if(currentEvent === 'guild_castle') return GC_TEAM_KEYS;
+    return GL_TEAM_KEYS;
+  }
 
-  function teamLabel(key){ return 'Team ' + key.split('_')[1]; }
+  function teamLabel(key){
+    if(key.startsWith('gc_')){
+      const parts = key.split('_');
+      return `Set ${parts[1]} · Team ${parts[2]}`;
+    }
+    return 'Team ' + key.split('_')[1];
+  }
   function teamKind(key){
     if(key.startsWith('main_')) return 'main-bf';
     if(key.startsWith('sub_')) return 'sub-bf';
+    if(key.startsWith('gc_')) return 'castle-bf';
     return 'elite-bf';
   }
 
@@ -662,6 +689,7 @@
     const key = findAssignedTeam(name);
     if(key === null) return 'Unassigned';
     if(currentEvent === 'polarity_zone') return 'Elite';
+    if(currentEvent === 'guild_castle') return 'Castle';
     return teamKind(key) === 'main-bf' ? 'Main' : 'Sub';
   }
 
@@ -711,7 +739,7 @@
       applyingRemote = true;
       const data = doc.data();
       if(data){
-        if(data.currentEvent === 'guild_league' || data.currentEvent === 'polarity_zone'){
+        if(data.currentEvent === 'guild_league' || data.currentEvent === 'polarity_zone' || data.currentEvent === 'guild_castle'){
           currentEvent = data.currentEvent;
         }
         if(Array.isArray(data.members) && data.members.length){
@@ -1059,7 +1087,7 @@
 
   async function clearAll(){
     if(!requireAdmin()) return;
-    const eventLabel = currentEvent === 'polarity_zone' ? 'Polarity Zone' : 'Guild League';
+    const eventLabel = currentEvent === 'polarity_zone' ? 'Polarity Zone' : (currentEvent === 'guild_castle' ? 'Guild Castle' : 'Guild League');
     const proceed = await appConfirm(
       `ล้างการจัดทีม ${eventLabel} ทั้งหมดใช่หรือไม่?\n\nการกระทำนี้ไม่สามารถย้อนกลับได้ (ไลน์อัพของอีกกิจกรรมจะไม่ได้รับผลกระทบ)`,
       { title: 'ยืนยันการล้างทีม', iconKind: 'danger', okText: 'ล้างทั้งหมด' }
@@ -1171,12 +1199,15 @@
       btn.classList.toggle('active', isActive);
       btn.classList.toggle('gl', isActive && currentEvent === 'guild_league');
       btn.classList.toggle('pz', isActive && currentEvent === 'polarity_zone');
+      btn.classList.toggle('gc', isActive && currentEvent === 'guild_castle');
     });
   }
 
   function renderFilters(){
     const statuses = currentEvent === 'polarity_zone'
       ? ['All','Elite','Unassigned']
+      : currentEvent === 'guild_castle'
+      ? ['All','Castle','Unassigned']
       : ['All','Main','Sub','Unassigned'];
     if(!statuses.includes(statusFilter)) statusFilter = 'All';
     document.getElementById('statusFilterRow').innerHTML = statuses.map(s =>
@@ -1271,7 +1302,9 @@
         const isEditing = editingMember === m.name;
         const assignedToKey = isAssigned ? findAssignedTeam(m.name) : null;
         const assignedLabel = assignedToKey
-          ? (currentEvent === 'polarity_zone' ? `Elite ${teamLabel(assignedToKey)}` : `${teamKind(assignedToKey)==='main-bf'?'Main':'Sub'} ${teamLabel(assignedToKey)}`)
+          ? (currentEvent === 'polarity_zone' ? `Elite ${teamLabel(assignedToKey)}`
+             : currentEvent === 'guild_castle' ? `Castle ${teamLabel(assignedToKey)}`
+             : `${teamKind(assignedToKey)==='main-bf'?'Main':'Sub'} ${teamLabel(assignedToKey)}`)
           : '';
 
         if(isEditing){
@@ -1417,10 +1450,11 @@
           </div>`;
       }
     }
+    const cardLabel = kind === 'castle-bf' ? `Team ${teamKey.split('_')[2]}` : teamLabel(teamKey);
     return `
       <div class="team-card ${kind}">
         <div class="team-head">
-          <div class="team-name">${teamLabel(teamKey)}</div>
+          <div class="team-name">${cardLabel}</div>
           <div class="team-meta"><div class="team-fill-dot ${dotClass}"></div>${filledCount}/${SLOTS_PER_TEAM}</div>
         </div>
         ${slotsHtml}
@@ -1429,7 +1463,21 @@
 
   function renderTeams(){
     const wrap = document.getElementById('teamsWrap');
-    if(currentEvent === 'polarity_zone'){
+    if(currentEvent === 'guild_castle'){
+      let html = '';
+      for(let s=1; s<=GC_SETS; s++){
+        const setKeys = GC_TEAM_KEYS.filter(k => k.startsWith(`gc_${s}_`));
+        html += `
+        <div class="section-head">
+          <div class="section-title castle-bf">🏰 Guild Castle — ชุด ${s}</div>
+          <div class="section-line"></div>
+          <div class="section-note">Teams 1–${GC_TEAMS_PER_SET}</div>
+        </div>
+        <div class="team-grid">${setKeys.map(k=>teamCard(k)).join('')}</div>
+        `;
+      }
+      wrap.innerHTML = html;
+    } else if(currentEvent === 'polarity_zone'){
       wrap.innerHTML = `
         <div class="section-head">
           <div class="section-title elite-bf">⚡ Elite Battlefield</div>
