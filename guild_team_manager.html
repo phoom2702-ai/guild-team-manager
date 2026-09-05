@@ -105,6 +105,46 @@
   @keyframes toast-in{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:translateY(0); } }
   @keyframes toast-out{ from{ opacity:1; transform:translateY(0); } to{ opacity:0; transform:translateY(-8px); } }
 
+  /* ---------- Custom confirm/alert dialog (replaces native confirm()/alert()) ---------- */
+  .app-dialog-overlay{
+    position:fixed; inset:0; z-index:1000;
+    background:#05060ccc; backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:16px;
+    animation:dialog-fade-in .15s ease-out;
+  }
+  .app-dialog-overlay.closing{ animation:dialog-fade-out .15s ease-in forwards; }
+  @keyframes dialog-fade-in{ from{ opacity:0; } to{ opacity:1; } }
+  @keyframes dialog-fade-out{ from{ opacity:1; } to{ opacity:0; } }
+  .app-dialog{
+    width:min(420px, 100%);
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:16px;
+    box-shadow:0 20px 60px #000000aa;
+    padding:20px 22px 18px;
+    animation:dialog-pop-in .18s cubic-bezier(.2,.9,.3,1.2);
+  }
+  @keyframes dialog-pop-in{ from{ opacity:0; transform:translateY(6px) scale(.98); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  .app-dialog-icon{
+    width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:19px; margin-bottom:12px;
+    background:var(--panel-2); border:1px solid var(--line-soft);
+  }
+  .app-dialog-icon.danger{ background:#ef5a6f18; border-color:#ef5a6f55; color:var(--red); }
+  .app-dialog-icon.warn{ background:#f0b42918; border-color:#f0b42955; color:var(--amber); }
+  .app-dialog-icon.info{ background:#8b7cf618; border-color:#8b7cf655; color:var(--violet); }
+  .app-dialog-title{ font-size:15.5px; font-weight:700; color:var(--text); margin-bottom:8px; }
+  .app-dialog-msg{ font-size:13.5px; color:var(--muted); line-height:1.6; white-space:pre-line; }
+  .app-dialog-actions{ display:flex; justify-content:flex-end; gap:10px; margin-top:18px; }
+  .app-dialog-btn{
+    font-family:inherit; font-size:13px; font-weight:600; letter-spacing:.2px;
+    border-radius:10px; padding:9px 18px; cursor:pointer; transition:.15s ease;
+    border:1px solid var(--line-soft); background:var(--panel-2); color:var(--text);
+  }
+  .app-dialog-btn:hover{ border-color:var(--violet); box-shadow:0 0 0 1px var(--violet-glow); }
+  .app-dialog-btn.ok{ background:linear-gradient(135deg,#8b7cf6,#6f5ee0); border:none; color:#fff; }
+  .app-dialog-btn.ok:hover{ box-shadow:0 0 16px var(--violet-glow); }
+  .app-dialog-btn.ok.danger{ background:linear-gradient(135deg,#ef5a6f,#c9364d); }
+  .app-dialog-btn.ok.danger:hover{ box-shadow:0 0 16px #ef5a6f55; }
+
   /* Export/Import guide modal */
   .guide-overlay{
     position:fixed; inset:0; z-index:998;
@@ -126,19 +166,6 @@
   .guide-body code{
     font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--text);
     background:var(--panel-2); border:1px solid var(--line-soft); border-radius:5px; padding:1px 5px;
-  }
-  .guide-step{
-    display:flex; gap:12px; align-items:flex-start; margin-bottom:14px;
-  }
-  .guide-step div:last-child{ color:var(--text); }
-  .guide-step-num{
-    flex:none; width:22px; height:22px; border-radius:50%;
-    background:var(--panel-2); border:1px solid var(--violet); color:var(--violet);
-    display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
-  }
-  .guide-warn{
-    background:#f0b42918; border:1px solid #f0b42955; border-radius:10px;
-    padding:10px 12px; color:var(--text) !important; font-size:12.5px;
   }
   .guide-footer{ padding:12px 18px 16px; text-align:right; border-top:1px solid var(--line-soft); }
 
@@ -394,58 +421,6 @@
 <body>
 <div id="toastStack" aria-live="polite"></div>
 
-<div id="guideOverlay" class="guide-overlay" style="display:none;">
-  <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
-    <div class="guide-header">
-      <h3 id="guideTitle">📤 How Export / Import works</h3>
-      <button class="icon-btn" id="guideCloseBtn" title="Close">✕</button>
-    </div>
-    <div class="guide-body">
-      <p>This tool saves everything <b>only in your own browser</b> — there's no shared server. Export/Import is how you hand off the lineup between guild leader and co-leaders.</p>
-
-      <div class="guide-step">
-        <div class="guide-step-num">1</div>
-        <div>
-          <b>Export</b> — Click <b>⬇ Export</b> to download the current roster and team lineup as a small file (<code>guild-lineup-YYYY-MM-DD.json</code>).
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-step-num">2</div>
-        <div>
-          <b>Send the file</b> — Attach that file to a Discord message (or email, Drive, etc.) for your co-leader. Unlike a link, a file has no length limit, so it works even with large rosters.
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-step-num">3</div>
-        <div>
-          <b>Import</b> — The co-leader clicks <b>⬆ Import</b>, selects that file, and confirms. Their browser now has the exact same roster and lineup — ready to edit.
-        </div>
-      </div>
-
-      <div class="guide-step">
-        <div class="guide-step-num">4</div>
-        <div>
-          <b>Keep passing it along</b> — Whoever edits last should <b>Export</b> again and share the new file, so everyone stays on the latest version.
-        </div>
-      </div>
-
-      <p class="guide-warn">⚠️ Importing a file <b>replaces</b> whatever roster/lineup is currently saved in that browser. Double-check you're importing the newest file before confirming.</p>
-
-      <div class="guide-step">
-        <div class="guide-step-num">📊</div>
-        <div>
-          <b>Import Excel</b> — Click <b>📊 Import Excel</b> to bulk add or update members straight from your guild's member-list <code>.xlsx</code> file (columns: Name, Job Name, Gear Rating). Unlike Import above, this <b>doesn't replace</b> your roster — it adds new names and updates matching ones, keeping your team assignments intact.
-        </div>
-      </div>
-    </div>
-    <div class="guide-footer">
-      <button class="btn primary" id="guideCloseBtn2">Got it</button>
-    </div>
-  </div>
-</div>
-
 <div id="loginOverlay" class="guide-overlay" style="display:none;">
   <div class="guide-modal" style="width:min(380px, 100%);" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="guide-header">
@@ -491,7 +466,6 @@
         <button class="btn" id="exportBtn" title="Download the current roster and lineup as a file">⬇ Export</button>
         <button class="btn" id="importBtn" title="Load a roster and lineup from a file">⬆ Import</button>
         <button class="btn" id="importExcelBtn" title="Bulk add/update members from a guild members Excel (.xlsx) file">📊 Import Excel</button>
-        <button class="icon-btn" id="importExportHelpBtn" title="How does Export/Import work?">❓</button>
         <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
         <input type="file" id="importExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
         <button class="btn danger" id="clearBtn">Clear all</button>
@@ -549,8 +523,9 @@
 
   const SLOTS_PER_TEAM = 5; // slot 0 = leader
   const TEAMS_PER_SIDE = 12;
+  const SUB_TEAMS_PER_SIDE = TEAMS_PER_SIDE + 5; // Sub Battlefield has 5 extra teams
   const MAIN_TEAM_KEYS  = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`main_${i+1}`);
-  const SUB_TEAM_KEYS   = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`sub_${i+1}`);
+  const SUB_TEAM_KEYS   = Array.from({length: SUB_TEAMS_PER_SIDE}, (_,i)=>`sub_${i+1}`);
   const ELITE_TEAM_KEYS = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`elite_${i+1}`);
   const GL_TEAM_KEYS   = [...MAIN_TEAM_KEYS, ...SUB_TEAM_KEYS];   // Guild League
   const PZ_TEAM_KEYS   = [...ELITE_TEAM_KEYS];                    // Polarity Zone
@@ -784,6 +759,72 @@
     }, life);
   }
 
+  // ---------- Custom confirm/alert dialog (Thai, styled — replaces native confirm()/alert()) ----------
+  function showAppDialog({ title, message, okText, cancelText, iconKind }){
+    return new Promise((resolve) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'app-dialog-overlay';
+      const iconMap = { danger: '⚠️', warn: '❗', info: 'ℹ️' };
+      const icon = iconMap[iconKind] || iconMap.info;
+      overlay.innerHTML =
+        '<div class="app-dialog">' +
+          '<div class="app-dialog-icon ' + (iconKind || 'info') + '">' + icon + '</div>' +
+          (title ? '<div class="app-dialog-title"></div>' : '') +
+          '<div class="app-dialog-msg"></div>' +
+          '<div class="app-dialog-actions">' +
+            (cancelText ? '<button class="app-dialog-btn cancel"></button>' : '') +
+            '<button class="app-dialog-btn ok ' + (iconKind === 'danger' ? 'danger' : '') + '"></button>' +
+          '</div>' +
+        '</div>';
+      if(title) overlay.querySelector('.app-dialog-title').textContent = title;
+      overlay.querySelector('.app-dialog-msg').textContent = message || '';
+      overlay.querySelector('.app-dialog-btn.ok').textContent = okText || 'ตกลง';
+      const cancelBtn = overlay.querySelector('.app-dialog-btn.cancel');
+      if(cancelBtn) cancelBtn.textContent = cancelText || 'ยกเลิก';
+
+      document.body.appendChild(overlay);
+
+      function close(result){
+        overlay.classList.add('closing');
+        document.removeEventListener('keydown', onKeydown);
+        setTimeout(() => overlay.remove(), 150);
+        resolve(result);
+      }
+      function onKeydown(e){
+        if(e.key === 'Escape') close(false);
+        if(e.key === 'Enter') close(true);
+      }
+
+      overlay.querySelector('.app-dialog-btn.ok').addEventListener('click', () => close(true));
+      if(cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+      overlay.addEventListener('click', (e) => { if(e.target === overlay) close(false); });
+      document.addEventListener('keydown', onKeydown);
+      overlay.querySelector('.app-dialog-btn.ok').focus();
+    });
+  }
+
+  function appConfirm(message, opts){
+    opts = opts || {};
+    return showAppDialog({
+      title: opts.title,
+      message,
+      okText: opts.okText || 'ตกลง',
+      cancelText: opts.cancelText || 'ยกเลิก',
+      iconKind: opts.iconKind || 'warn'
+    });
+  }
+
+  function appAlert(message, opts){
+    opts = opts || {};
+    return showAppDialog({
+      title: opts.title || 'แจ้งเตือน',
+      message,
+      okText: opts.okText || 'ตกลง',
+      cancelText: null,
+      iconKind: opts.iconKind || 'info'
+    });
+  }
+
   // ---------- Export / Import: share the roster + lineup as a downloadable file ----------
   function exportLineup(){
     const payload = {
@@ -817,7 +858,7 @@
     if(!requireAdmin()) return;
     if(!file) return;
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       let data;
       try{
         data = JSON.parse(reader.result);
@@ -831,11 +872,12 @@
         return;
       }
 
-      const exportedWhen = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'an unknown time';
-      const proceed = confirm(
-        `Import lineup exported on ${exportedWhen}?\n\n` +
-        'This will REPLACE your current roster and team assignments in this browser.\n\n' +
-        'Continue?'
+      const exportedWhen = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'ไม่ทราบเวลา';
+      const proceed = await appConfirm(
+        `นำเข้าไลน์อัพที่ส่งออกไว้เมื่อ ${exportedWhen} ใช่หรือไม่?\n\n` +
+        'การดำเนินการนี้จะแทนที่รายชื่อสมาชิกและการจัดทีมปัจจุบันในเบราว์เซอร์นี้ทั้งหมด\n\n' +
+        'ต้องการดำเนินการต่อหรือไม่?',
+        { title: 'ยืนยันการนำเข้าไลน์อัพ' }
       );
       if(!proceed) return;
 
@@ -889,7 +931,7 @@
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       let workbook;
       try{
         workbook = XLSX.read(reader.result, {type:'array'});
@@ -956,10 +998,11 @@
       const toRemove = MEMBERS.filter(m => !excelNames.has(m.name.toLowerCase()));
       if(toRemove.length){
         const preview = toRemove.slice(0, 15).map(m => m.name).join(', ') + (toRemove.length > 15 ? `, +${toRemove.length - 15} more` : '');
-        const confirmRemove = confirm(
-          `${toRemove.length} member(s) on the current roster are NOT in this Excel file:\n\n${preview}\n\n` +
-          'Remove them from the roster (and clear them from any team)?\n\n' +
-          'Click Cancel to keep them and only apply the additions/updates above.'
+        const confirmRemove = await appConfirm(
+          `มีสมาชิก ${toRemove.length} คนในรายชื่อปัจจุบันที่ไม่พบในไฟล์ Excel นี้:\n\n${preview}\n\n` +
+          'ต้องการลบพวกเขาออกจากรายชื่อ (และล้างออกจากทุกทีม) หรือไม่?\n\n' +
+          'กด "ยกเลิก" เพื่อคงพวกเขาไว้ และใช้เฉพาะรายการเพิ่ม/อัปเดตด้านบนเท่านั้น',
+          { title: 'พบสมาชิกที่ไม่อยู่ในไฟล์', iconKind: 'danger' }
         );
         if(confirmRemove){
           const removeSet = new Set(toRemove.map(m => m.name));
@@ -991,26 +1034,6 @@
     reader.readAsArrayBuffer(file);
   }
 
-  // ---------- Export/Import "how it works" guide ----------
-  const GUIDE_SEEN_KEY = 'tempest_seen_export_import_guide_v1';
-
-  function openImportExportGuide(){
-    const overlay = document.getElementById('guideOverlay');
-    if(overlay) overlay.style.display = 'flex';
-  }
-
-  function closeImportExportGuide(){
-    const overlay = document.getElementById('guideOverlay');
-    if(overlay) overlay.style.display = 'none';
-    localStorage.setItem(GUIDE_SEEN_KEY, '1');
-  }
-
-  function maybeAutoShowGuide(){
-    try{
-      if(!localStorage.getItem(GUIDE_SEEN_KEY)) openImportExportGuide();
-    }catch(e){ /* ignore */ }
-  }
-
   function assignedNamesSet(keys){
     const s = new Set();
     (keys || currentTeamKeys()).forEach(k => assignments[k].forEach(n => { if(n) s.add(n); }));
@@ -1034,10 +1057,14 @@
     saveState();
   }
 
-  function clearAll(){
+  async function clearAll(){
     if(!requireAdmin()) return;
     const eventLabel = currentEvent === 'polarity_zone' ? 'Polarity Zone' : 'Guild League';
-    if(!confirm(`Clear every ${eventLabel} team assignment? This cannot be undone. (The other event's lineup is unaffected.)`)) return;
+    const proceed = await appConfirm(
+      `ล้างการจัดทีม ${eventLabel} ทั้งหมดใช่หรือไม่?\n\nการกระทำนี้ไม่สามารถย้อนกลับได้ (ไลน์อัพของอีกกิจกรรมจะไม่ได้รับผลกระทบ)`,
+      { title: 'ยืนยันการล้างทีม', iconKind: 'danger', okText: 'ล้างทั้งหมด' }
+    );
+    if(!proceed) return;
     currentTeamKeys().forEach(k => assignments[k] = new Array(SLOTS_PER_TEAM).fill(null));
     saveState();
     renderAll();
@@ -1063,12 +1090,12 @@
     return classes.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
   }
 
-  function addMember(name, cls, gr){
+  async function addMember(name, cls, gr){
     if(!requireAdmin()) return false;
     name = (name||'').trim();
-    if(!name){ alert('Enter a name.'); return false; }
+    if(!name){ await appAlert('กรุณากรอกชื่อ'); return false; }
     if(MEMBERS.some(m => m.name.toLowerCase() === name.toLowerCase())){
-      alert('A member with that name already exists.');
+      await appAlert('มีสมาชิกชื่อนี้อยู่แล้ว');
       return false;
     }
     MEMBERS.push({name, cls: cls || 'Unknown', gr: parseInt(gr) || 0});
@@ -1077,12 +1104,12 @@
     return true;
   }
 
-  function updateMember(oldName, newName, cls, gr){
+  async function updateMember(oldName, newName, cls, gr){
     if(!requireAdmin()) return false;
     newName = (newName||'').trim();
-    if(!newName){ alert('Enter a name.'); return false; }
+    if(!newName){ await appAlert('กรุณากรอกชื่อ'); return false; }
     if(newName.toLowerCase() !== oldName.toLowerCase() && MEMBERS.some(m => m.name.toLowerCase() === newName.toLowerCase())){
-      alert('A member with that name already exists.');
+      await appAlert('มีสมาชิกชื่อนี้อยู่แล้ว');
       return false;
     }
     const m = memberByName[oldName];
@@ -1103,9 +1130,13 @@
     return true;
   }
 
-  function deleteMember(name){
+  async function deleteMember(name){
     if(!requireAdmin()) return;
-    if(!confirm(`Remove ${name} from the guild roster? This also clears them from any team.`)) return;
+    const proceed = await appConfirm(
+      `ลบ ${name} ออกจากรายชื่อกิลด์ใช่หรือไม่?\n\nการกระทำนี้จะล้างชื่อนี้ออกจากทุกทีมด้วย`,
+      { title: 'ยืนยันการลบสมาชิก', iconKind: 'danger', okText: 'ลบสมาชิก' }
+    );
+    if(!proceed) return;
     ALL_TEAM_KEYS.forEach(k=>{
       for(let i=0;i<SLOTS_PER_TEAM;i++){
         if(assignments[k][i] === name) assignments[k][i] = null;
@@ -1285,8 +1316,8 @@
     if(showAddForm){
       const saveBtn = document.getElementById('addSaveBtn');
       const cancelBtn = document.getElementById('addCancelBtn');
-      if(saveBtn) saveBtn.addEventListener('click', ()=>{
-        const ok = addMember(
+      if(saveBtn) saveBtn.addEventListener('click', async ()=>{
+        const ok = await addMember(
           document.getElementById('addName').value,
           document.getElementById('addClass').value,
           document.getElementById('addGr').value
@@ -1298,9 +1329,9 @@
 
     const editSave = document.getElementById('editSaveBtn');
     if(editSave){
-      editSave.addEventListener('click', ()=>{
+      editSave.addEventListener('click', async ()=>{
         const oldName = editSave.dataset.old;
-        const ok = updateMember(
+        const ok = await updateMember(
           oldName,
           document.getElementById('editName').value,
           document.getElementById('editClass').value,
@@ -1419,7 +1450,7 @@
         <div class="section-head">
           <div class="section-title sub-bf">◈ Sub Battlefield</div>
           <div class="section-line"></div>
-          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+          <div class="section-note">Teams 1–${SUB_TEAMS_PER_SIDE}</div>
         </div>
         <div class="team-grid">${SUB_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
       `;
@@ -1515,12 +1546,6 @@
     handleExcelImportFile(file);
     e.target.value = ''; // allow importing the same filename again later
   });
-  document.getElementById('importExportHelpBtn').addEventListener('click', openImportExportGuide);
-  document.getElementById('guideCloseBtn').addEventListener('click', closeImportExportGuide);
-  document.getElementById('guideCloseBtn2').addEventListener('click', closeImportExportGuide);
-  document.getElementById('guideOverlay').addEventListener('click', (e)=>{
-    if(e.target.id === 'guideOverlay') closeImportExportGuide();
-  });
   document.getElementById('addMemberBtn').addEventListener('click', ()=>{
     if(!requireAdmin()) return;
     showAddForm = !showAddForm;
@@ -1558,7 +1583,6 @@
   });
 
   loadState();
-  maybeAutoShowGuide();
 })();
 </script>
 </body>
