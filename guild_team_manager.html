@@ -1,1906 +1,1565 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Guild Team Manager</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guild League Lineup Builder by @CharlesPlaysGG | EunAe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-*{box-sizing:border-box}
-
-body{
-    margin:0;
-    padding:18px;
-    background:#1b2130;
-    color:#e8ecf3;
-    font-family:"Segoe UI",Tahoma,Arial,sans-serif;
-    line-height:1.5;
-}
-
-h1{
-    text-align:center;
-    color:#d9b46a;
-    letter-spacing:0.5px;
-    margin:6px 0 16px;
-    text-shadow:0 1px 3px rgba(0,0,0,0.35);
-}
-
-button{
-    padding:11px 18px;
-    border:0;
-    border-radius:10px;
-    cursor:pointer;
-    margin:5px;
-    font-weight:bold;
-    font-size:14px;
-    letter-spacing:0.3px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.35);
-    transition:transform 0.12s ease,filter 0.12s ease,box-shadow 0.12s ease;
-}
-
-button:hover{
-    filter:brightness(1.12);
-    transform:translateY(-1px);
-    box-shadow:0 4px 10px rgba(0,0,0,0.4);
-}
-
-button:active{
-    transform:translateY(0);
-    filter:brightness(0.95);
-}
-
-.btn{
-    text-align:center;
-}
-
-.reset{
-    background:#b1544e;
-    color:white;
-}
-
-.refresh{
-    background:#3f6f9e;
-    color:white;
-}
-
-.copy{
-    background:#7a5a96;
-    color:white;
-}
-
-button:disabled{
-    opacity:0.4;
-    cursor:not-allowed;
-    filter:none !important;
-    transform:none !important;
-    box-shadow:0 2px 6px rgba(0,0,0,0.35);
-}
-
-.toastContainer{
-    position:fixed;
-    top:16px;
-    right:16px;
-    z-index:2000;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    max-width:320px;
-    pointer-events:none;
-}
-
-.toast{
-    background:#252c3a;
-    color:#e8ecf3;
-    padding:12px 16px;
-    border-radius:10px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.45);
-    font-size:13.5px;
-    font-weight:bold;
-    border-left:4px solid #3f6f9e;
-    opacity:0;
-    animation:toastIn 0.25s ease forwards,toastOut 0.3s ease 2.7s forwards;
-}
-
-.toast.success{border-left-color:#3f8055;}
-.toast.error{border-left-color:#b1544e;}
-.toast.info{border-left-color:#3f6f9e;}
-
-@keyframes toastIn{
-    from{opacity:0;transform:translateX(30px);}
-    to{opacity:1;transform:translateX(0);}
-}
-
-@keyframes toastOut{
-    from{opacity:1;transform:translateX(0);}
-    to{opacity:0;transform:translateX(30px);}
-}
-
-.lookupBar{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:8px;
-    margin:0 0 16px;
-    flex-wrap:wrap;
-}
-
-.lookupBar input{
-    width:230px;
-    margin-bottom:0;
-}
-
-.lookupBar button{
-    background:#3f6f9e;
-    color:white;
-    margin:0;
-}
-
-.lookupWrap{
-    position:relative;
-    display:inline-block;
-}
-
-.lookupSuggest{
-    display:none;
-    position:absolute;
-    top:calc(100% + 4px);
-    left:0;
-    right:0;
-    background:#252c3a;
-    border:1px solid #3d485d;
-    border-radius:10px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.45);
-    z-index:1500;
-    max-height:220px;
-    overflow-y:auto;
-    text-align:left;
-}
-
-.lookupSuggest.show{
-    display:block;
-}
-
-.lookupSuggest .sgItem{
-    padding:9px 12px;
-    cursor:pointer;
-    font-size:13.5px;
-    color:#e8ecf3;
-    border-bottom:1px solid #313a4a;
-    display:flex;
-    justify-content:space-between;
-    gap:8px;
-    align-items:center;
-}
-
-.lookupSuggest .sgItem:last-child{
-    border-bottom:none;
-}
-
-.lookupSuggest .sgItem:hover,
-.lookupSuggest .sgItem.active{
-    background:#3f6f9e;
-}
-
-.lookupSuggest .sgJob{
-    font-size:11.5px;
-    color:#a9b3c4;
-    white-space:nowrap;
-}
-
-.lookupSuggest .sgItem:hover .sgJob,
-.lookupSuggest .sgItem.active .sgJob{
-    color:#e8ecf3;
-}
-
-.lookupSuggest .sgEmpty{
-    padding:9px 12px;
-    font-size:13px;
-    color:#a9b3c4;
-    text-align:center;
-}
-
-.nav{
-    text-align:center;
-    margin-bottom:14px;
-}
-
-.nav a{
-    color:#d9b46a;
-    text-decoration:none;
-    font-weight:bold;
-    background:#252c3a;
-    padding:9px 16px;
-    border-radius:10px;
-    transition:background 0.15s ease;
-}
-
-.nav a:hover{
-    background:#3d485d;
-}
-
-.adminBadge{
-    display:inline-block;
-    margin-left:8px;
-    padding:9px 14px;
-    border-radius:10px;
-    font-weight:bold;
-    font-size:13px;
-    cursor:pointer;
-    background:#3d485d;
-    color:#aab4c4;
-    vertical-align:middle;
-}
-
-.adminBadge.on{
-    background:#3f8055;
-    color:white;
-}
-
-.status{
-    text-align:center;
-    color:#aab4c4;
-    font-size:13.5px;
-    margin-bottom:16px;
-    min-height:18px;
-}
-
-.legend{
-    text-align:center;
-    margin-bottom:18px;
-    line-height:2;
-}
-
-.legendHint{
-    text-align:center;
-    color:#aab4c4;
-    font-size:12px;
-    margin-top:-10px;
-    margin-bottom:16px;
-}
-
-.chip{
-    display:inline-block;
-    padding:6px 14px;
-    border-radius:20px;
-    font-size:12.5px;
-    font-weight:bold;
-    color:white;
-    margin:3px;
-    box-shadow:0 1px 4px rgba(0,0,0,0.3);
-    cursor:pointer;
-    user-select:none;
-    transition:transform 0.12s ease,box-shadow 0.12s ease,outline 0.12s ease;
-}
-
-.chip:hover{
-    transform:translateY(-1px);
-}
-
-.chip.active{
-    outline:2px solid #d9b46a;
-    outline-offset:2px;
-    box-shadow:0 0 8px rgba(217,180,106,0.55);
-}
-
-.jobCount{
-    opacity:0.85;
-    font-weight:normal;
-}
-
-.uid{
-    font-size:10px;
-    color:#aab4c4;
-    display:block;
-}
-
-.layout{
-    display:flex;
-    gap:15px;
-    align-items:flex-start;
-}
-
-.pool{
-    background:#252c3a;
-    padding:14px;
-    border-radius:14px;
-    width:260px;
-    flex:0 0 260px;
-    position:sticky;
-    top:15px;
-    box-shadow:0 3px 10px rgba(0,0,0,0.3);
-}
-
-.pool h2{
-    font-size:16px;
-    margin:2px 0 12px;
-    color:#d9b46a;
-}
-
-input{
-    width:100%;
-    padding:11px;
-    border-radius:8px;
-    border:0;
-    margin-bottom:12px;
-    font-size:14px;
-    color:#1b2130;
-}
-
-input:focus{
-    outline:2px solid #d9b46a;
-}
-
-.members{
-    min-height:50px;
-    padding:8px;
-    border:2px dashed #566078;
-    border-radius:10px;
-}
-
-.poolBox{
-    height:240px;
-    overflow-y:auto;
-}
-
-.teamsWrap{
-    flex:1;
-    min-width:0;
-}
-
-.category{
-    margin-bottom:22px;
-}
-
-.category-title{
-    text-align:center;
-    background:#1c2230;
-    border-radius:10px;
-    padding:10px 12px;
-    margin-bottom:14px;
-    font-size:16px;
-    font-weight:bold;
-    box-shadow:0 2px 6px rgba(0,0,0,0.25);
-}
-
-.category-title.main{
-    color:#d9b46a;
-    border:1px solid #d9b46a55;
-}
-
-.category-title.sub{
-    color:#6fbfa1;
-    border:1px solid #6fbfa155;
-}
-
-.container{
-    display:grid;
-    grid-template-columns:repeat(6,1fr);
-    gap:6px;
-}
-
-@media(max-width:1100px){
-    .layout{
-        flex-direction:column;
-    }
-    .pool{
-        width:100%;
-        flex:none;
-        position:static;
-    }
-    .poolBox{
-        height:180px;
-    }
-}
-
-.team{
-    background:#252c3a;
-    padding:5px;
-    border-radius:9px;
-    box-shadow:0 2px 6px rgba(0,0,0,0.25);
-}
-
-.team h3{
-    text-align:center;
-    color:#d9b46a;
-    font-size:10.5px;
-    margin:2px 0 6px;
-    letter-spacing:0.1px;
-}
-
-.member{
-    position:relative;
-    background:#3d485d;
-    padding:5px 20px 5px 7px;
-    margin:3px 0;
-    border-radius:6px;
-    font-size:11.5px;
-    font-weight:bold;
-    cursor:grab;
-    box-shadow:0 1px 3px rgba(0,0,0,0.25);
-    transition:filter 0.12s ease,transform 0.12s ease;
-}
-
-.member:hover{
-    filter:brightness(1.12);
-    transform:translateY(-1px);
-}
-
-.member-remove{
-    display:none;
-}
-
-/* ปุ่มยกเลิก/นำสมาชิกออกจากทีม โชว์เฉพาะการ์ดที่อยู่ในกล่องทีม ไม่โชว์ในกล่องรายชื่อทั้งหมด */
-.teamBox .member .member-remove{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    position:absolute;
-    top:3px;
-    right:3px;
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    background:rgba(0,0,0,0.35);
-    color:#fff;
-    font-size:9.5px;
-    line-height:1;
-    cursor:pointer;
-}
-
-.teamBox .member .member-remove:hover{
-    background:#c0495a;
-}
-
-/* ===== เอฟเฟคฟรุ้งฟริ้งสำหรับ ผู้นำ ===== */
-@keyframes sparkleRainbowMove{
-    0%{background-position:0% 50%;}
-    100%{background-position:300% 50%;}
-}
-
-@keyframes sparkleGlow{
-    0%,100%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,127,168,0.4),0 1px 3px rgba(0,0,0,0.25);}
-    25%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(217,180,106,0.4),0 1px 3px rgba(0,0,0,0.25);}
-    50%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(95,168,201,0.4),0 1px 3px rgba(0,0,0,0.25);}
-    75%{box-shadow:0 0 5px 1px rgba(255,255,255,0.4),0 0 10px 2px rgba(154,127,192,0.4),0 1px 3px rgba(0,0,0,0.25);}
-}
-
-@keyframes sparkleTwinkle{
-    0%,100%{opacity:0.25;transform:scale(0.7) rotate(0deg);}
-    50%{opacity:1;transform:scale(1.25) rotate(20deg);}
-}
-
-@keyframes sparkleDots{
-    0%{background-position:0% 0%,0% 0%,0% 0%,0% 0%;}
-    100%{background-position:120px 60px,-80px 90px,60px -70px,-100px -50px;}
-}
-
-.sparkle-job{
-    position:relative;
-    overflow:hidden;
+  :root{
+    --bg: #0c0f1a;
+    --panel: #141a2b;
+    --panel-2: #1b2237;
+    --line: #2a3350;
+    --line-soft: #202944;
+    --text: #e9ecf7;
+    --muted: #8b93b0;
+    --muted-2: #5f6889;
+    --violet: #8b7cf6;
+    --violet-glow: #8b7cf655;
+    --teal: #3fd6c4;
+    --teal-glow: #3fd6c455;
+    --amber: #f0b429;
+    --red: #ef5a6f;
+    --green: #4fd67a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
     background:
-        radial-gradient(circle,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0) 60%) 10% 20%/10px 10px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 70% 60%/8px 8px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0) 60%) 40% 80%/7px 7px no-repeat,
-        radial-gradient(circle,rgba(255,255,255,0.8) 0%,rgba(255,255,255,0) 60%) 85% 15%/6px 6px no-repeat,
-        linear-gradient(90deg,#d97fa8,#d9b46a,#6fbfa1,#5fa8c9,#9a7fc0,#d97fa8) !important;
-    background-size:100% 100%,100% 100%,100% 100%,100% 100%,300% 100%;
-    animation:sparkleRainbowMove 4s linear infinite,sparkleGlow 2.4s ease-in-out infinite,sparkleDots 3s linear infinite;
-    color:#fff;
-    text-shadow:0 0 3px rgba(0,0,0,0.6),0 0 6px rgba(255,255,255,0.35);
-}
+      radial-gradient(1200px 600px at 15% -10%, #221b4a55, transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, #0d3b3a55, transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+  }
+  ::selection{ background: var(--violet-glow); }
+  .app{ display:flex; min-height:100vh; }
 
-.sparkle-job::after{
-    content:"✨";
-    position:absolute;
-    top:-3px;
-    right:1px;
-    font-size:10px;
-    animation:sparkleTwinkle 1.1s ease-in-out infinite;
-    pointer-events:none;
-    text-shadow:none;
-}
+  /* ---------- Header ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; padding:14px 22px; flex-wrap:wrap;
+    background:#0c0f1ae6; backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand svg{ width:30px; height:30px; filter: drop-shadow(0 0 8px var(--violet-glow)); }
+  .brand-text h1{
+    font-family:'Cinzel', serif; font-weight:800; font-size:19px; letter-spacing:2px;
+    margin:0; background:linear-gradient(90deg,#fff, #b9b2f9);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .brand-text p{ margin:0; font-size:11px; color:var(--muted-2); letter-spacing:1.5px; text-transform:uppercase; }
+  .stats{ display:flex; gap:10px; flex-wrap:wrap; }
+  .stat-chip{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:6px 14px; border-radius:10px; background:var(--panel); border:1px solid var(--line-soft);
+    min-width:64px;
+  }
+  .stat-chip b{ font-family:'IBM Plex Mono', monospace; font-size:15px; line-height:1.1; }
+  .stat-chip span{ font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .actions{ display:flex; gap:8px; align-items:center; }
+  .btn{
+    font-family:inherit; font-size:12.5px; font-weight:600; letter-spacing:.3px;
+    border-radius:9px; border:1px solid var(--line-soft); background:var(--panel);
+    color:var(--text); padding:9px 14px; cursor:pointer; transition:.15s ease;
+    display:flex; align-items:center; gap:6px;
+  }
+  .btn:hover{ border-color:var(--violet); box-shadow:0 0 0 1px var(--violet-glow); }
+  .btn.danger:hover{ border-color:var(--red); box-shadow:0 0 0 1px #ef5a6f55; }
+  .btn.primary{ background:linear-gradient(135deg,#8b7cf6,#6f5ee0); border:none; color:#fff; }
+  .btn.primary:hover{ box-shadow:0 0 16px var(--violet-glow); }
+  .btn.small{ padding:6px 10px; font-size:11.5px; border-radius:7px; }
+  .save-flag{ font-size:10.5px; color:var(--muted-2); display:flex; align-items:center; gap:5px; min-width:64px; }
+  .save-flag .dot{ width:6px; height:6px; border-radius:50%; background:var(--muted-2); }
+  .save-flag.ok .dot{ background:var(--green); box-shadow:0 0 5px var(--green); }
+  .save-flag.err .dot{ background:var(--red); box-shadow:0 0 5px var(--red); }
+  .save-flag.ok{ color:var(--green); }
+  .save-flag.err{ color:var(--red); }
 
-.legend .sparkle-job{
-    display:inline-block;
-}
+  /* Toast notification */
+  #toastStack{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; gap:8px; z-index:999; pointer-events:none;
+    width:min(420px, calc(100vw - 24px));
+  }
+  .toast{
+    pointer-events:auto;
+    background:var(--panel-2); border:1px solid var(--line-soft); border-left:3px solid var(--teal);
+    border-radius:10px; padding:10px 14px; font-size:12.5px; color:var(--text);
+    box-shadow:0 8px 24px #00000055; display:flex; align-items:flex-start; gap:8px;
+    animation:toast-in .18s ease-out;
+  }
+  .toast.err{ border-left-color:var(--red); }
+  .toast.warn{ border-left-color:var(--amber); }
+  .toast .toast-icon{ font-size:14px; line-height:1.4; }
+  .toast .toast-body{ flex:1; }
+  .toast .toast-title{ font-weight:600; margin-bottom:2px; }
+  .toast .toast-msg{ color:var(--muted); line-height:1.4; }
+  .toast.toast-out{ animation:toast-out .18s ease-in forwards; }
+  @keyframes toast-in{ from{ opacity:0; transform:translateY(-8px); } to{ opacity:1; transform:translateY(0); } }
+  @keyframes toast-out{ from{ opacity:1; transform:translateY(0); } to{ opacity:0; transform:translateY(-8px); } }
 
-.full{
-    border:2px solid #b1544e;
-    box-shadow:0 0 0 1px rgba(177,84,78,0.3);
-}
+  /* Export/Import guide modal */
+  .guide-overlay{
+    position:fixed; inset:0; z-index:998;
+    background:#05060ccc; backdrop-filter:blur(6px);
+    display:flex; align-items:center; justify-content:center; padding:16px;
+  }
+  .guide-modal{
+    width:min(520px, 100%); max-height:85vh; overflow-y:auto;
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:16px;
+    box-shadow:0 20px 60px #000000aa;
+  }
+  .guide-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 18px; border-bottom:1px solid var(--line-soft);
+  }
+  .guide-header h3{ margin:0; font-size:15px; color:var(--text); }
+  .guide-body{ padding:16px 18px; font-size:13px; color:var(--muted); line-height:1.55; }
+  .guide-body p{ margin:0 0 14px; }
+  .guide-body code{
+    font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--text);
+    background:var(--panel-2); border:1px solid var(--line-soft); border-radius:5px; padding:1px 5px;
+  }
+  .guide-step{
+    display:flex; gap:12px; align-items:flex-start; margin-bottom:14px;
+  }
+  .guide-step div:last-child{ color:var(--text); }
+  .guide-step-num{
+    flex:none; width:22px; height:22px; border-radius:50%;
+    background:var(--panel-2); border:1px solid var(--violet); color:var(--violet);
+    display:flex; align-items:center; justify-content:center; font-size:11.5px; font-weight:700;
+  }
+  .guide-warn{
+    background:#f0b42918; border:1px solid #f0b42955; border-radius:10px;
+    padding:10px 12px; color:var(--text) !important; font-size:12.5px;
+  }
+  .guide-footer{ padding:12px 18px 16px; text-align:right; border-top:1px solid var(--line-soft); }
 
-.drag{
-    border-color:#4f9f6b;
-}
+  /* Admin login modal */
+  #loginPasswordInput{ width:100%; margin-top:10px; }
+  .login-error{ color:var(--red); font-size:12.5px; margin-top:8px; display:none; }
+  .login-note{ font-size:11.5px; color:var(--muted-2); margin-top:10px; }
 
-@media(max-width:1100px){
-    .container{
-        grid-template-columns:repeat(4,1fr);
-    }
-}
+  /* Viewer (non-admin) mode: hide every editing control */
+  .app.viewer-mode #autoFillBtn,
+  .app.viewer-mode #importBtn,
+  .app.viewer-mode #importExcelBtn,
+  .app.viewer-mode #clearBtn,
+  .app.viewer-mode #addMemberBtn,
+  .app.viewer-mode .card-tools,
+  .app.viewer-mode .slot-remove{
+    display:none !important;
+  }
+  .app.viewer-mode .member-card{ cursor:default; }
+  .app.viewer-mode .member-card:hover{ transform:none; border-color:var(--line-soft); }
+  .app.viewer-mode .slot{ cursor:default; }
+  .admin-badge{
+    font-size:9.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; background:#4fd67a22; color:var(--green); border:1px solid #4fd67a55;
+  }
+  .app.viewer-mode .admin-badge{ display:none; }
+  .viewer-badge{
+    font-size:9.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase;
+    padding:3px 8px; border-radius:20px; background:var(--panel-2); color:var(--muted); border:1px solid var(--line-soft);
+  }
+  .app:not(.viewer-mode) .viewer-badge{ display:none; }
 
-@media(max-width:900px){
-    .container{
-        grid-template-columns:repeat(3,1fr);
-    }
-}
+  /* Event switcher (Guild League vs Polarity Zone) */
+  .event-tabs{
+    display:flex; gap:6px; background:var(--panel-2); border:1px solid var(--line-soft);
+    border-radius:12px; padding:4px; margin-bottom:12px; width:fit-content;
+  }
+  .event-tab{
+    appearance:none; border:none; background:transparent; color:var(--muted);
+    font-family:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+    padding:8px 16px; border-radius:9px; display:flex; align-items:center; gap:7px;
+    transition:background .12s ease, color .12s ease;
+  }
+  .event-tab:hover{ color:var(--text); }
+  .event-tab.active{ background:var(--panel); color:var(--text); box-shadow:0 1px 0 0 var(--line-soft) inset; }
+  .event-tab.active.gl{ color:#c6bdfb; }
+  .event-tab.active.pz{ color:#ffd166; }
 
-@media(max-width:600px){
-    .container{
-        grid-template-columns:repeat(2,1fr);
-    }
-}
+  /* ---------- Layout ---------- */
+  .body-wrap{ display:flex; width:100%; align-items:flex-start; }
 
-/* ===== เลขลำดับ 1-5 ในช่องทีม ===== */
-.teamBox{
-    counter-reset:slot;
-}
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:340px; min-width:340px; position:sticky; top:66px;
+    height:calc(100vh - 66px); display:flex; flex-direction:column;
+    border-right:1px solid var(--line-soft); background:#0e1220b0;
+  }
+  .sidebar-head{ padding:14px 16px 10px; border-bottom:1px solid var(--line-soft); }
+  .sidebar-head h2{ margin:0; font-size:12px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:600;}
+  .search-box{ position:relative; margin-bottom:10px; }
+  .search-box input{
+    width:100%; padding:9px 12px 9px 32px; border-radius:9px; border:1px solid var(--line-soft);
+    background:var(--panel); color:var(--text); font-family:inherit; font-size:13px; outline:none;
+  }
+  .search-box input:focus{ border-color:var(--violet); }
+  .search-box svg{ position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; color:var(--muted-2); }
+  .filter-row{ display:flex; gap:6px; flex-wrap:wrap; }
+  .pill{
+    font-size:11px; padding:5px 10px; border-radius:20px; border:1px solid var(--line-soft);
+    background:var(--panel); color:var(--muted); cursor:pointer; user-select:none; transition:.15s;
+    font-weight:600; letter-spacing:.2px;
+  }
+  .pill.active{ background:var(--violet); border-color:var(--violet); color:#fff; }
+  .pill:hover{ border-color:var(--violet); }
+  .class-select{
+    width:100%; margin-top:8px; padding:8px 10px; border-radius:9px; border:1px solid var(--line-soft);
+    background:var(--panel); color:var(--text); font-family:inherit; font-size:12.5px; outline:none;
+  }
+  .sort-row{ display:flex; align-items:center; gap:6px; margin-top:8px; flex-wrap:wrap; }
+  .sort-label{ font-size:10.5px; color:var(--muted-2); text-transform:uppercase; letter-spacing:.5px; margin-right:2px; }
+  .sort-pill{ display:flex; align-items:center; gap:3px; }
+  .member-list{ flex:1; overflow-y:auto; padding:10px 12px 100px; }
+  .class-breakdown{
+    border-top:1px solid var(--line-soft); padding:10px 14px 12px; flex:none;
+    max-height:150px; overflow-y:auto;
+  }
+  .class-breakdown::-webkit-scrollbar{ width:8px; }
+  .class-breakdown::-webkit-scrollbar-thumb{ background:#242c47; border-radius:8px; }
+  .cb-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;
+    font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:600;
+  }
+  .cb-row{ display:flex; align-items:center; gap:8px; font-size:12px; padding:3px 0; }
+  .cb-row .class-dot{ flex:none; }
+  .cb-row .cb-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text); }
+  .cb-row .cb-count{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--muted); flex:none; }
+  .member-list::-webkit-scrollbar{ width:8px; }
+  .member-list::-webkit-scrollbar-thumb{ background:#242c47; border-radius:8px; }
+  .member-card{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; margin-bottom:6px;
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:10px;
+    cursor:grab; transition:.12s ease; position:relative;
+  }
+  .member-card:hover{ border-color:var(--violet); transform:translateX(2px); }
+  .member-card.selected{ border-color:var(--teal); box-shadow:0 0 0 1px var(--teal-glow); background:#152321; }
+  .member-card.assigned{ opacity:.38; cursor:default; }
+  .member-card.assigned:hover{ transform:none; border-color:var(--line-soft); }
+  .member-card.dragging{ opacity:.3; }
+  .class-dot{ width:9px; height:9px; border-radius:50%; flex:none; box-shadow:0 0 6px currentColor; }
+  .m-info{ flex:1; min-width:0; }
+  .m-name{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .m-sub{ font-size:10.5px; color:var(--muted); display:flex; gap:6px; margin-top:1px; }
+  .m-gr{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--amber); font-weight:600; flex:none; }
+  .status-tag{
+    font-size:8.5px; padding:2px 6px; border-radius:5px; font-weight:700; letter-spacing:.4px; flex:none;
+  }
+  .status-tag.Main{ background:#8b7cf62c; color:#b3a8fb; }
+  .status-tag.Sub{ background:#3fd6c42c; color:#7ee8db; }
+  .status-tag.Unassigned{ background:#5f688930; color:var(--muted); }
+  .assigned-flag{ font-size:9.5px; color:var(--muted-2); font-style:italic; white-space:nowrap; }
+  .empty-note{ text-align:center; color:var(--muted-2); font-size:12px; padding:30px 10px; }
+  .card-tools{ display:flex; gap:2px; flex:none; }
+  .icon-btn{
+    width:20px; height:20px; border-radius:6px; border:none; background:transparent; color:var(--muted-2);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; transition:.12s;
+  }
+  .icon-btn:hover{ background:var(--panel-2); color:var(--text); }
+  .del-btn:hover{ background:var(--red); color:#fff; }
+  .edit-card{
+    background:var(--panel-2); border:1px solid var(--violet); border-radius:10px; padding:10px; margin-bottom:8px;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .edit-row{ display:flex; gap:6px; }
+  .edit-input{
+    flex:1; min-width:0; padding:7px 9px; border-radius:7px; border:1px solid var(--line-soft);
+    background:var(--bg); color:var(--text); font-family:inherit; font-size:12.5px; outline:none;
+  }
+  .edit-input:focus{ border-color:var(--violet); }
+  .edit-actions{ display:flex; gap:6px; justify-content:flex-end; }
 
-.teamBox .member{
-    counter-increment:slot;
-    position:relative;
-    padding-left:20px;
-    min-height:27px;
-}
+  /* ---------- Main content ---------- */
+  .main{ flex:1; padding:22px 26px 80px; min-width:0; }
+  .hint-bar{
+    display:flex; align-items:center; gap:10px; padding:10px 14px; margin-bottom:20px;
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:10px;
+    font-size:12.5px; color:var(--muted);
+  }
+  .hint-bar svg{ width:15px; height:15px; color:var(--violet); flex:none; }
 
-.teamBox .member::before{
-    content:counter(slot)". ";
-    position:absolute;
-    left:6px;
-    top:5px;
-    font-weight:bold;
-    font-size:11px;
-    color:#e6c988;
-    text-shadow:0 0 3px #000, 0 0 3px #000;
-}
+  .section-head{ display:flex; align-items:center; gap:12px; margin:0 0 14px; }
+  .section-head:not(:first-child){ margin-top:34px; }
+  .section-title{
+    font-family:'Cinzel', serif; font-weight:700; font-size:15px; letter-spacing:1.5px; text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-title.main-bf{ color:#c6bdfb; }
+  .section-title.sub-bf{ color:#8fe8dd; }
+  .section-title.elite-bf{ color:#ffd166; }
+  .section-line{ flex:1; height:1px; background:linear-gradient(90deg, var(--line), transparent); }
+  .section-note{ font-size:11px; color:var(--muted-2); }
 
-.slot-empty-label{
-    font-size:10px;
-    font-style:italic;
-    line-height:1.25;
-    display:inline-block;
-}
+  .team-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px;
+  }
+  .team-card{
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:14px; padding:12px;
+    display:flex; flex-direction:column; gap:8px; transition:.15s;
+  }
+  .team-card.main-bf{ box-shadow: inset 3px 0 0 0 #8b7cf6; }
+  .team-card.sub-bf{ box-shadow: inset 3px 0 0 0 #3fd6c4; }
+  .team-card.elite-bf{ box-shadow: inset 3px 0 0 0 #f0b429; }
+  .team-head{ display:flex; align-items:center; justify-content:space-between; }
+  .team-name{ font-size:13px; font-weight:700; letter-spacing:.3px; }
+  .team-meta{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); display:flex; gap:6px; align-items:center;}
+  .team-fill-dot{ width:6px; height:6px; border-radius:50%; }
+  .team-fill-dot.full{ background:var(--green); box-shadow:0 0 5px var(--green); }
+  .team-fill-dot.partial{ background:var(--amber); }
+  .team-fill-dot.empty{ background:var(--muted-2); }
 
-.teamBox .slot-empty{
-    min-height:34px;
-    display:flex;
-    align-items:center;
-}
+  .slot{
+    display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:9px;
+    border:1px dashed var(--line-soft); background:#0e1322; min-height:38px; position:relative;
+    transition:.12s;
+  }
+  .slot.leader{ border-style:solid; border-color:#f0b42955; background:#1c1a10; }
+  .slot.filled{ border-style:solid; border-color:var(--line); background:var(--panel-2); }
+  .slot.dragover{ border-color:var(--teal); box-shadow:0 0 0 2px var(--teal-glow); background:#132322; }
+  .slot .leader-icon{ width:13px; height:13px; color:var(--amber); flex:none; }
+  .slot-empty-label{ font-size:11px; color:var(--muted-2); flex:1; }
+  .slot .class-dot{ width:8px; height:8px; }
+  .slot-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:1px; }
+  .slot-name{ font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .slot-class{ font-size:9.5px; font-weight:600; letter-spacing:.3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .slot-gr{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--amber); flex:none; }
+  .slot-remove{
+    width:16px; height:16px; border-radius:50%; border:none; background:transparent; color:var(--muted-2);
+    cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; transition:.12s;
+  }
+  .slot-remove:hover{ background:var(--red); color:#fff; }
 
-.teamBox .slot-empty{
-    background:transparent;
-    border:1px dashed #566;
-    color:#5c6b80;
-    cursor:default;
-    font-weight:normal;
-}
+  /* ---------- Footer ---------- */
+  .site-footer{
+    margin-top:20px; border-top:1px solid var(--line-soft);
+    background:#0a0d17; padding:32px 26px 18px;
+  }
+  .footer-cols{
+    display:grid; grid-template-columns:1.05fr 0.75fr 0.85fr 0.8fr 0.75fr; gap:24px; max-width:1280px; margin:0 auto; align-items:start;
+  }
+  .footer-col h3{
+    margin:0 0 10px; font-family:'Cinzel', serif; font-size:12.5px; letter-spacing:1.5px; text-transform:uppercase;
+    color:#c6bdfb; font-weight:700;
+  }
+  .footer-col p{ margin:0 0 8px; font-size:12.5px; line-height:1.6; color:var(--muted); }
+  .footer-col p b{ color:var(--text); }
+  .footer-links{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .footer-links a{
+    display:flex; align-items:center; gap:9px; color:var(--muted); text-decoration:none; font-size:12.5px;
+    font-weight:600; transition:.15s;
+  }
+  .footer-links a:hover{ color:var(--teal); }
+  .footer-links svg{ width:16px; height:16px; flex:none; }
+  .contact-links{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:9px; }
+  .contact-links li{ display:flex; align-items:center; gap:9px; font-size:12.5px; color:var(--muted); }
+  .contact-links svg{ width:16px; height:16px; flex:none; color:var(--muted-2); }
+  .contact-links a{ color:var(--muted); text-decoration:none; font-weight:600; word-break:break-all; transition:.15s; }
+  .contact-links a:hover{ color:var(--teal); }
+  .contact-links .cl-val{ color:var(--text); font-weight:600; word-break:break-all; }
+  .support-block{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .support-label{ font-size:10.5px; color:var(--muted-2); text-transform:uppercase; letter-spacing:1px; font-weight:700; }
+  .footer-col-qr{ display:flex; flex-direction:column; align-items:flex-start; }
+  .qr-link{ display:block; border-radius:12px; overflow:hidden; border:1px solid var(--line-soft); transition:.15s; line-height:0; }
+  .qr-link:hover{ border-color:var(--teal); box-shadow:0 0 0 1px var(--teal-glow); }
+  .qr-image{ width:100%; max-width:150px; height:auto; display:block; }
+  .qr-caption{ margin:8px 0 0; font-size:10.5px; line-height:1.5; color:var(--muted-2); }
+  .wallet-addr{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text);
+    background:var(--panel); border:1px solid var(--line-soft); border-radius:7px; padding:7px 9px;
+    word-break:break-all; max-width:220px;
+  }
+  .footer-bottom{
+    max-width:1100px; margin:26px auto 0; padding-top:16px; border-top:1px solid var(--line-soft);
+    font-size:10.5px; color:var(--muted-2); text-align:center;
+  }
 
-.teamBox .slot-empty:hover{
-    filter:none;
-}
-
-.teamBox .slot-empty::before{
-    color:#5c6b80;
-    text-shadow:none;
-}
-
-/* ===== Popup ยืนยัน ===== */
-.modalOverlay{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(10,12,18,0.65);
-    backdrop-filter:blur(2px);
-    z-index:1000;
-    align-items:center;
-    justify-content:center;
-}
-
-.modalOverlay.show{
-    display:flex;
-}
-
-.modalBox{
-    background:#252c3a;
-    border-radius:14px;
-    padding:22px 24px;
-    width:320px;
-    max-width:90vw;
-    box-shadow:0 10px 30px rgba(0,0,0,0.5);
-    border:1px solid #3d485d;
-    text-align:center;
-    animation:popIn 0.15s ease;
-}
-
-@keyframes popIn{
-    from{opacity:0;transform:scale(0.94);}
-    to{opacity:1;transform:scale(1);}
-}
-
-.modalBox h3{
-    margin:0 0 10px;
-    color:#d9b46a;
-    font-size:17px;
-}
-
-.modalBox p{
-    margin:0 0 20px;
-    color:#c7cedb;
-    font-size:14px;
-    line-height:1.6;
-}
-
-.modalBtns{
-    display:flex;
-    gap:10px;
-    justify-content:center;
-}
-
-.modalBtns button{
-    flex:1;
-    margin:0;
-}
-
-.modalCancel{
-    background:#3d485d;
-    color:#e8ecf3;
-}
-
-.modalConfirm{
-    background:#b1544e;
-    color:white;
-}
-
-.loginConfirm{
-    background:#3f8055;
-    color:white;
-}
-
-.modalBox input{
-    margin-bottom:12px;
-    text-align:left;
-}
-
-.modalBox input:last-of-type{
-    margin-bottom:6px;
-}
-
-.loginError{
-    color:#d17b74;
-    font-size:12.5px;
-    min-height:16px;
-    margin:0 0 10px;
-    text-align:center;
-}
+  @media (max-width: 900px){
+    .sidebar{ position:relative; top:0; height:auto; width:100%; min-width:0; border-right:none; border-bottom:1px solid var(--line-soft); max-height:340px; }
+    .body-wrap{ flex-direction:column; }
+    .topbar{ flex-wrap:wrap; }
+    .footer-cols{ grid-template-columns:1fr; gap:26px; }
+  }
 </style>
-
 </head>
-
 <body>
+<div id="toastStack" aria-live="polite"></div>
 
-<h1>🏰Guild Team Manager🏰</h1>
+<div id="guideOverlay" class="guide-overlay" style="display:none;">
+  <div class="guide-modal" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <div class="guide-header">
+      <h3 id="guideTitle">📤 How Export / Import works</h3>
+      <button class="icon-btn" id="guideCloseBtn" title="Close">✕</button>
+    </div>
+    <div class="guide-body">
+      <p>This tool saves everything <b>only in your own browser</b> — there's no shared server. Export/Import is how you hand off the lineup between guild leader and co-leaders.</p>
 
-<div class="nav">
-<a href="index.html">หน้าลงทะเบียนสมาชิก</a>
-<a href="castle_siege_team_manager.html">🏰 ทีมชิงปราสาท →</a>
-<span class="adminBadge" id="adminBadge" onclick="toggleAdmin()">🔒โหมดแอดมิน</span>
+      <div class="guide-step">
+        <div class="guide-step-num">1</div>
+        <div>
+          <b>Export</b> — Click <b>⬇ Export</b> to download the current roster and team lineup as a small file (<code>guild-lineup-YYYY-MM-DD.json</code>).
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">2</div>
+        <div>
+          <b>Send the file</b> — Attach that file to a Discord message (or email, Drive, etc.) for your co-leader. Unlike a link, a file has no length limit, so it works even with large rosters.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">3</div>
+        <div>
+          <b>Import</b> — The co-leader clicks <b>⬆ Import</b>, selects that file, and confirms. Their browser now has the exact same roster and lineup — ready to edit.
+        </div>
+      </div>
+
+      <div class="guide-step">
+        <div class="guide-step-num">4</div>
+        <div>
+          <b>Keep passing it along</b> — Whoever edits last should <b>Export</b> again and share the new file, so everyone stays on the latest version.
+        </div>
+      </div>
+
+      <p class="guide-warn">⚠️ Importing a file <b>replaces</b> whatever roster/lineup is currently saved in that browser. Double-check you're importing the newest file before confirming.</p>
+
+      <div class="guide-step">
+        <div class="guide-step-num">📊</div>
+        <div>
+          <b>Import Excel</b> — Click <b>📊 Import Excel</b> to bulk add or update members straight from your guild's member-list <code>.xlsx</code> file (columns: Name, Job Name, Gear Rating). Unlike Import above, this <b>doesn't replace</b> your roster — it adds new names and updates matching ones, keeping your team assignments intact.
+        </div>
+      </div>
+    </div>
+    <div class="guide-footer">
+      <button class="btn primary" id="guideCloseBtn2">Got it</button>
+    </div>
+  </div>
 </div>
 
-<div class="toastContainer" id="toastContainer"></div>
-
-<div class="btn" id="actionButtons" style="display:none">
-<button class="reset" onclick="confirmAction('reset')">🔄 รีเซ็ต</button>
-<button class="copy" onclick="exportTeamImage()">🖼️ ส่งออกเป็นรูปภาพ</button>
+<div id="loginOverlay" class="guide-overlay" style="display:none;">
+  <div class="guide-modal" style="width:min(380px, 100%);" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="guide-header">
+      <h3 id="loginTitle">🔒 Admin Login</h3>
+      <button class="icon-btn" id="loginCloseBtn" title="Close">✕</button>
+    </div>
+    <div class="guide-body">
+      <p style="margin-bottom:6px;">Log in to add/edit/remove members, place people into teams, auto-fill, clear, or import. Everyone can still view the roster and lineup without logging in.</p>
+      <input type="email" id="loginEmailInput" class="edit-input" placeholder="Admin email" autocomplete="username" style="margin-bottom:8px;">
+      <input type="password" id="loginPasswordInput" class="edit-input" placeholder="Admin password" autocomplete="current-password">
+      <div class="login-error" id="loginError">Login failed — check email/password.</div>
+      <div class="login-note">Admin accounts are managed in Firebase Authentication, so this is real login, not just a local password check.</div>
+    </div>
+    <div class="guide-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="btn" id="loginCancelBtn">Cancel</button>
+      <button class="btn primary" id="loginSubmitBtn">Log in</button>
+    </div>
+  </div>
 </div>
 
-<div class="lookupBar">
-<div class="lookupWrap">
-<input id="lookupName" placeholder="🔍 พิมพ์ชื่อเพื่อดูว่าอยู่ทีมไหน" autocomplete="off" onkeydown="handleLookupKeydown(event)">
-<div class="lookupSuggest" id="lookupSuggest"></div>
-</div>
-<button onclick="lookupTeam()">ค้นหาทีม</button>
-</div>
+<div class="app" id="app">
 
-<div class="modalOverlay" id="lookupModalOverlay">
-<div class="modalBox">
-<h3>ผลการค้นหา</h3>
-<p id="lookupMessage">-</p>
-<div class="modalBtns">
-<button class="modalCancel" onclick="closeLookupModal()">ปิด</button>
-</div>
-</div>
-</div>
+  <div style="width:100%;">
+    <div class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#8b7cf6" stroke="#c6bdfb" stroke-width="0.5"/></svg>
+        <div class="brand-text">
+          <h1>BlackCat</h1>
+          <p>Guild League Lineup Builder</p>
+        </div>
+      </div>
+      <div class="event-tabs" id="eventTabs">
+        <button class="event-tab" data-event="guild_league">🛡️ Guild League</button>
+        <button class="event-tab" data-event="polarity_zone">⚡ Polarity Zone</button>
+      </div>
+      <div class="stats" id="statsRow"></div>
+      <div class="actions">
+        <span class="admin-badge" id="adminBadge">🔓 Admin</span>
+        <span class="viewer-badge" id="viewerBadge">👁 View only</span>
+        <button class="btn" id="adminLoginBtn" title="Log in as admin to edit">🔒 Admin Login</button>
+        <span class="save-flag" id="saveFlag"><span class="dot"></span><span id="saveFlagText">Idle</span></span>
+        <button class="btn" id="autoFillBtn" title="Fill empty slots with top-GR unassigned members">⚡ Auto-fill</button>
+        <button class="btn" id="exportBtn" title="Download the current roster and lineup as a file">⬇ Export</button>
+        <button class="btn" id="importBtn" title="Load a roster and lineup from a file">⬆ Import</button>
+        <button class="btn" id="importExcelBtn" title="Bulk add/update members from a guild members Excel (.xlsx) file">📊 Import Excel</button>
+        <button class="icon-btn" id="importExportHelpBtn" title="How does Export/Import work?">❓</button>
+        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
+        <input type="file" id="importExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
+        <button class="btn danger" id="clearBtn">Clear all</button>
+      </div>
+    </div>
 
-<div class="modalOverlay" id="modalOverlay">
-<div class="modalBox">
-<h3 id="modalTitle">ยืนยันการทำรายการ</h3>
-<p id="modalMessage">คุณแน่ใจหรือไม่?</p>
-<div class="modalBtns">
-<button class="modalCancel" onclick="closeModal()">ยกเลิก</button>
-<button class="modalConfirm" id="modalConfirmBtn">ยืนยัน</button>
-</div>
-</div>
-</div>
+    <div class="body-wrap">
+      <div class="sidebar">
+        <div class="sidebar-head">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <h2>Member Pool</h2>
+            <button class="btn primary small" id="addMemberBtn" title="Add a new member to the roster">+ Add</button>
+          </div>
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+            <input type="text" id="searchInput" placeholder="Search member...">
+          </div>
+          <div class="filter-row" id="statusFilterRow"></div>
+          <select class="class-select" id="classFilter"></select>
+          <div class="sort-row" id="sortRow"></div>
+        </div>
+        <div class="member-list" id="memberList"></div>
+        <div class="class-breakdown" id="classBreakdown"></div>
+      </div>
 
-<div class="modalOverlay" id="loginModalOverlay">
-<div class="modalBox">
-<h3>🔑 เข้าสู่โหมดแอดมิน</h3>
-<input type="email" id="loginEmail" placeholder="อีเมลแอดมิน" autocomplete="username">
-<input type="password" id="loginPassword" placeholder="รหัสผ่าน" autocomplete="current-password">
-<p class="loginError" id="loginError"></p>
-<div class="modalBtns">
-<button class="modalCancel" id="loginCancelBtn">ยกเลิก</button>
-<button class="loginConfirm" id="loginConfirmBtn">เข้าสู่ระบบ</button>
-</div>
-</div>
-</div>
-
-<div class="status" id="status"></div>
-
-<div class="legend">
-<span class="chip" data-job="ไนท์" style="background:#b1544e">⚔️ไนท์ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="พระ" style="background:#2f6b46">🙏พระ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="วิ" style="background:#3f6f9e">🧙‍♂️วิ <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ดูอิด" style="background:#3f8f79">🌿ดูอิด <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="สไน" style="background:#b8933a;color:#20242e">🎯สไน <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="พ่อค้า" style="background:#8a6a52">💰พ่อค้า <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="แอส" style="background:#5f5480">🗡️แอส <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ปืน" style="background:#7a4f3f">🔫ปืน <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="ม๊อง" style="background:#c2703a">👊ม๊อง <span class="jobCount">(0)</span></span>
-<span class="chip" data-job="พาราดิน" style="background:#4a5d8f">🛡️พาราดิน <span class="jobCount">(0)</span></span>
-</div>
-<div class="legendHint" id="legendHint">👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด</div>
-
-
-<div class="layout">
-
-<div class="teamsWrap">
-
-<div class="category">
-<div class="category-title main">🏆 ทีมหลัก (12 ทีม)</div>
-<div id="teamsMain" class="container"></div>
+      <div class="main" id="mainContent">
+        <div id="teamsWrap"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="category">
-<div class="category-title sub">🥈 ทีมรอง (18 ทีม)</div>
-<div id="teamsSub" class="container"></div>
-</div>
-
-</div>
-
-<div class="pool" id="poolSection">
-
-<h2>👥   รายชื่อสมาชิกทั้งหมด</h2>
-
-<input id="search" placeholder="🔍 ค้นหารายชื่อ">
-
-<div id="pool" class="members poolBox"></div>
-
-</div>
-
-<div class="pool" id="poolLockedNotice" style="display:none;text-align:center;color:#aab4c4;font-size:13px;">
-🔒 กล่องรายชื่อสมาชิกทั้งหมด แสดงเฉพาะโหมดแอดมิน
-</div>
-
-</div>
-
-
-<!-- html2canvas สำหรับฟีเจอร์ส่งออกบอร์ดทีมเป็นรูปภาพ -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<!-- Firebase SDK (compat version, ใช้กับ plain script ได้เลยไม่ต้อง build) -->
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
-
-<script>
-
-// ⚠️ แทนที่ config ด้านล่างนี้ด้วยค่าจากโปรเจกต์ Firebase ของคุณ
-// (Project settings > Your apps > Web app > firebaseConfig)
-const firebaseConfig={
-  apiKey:"AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
-  authDomain:"gulid-75b53.firebaseapp.com",
-  databaseURL:"https://gulid-75b53-default-rtdb.firebaseio.com",
-  projectId:"gulid-75b53",
-  storageBucket:"gulid-75b53.firebasestorage.app",
-  messagingSenderId:"697549334189",
-  appId:"1:697549334189:web:0b7b8bf2ceaa87bce84824"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
-const auth=firebase.auth();
-const membersRef=db.ref("members");
-const assignmentRef=db.ref("assignment");
-
-const pool=document.getElementById("pool");
-const teamsMain=document.getElementById("teamsMain");
-const teamsSub=document.getElementById("teamsSub");
-const statusBox=document.getElementById("status");
-
-// ===== ระบบแจ้งเตือนแบบ toast (มุมขวาบน) =====
-function showToast(message,type="info",duration=3000){
-
-let container=document.getElementById("toastContainer");
-
-if(!container)return;
-
-let el=document.createElement("div");
-
-el.className="toast "+type;
-el.textContent=message;
-
-container.appendChild(el);
-
-setTimeout(()=>el.remove(),duration);
-
-}
-
-// ===== ระบบล็อกสิทธิ์ด้วย Firebase Authentication (Email/Password) จริง =====
-// ต้องไปเปิดใช้งาน "Email/Password" ใน Firebase Console > Authentication > Sign-in method
-// และสร้างบัญชีแอดมินไว้ล่วงหน้าใน Authentication > Users
-// (ต้องเป็นบัญชีเดียวกับที่ตั้งไว้ในไฟล์ index.html)
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-let isAdmin=false;
-
-const adminBadge=document.getElementById("adminBadge");
-
-auth.onAuthStateChanged(user=>{
-
-let wasAdmin=isAdmin;
-
-isAdmin=!!user;
-
-updateAdminUI();
-
-if(isAdmin && !wasAdmin){
-showToast("🔓 เข้าสู่โหมดแอดมินแล้ว","success");
-}else if(!isAdmin && wasAdmin){
-showToast("🔒 ออกจากโหมดแอดมินแล้ว","info");
-}
-
-});
-
-// ===== Popup ล็อกอินแอดมิน (แทน prompt() ของเบราว์เซอร์ ให้เด้งตรงกลางสวยๆ) =====
-const loginModalOverlay=document.getElementById("loginModalOverlay");
-const loginEmailInput=document.getElementById("loginEmail");
-const loginPasswordInput=document.getElementById("loginPassword");
-const loginError=document.getElementById("loginError");
-const loginConfirmBtn=document.getElementById("loginConfirmBtn");
-const loginCancelBtn=document.getElementById("loginCancelBtn");
-
-function showLoginModal(){
-
-return new Promise(resolve=>{
-
-loginEmailInput.value="";
-loginPasswordInput.value="";
-loginError.textContent="";
-
-loginModalOverlay.classList.add("show");
-
-setTimeout(()=>loginEmailInput.focus(),50);
-
-function cleanup(){
-
-loginModalOverlay.classList.remove("show");
-loginConfirmBtn.onclick=null;
-loginCancelBtn.onclick=null;
-loginModalOverlay.onclick=null;
-document.removeEventListener("keydown",onKey);
-
-}
-
-function submit(){
-
-let email=loginEmailInput.value.trim();
-let password=loginPasswordInput.value;
-
-if(!email||!password){
-loginError.textContent="กรุณากรอกอีเมลและรหัสผ่านให้ครบ";
-return;
-}
-
-cleanup();
-resolve({email,password});
-
-}
-
-function cancel(){
-cleanup();
-resolve(null);
-}
-
-function onKey(e){
-
-if(e.key==="Escape"){
-cancel();
-}else if(e.key==="Enter"){
-e.preventDefault();
-submit();
-}
-
-}
-
-loginConfirmBtn.onclick=submit;
-loginCancelBtn.onclick=cancel;
-
-loginModalOverlay.onclick=e=>{
-if(e.target===loginModalOverlay)cancel();
-};
-
-document.addEventListener("keydown",onKey);
-
-});
-
-}
-
-async function loginPrompt(){
-
-let creds=await showLoginModal();
-
-if(!creds)return false;
-
-try{
-
-await auth.signInWithEmailAndPassword(creds.email,creds.password);
-
-return true;
-
-}catch(e){
-
-showToast("⚠️ เข้าสู่ระบบไม่สำเร็จ: "+(e.message||e.code),"error");
-
-return false;
-
-}
-
-}
-
-async function checkAdmin(){
-
-if(isAdmin)return true;
-
-return await loginPrompt();
-
-}
-
-async function toggleAdmin(){
-
-if(isAdmin){
-
-await auth.signOut();
-
-}else{
-
-await checkAdmin();
-
-}
-
-}
-
-function updateAdminUI(){
-
-adminBadge.textContent=isAdmin?"🔓 โหมดแอดมิน (ออกจากระบบ)":"🔒 โหมดแอดมิน";
-adminBadge.classList.toggle("on",isAdmin);
-
-// กล่องรายชื่อสมาชิกทั้งหมด ให้เห็นทุกคน (ทั้งโหมดแอดมินและไม่ใช่แอดมิน)
-document.getElementById("poolSection").style.display="";
-document.getElementById("poolLockedNotice").style.display="none";
-
-// ปุ่มรีเซ็ต/ส่งออกรูปภาพ ให้เห็นเฉพาะตอนอยู่โหมดแอดมิน
-document.getElementById("actionButtons").style.display=isAdmin?"":"none";
-
-}
-
-const MAIN_COUNT=12;
-const SUB_COUNT=18;
-const TEAM_SIZE=5;
-
-let members=[]; // [{name,uid,job}] loaded from the registration page
-let memberByUid={};
-
-
-const JOB_COLORS={
-"ไนท์":"#b1544e",
-"พระ":"#2f6b46",
-"ผู้นำ":"#8f6e1f",
-"วิ":"#3f6f9e",
-"ดูอิด":"#3f8f79",
-"สไน":"#b8933a",
-"พ่อค้า":"#8a6a52",
-"แอส":"#5f5480",
-"ปืน":"#7a4f3f",
-"ม๊อง":"#c2703a",
-"พาราดิน":"#4a5d8f"
-};
-
-// สีข้อความสำหรับพื้นหลังโทนอ่อน จะได้อ่านง่ายขึ้น
-const JOB_TEXT_COLORS={
-"ไนท์":"#fff",
-"พระ":"#fff",
-"ผู้นำ":"#fff",
-"วิ":"#fff",
-"ดูอิด":"#fff",
-"สไน":"#20242e",
-"พ่อค้า":"#fff",
-"แอส":"#fff",
-"ปืน":"#fff",
-"ม๊อง":"#fff",
-"พาราดิน":"#fff"
-};
-
-const JOB_LABELS={
-"ไนท์":"⚔️ไนท์",
-"พระ":"🙏พระ",
-"ผู้นำ":"👑ผู้นำ",
-"วิ":"🧙‍♂️วิ",
-"ดูอิด":"🌿ดูอิด",
-"สไน":"🎯สไน",
-"พ่อค้า":"💰พ่อค้า",
-"แอส":"🗡️แอส",
-"ปืน":"🔫ปืน",
-"ม๊อง":"👊ม๊อง",
-"พาราดิน":"🛡️พาราดิน"
-};
-
-
-function createMember(m){
-
-let div=document.createElement("div");
-
-div.className="member";
-div.draggable=true;
-div.dataset.uid=m.uid;
-div.title="UID: "+m.uid;
-div.style.background=JOB_COLORS[m.job]||"#3d485d";
-div.style.color=JOB_TEXT_COLORS[m.job]||"#fff";
-
-if(m.job==="ผู้นำ"){
-div.classList.add("sparkle-job");
-}
-
-div.innerHTML=`${escapeHtml(m.name)} (${escapeHtml(JOB_LABELS[m.job]||m.job)})<span class="member-remove" title="นำออกจากทีม">✕</span>`;
-
-div.ondragstart=(e)=>{
-if(!isAdmin){
-e.preventDefault();
-return;
-}
-dragItem=div;
-};
-
-div.querySelector(".member-remove").addEventListener("click",(e)=>{
-
-e.stopPropagation();
-
-if(!isAdmin)return;
-
-let parent=div.parentElement;
-
-// ถ้าอยู่ในกล่องทีม ต้องเติมช่องว่างคืนที่ตำแหน่งเดิมด้วย ไม่ให้ทีมขาดช่อง
-if(parent && parent.classList.contains("teamBox")){
-parent.replaceChild(makeEmptySlot(),div);
-}
-
-// นำสมาชิกออกจากทีม กลับไปไว้ในกล่องรายชื่อทั้งหมด
-pool.appendChild(div);
-
-isDragging=true;
-update();
-save().finally(()=>{
-isDragging=false;
-});
-
-});
-
-return div;
-
-}
-
-
-function escapeHtml(str){
-
-return String(str)
-.replaceAll("&","&amp;")
-.replaceAll("<","&lt;")
-.replaceAll(">","&gt;");
-
-}
-
-
-// ค่าล่าสุดที่ได้รับจาก Firebase (อัปเดตแบบ realtime ผ่าน listener ด้านล่าง)
-let latestAssignment=null;
-let firebaseReady=false;
-
-// true ระหว่างที่เรากำลังลาก/วางเอง กัน listener ของตัวเองมาวาดทับ DOM จนกระตุก
-let isDragging=false;
-
-
-function normalizeMembers(raw){
-
-// Firebase เก็บ object {uid: {...}} เวลาเขียนด้วย key เป็น uid
-// รองรับกรณีเป็น array ตรงๆ ด้วยเผื่อไว้
-if(!raw)return[];
-
-if(Array.isArray(raw))return raw.filter(Boolean);
-
-return Object.values(raw);
-
-}
-
-
-function updateLegendCounts(){
-
-let counts={};
-
-members.forEach(m=>{
-
-let job=m.job;
-
-counts[job]=(counts[job]||0)+1;
-
-});
-
-document.querySelectorAll(".legend .chip").forEach(chip=>{
-
-let job=chip.dataset.job;
-let countEl=chip.querySelector(".jobCount");
-
-if(countEl){
-countEl.textContent="("+(counts[job]||0)+")";
-}
-
-});
-
-}
-
-
-function renderFromState(){
-
-if(!firebaseReady)return;
-
-pool.innerHTML="";
-
-createTeams();
-
-updateLegendCounts();
-
-if(members.length===0){
-
-statusBox.textContent="ยังไม่มีสมาชิก กรุณาไปหน้าลงทะเบียนสมาชิกก่อน";
-
-update();
-
-return;
-
-}
-
-let placed=new Set();
-
-let assignment=latestAssignment;
-
-if(assignment){
-
-(assignment.pool||[]).forEach(uid=>{
-
-if(memberByUid[uid]){
-pool.appendChild(createMember(memberByUid[uid]));
-placed.add(uid);
-}
-
-});
-
-let boxes=getAllTeamBoxes();
-
-(assignment.teams||[]).forEach((team,i)=>{
-
-let box=boxes[i];
-
-if(!box)return;
-
-let arr=Array.isArray(team)?team:Object.values(team||{});
-
-for(let slotIdx=0;slotIdx<TEAM_SIZE;slotIdx++){
-
-let uid=arr[slotIdx];
-
-if(uid&&memberByUid[uid]){
-
-let memberEl=createMember(memberByUid[uid]);
-let emptySlot=box.children[slotIdx];
-
-if(emptySlot){
-box.replaceChild(memberEl,emptySlot);
-}else{
-box.appendChild(memberEl);
-}
-
-placed.add(uid);
-
-}
-
-}
-
-});
-
-}
-
-// members registered but not yet placed anywhere go into the pool
-members.forEach(m=>{
-
-if(!placed.has(m.uid)){
-pool.appendChild(createMember(m));
-}
-
-});
-
-statusBox.textContent="สมาชิกทั้งหมด "+members.length+" คน • เชื่อมต่อ realtime แล้ว 🟢";
-
-update();
-
-applyPoolFilter();
-
-}
-
-
-function attachRealtimeListeners(){
-
-membersRef.on("value",snap=>{
-
-members=normalizeMembers(snap.val());
-
-memberByUid={};
-
-members.forEach(m=>{
-memberByUid[m.uid]=m;
-});
-
-firebaseReady=true;
-
-renderFromState();
-
-},err=>{
-
-statusBox.textContent="⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ: "+err.message;
-showToast("⚠️ เชื่อมต่อ Firebase (members) ไม่สำเร็จ","error");
-
-});
-
-
-assignmentRef.on("value",snap=>{
-
-latestAssignment=snap.val()||null;
-
-if(isDragging)return; // ระหว่างลากในเครื่องตัวเอง ไม่ต้อง re-render ทับ
-
-renderFromState();
-
-},err=>{
-
-statusBox.textContent="⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ: "+err.message;
-showToast("⚠️ เชื่อมต่อ Firebase (assignment) ไม่สำเร็จ","error");
-
-});
-
-}
-
-
-async function load(){
-
-statusBox.textContent="กำลังเชื่อมต่อ Firebase...";
-
-createTeams();
-
-attachRealtimeListeners();
-
-}
-
-
-async function refreshMembers(){
-
-// ข้อมูลมาแบบ realtime อยู่แล้ว ปุ่มนี้ไว้บังคับวาดใหม่เผื่อ DOM ค้าง
-renderFromState();
-
-showToast("🔁 รีเฟรชข้อมูลแล้ว","success");
-
-}
-
-
-function buildTeamGroup(container,count,label){
-
-container.innerHTML="";
-
-for(let i=1;i<=count;i++){
-
-let div=document.createElement("div");
-
-div.className="team";
-
-div.innerHTML=`
-<h3>
-${label} ${i}
-(<span class="count">0</span>/${TEAM_SIZE})
-</h3>
-
-<div class="members teamBox"></div>
-`;
-
-container.appendChild(div);
-
-let box=div.querySelector(".teamBox");
-
-// สร้างช่องว่างตายตัวไว้ล่วงหน้าให้ครบตามจำนวนที่นั่งในทีม แต่ละช่องมีตำแหน่งของตัวเอง ไม่เลื่อนไปมา
-for(let s=0;s<TEAM_SIZE;s++){
-box.appendChild(makeEmptySlot());
-}
-
-}
-
-}
-
-
-function createTeams(){
-
-buildTeamGroup(teamsMain,MAIN_COUNT,"ทีมหลัก");
-buildTeamGroup(teamsSub,SUB_COUNT,"ทีมรอง");
-
-}
-
-
-function getAllTeamBoxes(){
-
-return [
-...teamsMain.querySelectorAll(".teamBox"),
-...teamsSub.querySelectorAll(".teamBox")
-];
-
-}
-
-
-// นับเฉพาะสมาชิกจริง (ไม่นับช่องว่างที่ใส่ไว้เพื่อโชว์เลข)
-function realMembersIn(box){
-
-return [...box.children].filter(c=>c.dataset.uid);
-
-}
-
-
-// สร้างช่องว่าง 1 ช่อง ไว้ใช้แทนที่ตำแหน่งที่ยังไม่มีคน หรือแทนที่ตำแหน่งที่เพิ่งมีคนย้ายออกไป
-function makeEmptySlot(){
-
-let ph=document.createElement("div");
-
-ph.className="member slot-empty";
-ph.draggable=false;
-
-ph.innerHTML=`<span class="slot-empty-label">ช่องว่าง</span>`;
-
-return ph;
-
-}
-
-
-
-let dragItem=null;
-
-
-document.addEventListener("dragover",e=>{
-
-let box=e.target.closest(".members");
-
-if(box){
-e.preventDefault();
-box.classList.add("drag");
-}
-
-});
-
-
-document.addEventListener("dragleave",e=>{
-
-let box=e.target.closest(".members");
-
-if(box)
-box.classList.remove("drag");
-
-});
-
-
-document.addEventListener("drop",async e=>{
-
-let box=e.target.closest(".members");
-
-if(!box)return;
-
-box.classList.remove("drag");
-
-if(!dragItem)return;
-
-if(!isAdmin)return;
-
-let isTargetTeam=box.classList.contains("teamBox");
-
-let originBox=dragItem.parentElement;
-let originIsTeam=originBox && originBox.classList.contains("teamBox");
-
-if(!isTargetTeam){
-
-// ปล่อยลงกล่องรายชื่อทั้งหมด: ไม่มีช่องตายตัว ถ้าย้ายออกจากทีมมาก็เติมช่องว่างคืนให้ทีมเดิม
-if(originIsTeam){
-originBox.replaceChild(makeEmptySlot(),dragItem);
-}
-
-let dropTarget=e.target.closest(".member");
-
-if(dropTarget && dropTarget!==dragItem){
-dropTarget.parentElement.insertBefore(dragItem,dropTarget);
-}else{
-box.appendChild(dragItem);
-}
-
-}else{
-
-let dropTarget=e.target.closest(".member");
-
-// ต้องปล่อยลงบนช่องใดช่องหนึ่งของทีมโดยเฉพาะ ถึงจะถือว่าเลือกช่องนั้น ไม่มีการไล่เรียงอัตโนมัติ
-if(!dropTarget || dropTarget===dragItem){
-return;
-}
-
-if(dropTarget.classList.contains("slot-empty")){
-
-// ย้ายเข้าช่องว่างที่เลือกโดยเฉพาะ ช่องอื่นๆ ในทีมไม่ถูกกระทบ
-if(originIsTeam){
-originBox.replaceChild(makeEmptySlot(),dragItem);
-}
-
-box.replaceChild(dragItem,dropTarget);
-
-}else{
-
-// ปล่อยทับสมาชิกอีกคน (ไม่ว่าจะทีมเดียวกันหรือคนละทีม) ให้สลับตำแหน่งกันตรงๆ
-let dragParent=dragItem.parentElement;
-
-let placeholder=document.createElement("div");
-
-dragParent.insertBefore(placeholder,dragItem);
-
-dropTarget.parentElement.insertBefore(dragItem,dropTarget);
-
-dragParent.insertBefore(dropTarget,placeholder);
-
-dragParent.removeChild(placeholder);
-
-}
-
-}
-
-isDragging=true;
-
-update();
-
-save().finally(()=>{
-isDragging=false;
-});
-
-});
-
-
-
-function update(){
-
-document.querySelectorAll(".team").forEach(team=>{
-
-let box=team.querySelector(".teamBox");
-
-let count=realMembersIn(box).length;
-
-team.querySelector(".count").innerText=count;
-
-team.classList.toggle("full",count>=TEAM_SIZE);
-
-});
-
-}
-
-
-
-// อ่านสถานะปัจจุบันจาก DOM (ใครอยู่กล่องรายชื่อ ใครอยู่ทีมไหน)
-function currentAssignmentFromDOM(){
-
-return{
-pool:[...pool.children].map(x=>x.dataset.uid),
-
-// เก็บเป็น array ความยาวคงที่ต่อทีม (ช่องว่าง = "") เพื่อให้ตำแหน่งแต่ละช่องไม่เลื่อนไปมา
-teams:getAllTeamBoxes()
-.map(box=>[...box.children].map(x=>x.dataset.uid||""))
-
-};
-
-}
-
-
-async function save(){
-
-let data=currentAssignmentFromDOM();
-
-latestAssignment=data; // อัปเดตแคชในเครื่องทันที ไม่ต้องรอ echo กลับมาจาก Firebase
-
-try{
-
-await assignmentRef.set(data);
-
-}catch(e){
-
-statusBox.textContent="⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message;
-showToast("⚠️ บันทึกการจัดทีมไม่สำเร็จ: "+e.message,"error");
-
-}
-
-}
-
-
-
-async function resetAll(){
-
-try{
-
-await assignmentRef.remove();
-
-showToast("🔄 รีเซ็ตทีมเรียบร้อยแล้ว","success");
-
-}catch(e){
-
-statusBox.textContent="⚠️ รีเซ็ตไม่สำเร็จ: "+e.message;
-showToast("⚠️ รีเซ็ตไม่สำเร็จ: "+e.message,"error");
-
-}
-
-}
-
-
-
-
-
-
-
-// ===== Popup ยืนยัน =====
-const modalOverlay=document.getElementById("modalOverlay");
-const modalTitle=document.getElementById("modalTitle");
-const modalMessage=document.getElementById("modalMessage");
-const modalConfirmBtn=document.getElementById("modalConfirmBtn");
-
-const ACTIONS={
-reset:{
-title:"ยืนยันการรีเซ็ต",
-message:"การจัดทีมทั้งหมดจะถูกล้างและย้ายสมาชิกกลับไปที่กล่องรายชื่อ ต้องการดำเนินการต่อหรือไม่?",
-run:resetAll
-}
-};
-
-async function confirmAction(key){
-
-let action=ACTIONS[key];
-
-if(!action)return;
-
-if(!(await checkAdmin()))return;
-
-modalTitle.textContent=action.title;
-modalMessage.textContent=action.message;
-
-modalConfirmBtn.onclick=()=>{
-closeModal();
-action.run();
-};
-
-modalOverlay.classList.add("show");
-
-}
-
-function closeModal(){
-modalOverlay.classList.remove("show");
-}
-
-modalOverlay.addEventListener("click",e=>{
-if(e.target===modalOverlay)closeModal();
-});
-
-document.addEventListener("keydown",e=>{
-if(e.key==="Escape"){
-closeModal();
-closeLookupModal();
-}
-});
-
-
-// ===== Popup ค้นหาว่าสมาชิกอยู่ทีมไหน =====
-const lookupModalOverlay=document.getElementById("lookupModalOverlay");
-const lookupMessage=document.getElementById("lookupMessage");
-
-function closeLookupModal(){
-lookupModalOverlay.classList.remove("show");
-}
-
-lookupModalOverlay.addEventListener("click",e=>{
-if(e.target===lookupModalOverlay)closeLookupModal();
-});
-
-// หาไว้ว่า uid นี้อยู่ในกล่องช่องทีมไหน (คืนชื่อทีม) หรืออยู่ในกล่องรายชื่อ หรือไม่พบเลย
-function findTeamLabelForUid(uid){
-
-let boxes=getAllTeamBoxes();
-
-for(let i=0;i<boxes.length;i++){
-
-let found=realMembersIn(boxes[i]).some(c=>c.dataset.uid===uid);
-
-if(found){
-
-let teamDiv=boxes[i].closest(".team");
-let h3=teamDiv?teamDiv.querySelector("h3"):null;
-
-return h3?h3.textContent.split("(")[0].replace(/\s+/g," ").trim():"ทีม?";
-
-}
-
-}
-
-let inPool=[...pool.children].some(c=>c.dataset.uid===uid);
-
-if(inPool)return "อยู่ในกล่องรายชื่อ (ยังไม่ได้จัดทีม)";
-
-return null;
-
-}
-
-function lookupTeam(){
-
-let key=document.getElementById("lookupName").value.trim().toLowerCase();
-
-if(!key){
-
-lookupMessage.textContent="กรุณาพิมพ์ชื่อที่ต้องการค้นหา";
-lookupModalOverlay.classList.add("show");
-
-return;
-
-}
-
-let matches=members.filter(m=>m.name.toLowerCase().includes(key));
-
-if(matches.length===0){
-
-lookupMessage.innerHTML="ไม่พบสมาชิกชื่อ \""+escapeHtml(key)+"\"";
-
-}else{
-
-lookupMessage.innerHTML=matches.map(m=>{
-
-let jobLabel=JOB_LABELS[m.job]||m.job;
-let teamLabel=findTeamLabelForUid(m.uid)||"ไม่พบตำแหน่ง (ข้อมูลยังไม่โหลดหรือยังไม่จัดทีม)";
-
-return "<b>"+escapeHtml(m.name)+"</b> ("+escapeHtml(jobLabel)+")<br> "+escapeHtml(teamLabel);
-
-}).join("<hr style='border-color:#3d485d;margin:10px 0'>");
-
-}
-
-lookupModalOverlay.classList.add("show");
-
-}
-
-
-// ===== แสดงรายชื่อที่กำลังค้นหาแบบเรียลไทม์ (suggestions) =====
-const lookupNameInput=document.getElementById("lookupName");
-const lookupSuggestBox=document.getElementById("lookupSuggest");
-let lookupSuggestIndex=-1;
-
-function renderLookupSuggestions(){
-
-let key=lookupNameInput.value.trim().toLowerCase();
-
-if(!key){
-lookupSuggestBox.classList.remove("show");
-lookupSuggestBox.innerHTML="";
-lookupSuggestIndex=-1;
-return;
-}
-
-let matches=members
-.filter(m=>m.name.toLowerCase().includes(key))
-.slice(0,8);
-
-if(matches.length===0){
-lookupSuggestBox.innerHTML="<div class='sgEmpty'>ไม่พบชื่อที่ตรงกัน</div>";
-}else{
-lookupSuggestBox.innerHTML=matches.map((m,i)=>{
-let jobLabel=JOB_LABELS[m.job]||m.job;
-return "<div class='sgItem' data-idx=\""+i+"\" onmousedown=\"selectLookupSuggestion('"+m.uid+"')\">"
-+"<span>"+escapeHtml(m.name)+"</span>"
-+"<span class='sgJob'>"+escapeHtml(jobLabel)+"</span>"
-+"</div>";
-}).join("");
-}
-
-lookupSuggestIndex=-1;
-lookupSuggestBox.classList.add("show");
-
-}
-
-function selectLookupSuggestion(uid){
-
-let m=members.find(x=>x.uid===uid);
-if(!m)return;
-
-lookupNameInput.value=m.name;
-lookupSuggestBox.classList.remove("show");
-lookupSuggestBox.innerHTML="";
-lookupSuggestIndex=-1;
-
-lookupTeam();
-
-}
-
-function handleLookupKeydown(event){
-
-let items=[...lookupSuggestBox.querySelectorAll(".sgItem")];
-
-if(event.key==="ArrowDown"){
-event.preventDefault();
-if(!items.length)return;
-lookupSuggestIndex=(lookupSuggestIndex+1)%items.length;
-items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
-items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
-return;
-}
-
-if(event.key==="ArrowUp"){
-event.preventDefault();
-if(!items.length)return;
-lookupSuggestIndex=(lookupSuggestIndex-1+items.length)%items.length;
-items.forEach((el,i)=>el.classList.toggle("active",i===lookupSuggestIndex));
-items[lookupSuggestIndex].scrollIntoView({block:"nearest"});
-return;
-}
-
-if(event.key==="Enter"){
-if(lookupSuggestIndex>-1&&items[lookupSuggestIndex]){
-items[lookupSuggestIndex].dispatchEvent(new Event("mousedown"));
-}else{
-lookupSuggestBox.classList.remove("show");
-lookupTeam();
-}
-return;
-}
-
-if(event.key==="Escape"){
-lookupSuggestBox.classList.remove("show");
-}
-
-}
-
-lookupNameInput.addEventListener("input",renderLookupSuggestions);
-
-lookupNameInput.addEventListener("blur",()=>{
-setTimeout(()=>lookupSuggestBox.classList.remove("show"),120);
-});
-
-lookupNameInput.addEventListener("focus",()=>{
-if(lookupNameInput.value.trim())renderLookupSuggestions();
-});
-
-let activeJobFilter=null;
-
-function applyPoolFilter(){
-
-let key=document.getElementById("search").value.toLowerCase();
-
-document.querySelectorAll("#pool .member")
-.forEach(m=>{
-
-let uid=memberByUid[m.dataset.uid];
-
-let text=uid?(uid.name+" "+uid.uid+" "+uid.job).toLowerCase():m.textContent.toLowerCase();
-
-let matchesSearch=text.includes(key);
-
-let job=uid?uid.job:null;
-
-let matchesJob=!activeJobFilter||job===activeJobFilter;
-
-m.style.display=
-(matchesSearch&&matchesJob)
-?"block":"none";
-
-});
-
-}
-
-
-document.getElementById("search")
-.addEventListener("input",applyPoolFilter);
-
-
-document.querySelectorAll(".legend .chip").forEach(chip=>{
-
-chip.addEventListener("click",()=>{
-
-let job=chip.dataset.job;
-
-if(activeJobFilter===job){
-// คลิกซ้ำที่ป้ายเดิม = ยกเลิกการกรอง
-activeJobFilter=null;
-}else{
-activeJobFilter=job;
-}
-
-document.querySelectorAll(".legend .chip")
-.forEach(c=>c.classList.toggle("active",c.dataset.job===activeJobFilter));
-
-let hint=document.getElementById("legendHint");
-hint.textContent=activeJobFilter
-?"🔎 กำลังกรองเฉพาะอาชีพ \""+activeJobFilter+"\" • คลิกป้ายเดิมอีกครั้งเพื่อยกเลิก"
-:"👆 คลิกป้ายอาชีพเพื่อกรองรายชื่อในกล่องรายชื่อทั้งหมด";
-
-applyPoolFilter();
-
-});
-
-});
-
-
-async function exportTeamImage(){
-
-statusBox.textContent="🖼️ กำลังสร้างรูปภาพ...";
-
-try{
-
-if(typeof html2canvas!=="function"){
-throw new Error("โหลดไลบรารีสร้างรูปภาพไม่สำเร็จ (ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)");
-}
-
-let target=document.querySelector(".layout");
-
-let canvas=await html2canvas(target,{
-backgroundColor:"#1b2130",
-scale:2,
-useCORS:true
-});
-
-let dataUrl=canvas.toDataURL("image/png");
-
-let ts=new Date()
-.toISOString()
-.slice(0,19)
-.replace(/[:T]/g,"-");
-
-let link=document.createElement("a");
-link.download="guild-teams-"+ts+".png";
-link.href=dataUrl;
-link.click();
-
-statusBox.textContent="✅ ส่งออกรูปภาพเรียบร้อย ตรวจสอบไฟล์ที่ดาวน์โหลด";
-showToast("✅ ส่งออกรูปภาพเรียบร้อยแล้ว","success");
-
-}catch(e){
-
-statusBox.textContent="⚠️ ส่งออกรูปภาพไม่สำเร็จ: "+(e.message||e);
-showToast("⚠️ ส่งออกรูปภาพไม่สำเร็จ: "+(e.message||e),"error");
-
-}
-
-}
-
-
-
-updateAdminUI();
-
-load();
-
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+  <script>
+(function(){
+  const DEFAULT_MEMBERS = [];
+
+  let MEMBERS = DEFAULT_MEMBERS.map(m => ({name: m.name, cls: m.cls, gr: m.gr || 0}));
+
+  const CLASS_COLORS = {
+    Swordman:'#5b8def', Knight:'#6ba7ff', 'Lord Knight':'#3d6fd1', Crusader:'#f5d76e', Paladin:'#f0b429',
+    Mage:'#a78bfa', Wizard:'#8b7cf6', 'High Wizard':'#6f5ee0',
+    Archer:'#7bd88f', Hunter:'#4fd67a', Sniper:'#2fae5c',
+    Bard:'#ff9ecf', Clown:'#ff6ec7', Dancer:'#e685e0', Gypsy:'#c96fd8',
+    Acolyte:'#ffe08a', Priest:'#f0b429', 'High Priest':'#d99a1b', Monk:'#e8935a', Champion:'#ff6ec7',
+    Thief:'#ff8577', Assassin:'#ef5a6f', 'Assassin Cross':'#c43f52',
+    Merchant:'#c98a5e', Blacksmith:'#c98a5e', Whitesmith:'#a56a3e', Alchemist:'#8fd9c4', Creator:'#3fd6c4',
+    Gunslinger:'#ff9f5a', Rebel:'#ff7a3d', 'Night Watch':'#7d8bb8', 'Night Walker':'#5f6ea8',
+    Druid:'#3fd6c4', Kanos:'#9d6bff', Alithea:'#ffd166',
+    Unknown:'#8b93b0'
+  };
+  function classColor(c){ return CLASS_COLORS[c] || '#8b93b0'; }
+
+  const SLOTS_PER_TEAM = 5; // slot 0 = leader
+  const TEAMS_PER_SIDE = 12;
+  const MAIN_TEAM_KEYS  = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`main_${i+1}`);
+  const SUB_TEAM_KEYS   = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`sub_${i+1}`);
+  const ELITE_TEAM_KEYS = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`elite_${i+1}`);
+  const GL_TEAM_KEYS   = [...MAIN_TEAM_KEYS, ...SUB_TEAM_KEYS];   // Guild League
+  const PZ_TEAM_KEYS   = [...ELITE_TEAM_KEYS];                    // Polarity Zone
+  const ALL_TEAM_KEYS  = [...GL_TEAM_KEYS, ...PZ_TEAM_KEYS];
+
+  const EVENT_KEY = 'tempest_event_v1';
+  let currentEvent = 'guild_league'; // 'guild_league' | 'polarity_zone'
+  function currentTeamKeys(){ return currentEvent === 'polarity_zone' ? PZ_TEAM_KEYS : GL_TEAM_KEYS; }
+
+  function teamLabel(key){ return 'Team ' + key.split('_')[1]; }
+  function teamKind(key){
+    if(key.startsWith('main_')) return 'main-bf';
+    if(key.startsWith('sub_')) return 'sub-bf';
+    return 'elite-bf';
+  }
+
+  // state: { teamKey: [name|null, name|null, ...5] }
+  let assignments = {};
+  ALL_TEAM_KEYS.forEach(k => assignments[k] = new Array(SLOTS_PER_TEAM).fill(null));
+
+  let selectedMember = null;
+  let dragMemberName = null;
+  let searchTerm = '';
+  let statusFilter = 'All';
+  let classFilter = 'All';
+  let sortBy = 'gr';
+  let sortDir = 'desc';
+  let editingMember = null;
+  let showAddForm = false;
+
+  let memberByName = {};
+  function rebuildIndex(){
+    memberByName = {};
+    MEMBERS.forEach(m => memberByName[m.name] = m);
+  }
+  rebuildIndex();
+
+  // ---------- Firebase ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyAnNlGqZ-U8YUKwiAqpmKCkzuIDl1vWuCo",
+    authDomain: "gulid-75b53.firebaseapp.com",
+    databaseURL: "https://gulid-75b53-default-rtdb.firebaseio.com",
+    projectId: "gulid-75b53",
+    storageBucket: "gulid-75b53.firebasestorage.app",
+    messagingSenderId: "697549334189",
+    appId: "1:697549334189:web:0b7b8bf2ceaa87bce84824",
+    measurementId: "G-266KXG1YBQ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const dataDocRef = db.collection('guildData').doc('shared');
+
+  // ---------- Admin login: real Firebase Authentication (email/password) ----------
+  let isAdmin = false;
+
+  function applyAdminUI(){
+    const app = document.getElementById('app');
+    if(app) app.classList.toggle('viewer-mode', !isAdmin);
+    const btn = document.getElementById('adminLoginBtn');
+    if(btn){
+      btn.textContent = isAdmin ? '🔓 Logout' : '🔒 Admin Login';
+      btn.title = isAdmin ? 'Log out of admin mode' : 'Log in as admin to edit';
+    }
+  }
+
+  function openLoginModal(){
+    const overlay = document.getElementById('loginOverlay');
+    const err = document.getElementById('loginError');
+    const emailInput = document.getElementById('loginEmailInput');
+    const input = document.getElementById('loginPasswordInput');
+    if(err) err.style.display = 'none';
+    if(input) input.value = '';
+    if(overlay) overlay.style.display = 'flex';
+    setTimeout(()=>{ if(emailInput) emailInput.focus(); }, 30);
+  }
+
+  function closeLoginModal(){
+    const overlay = document.getElementById('loginOverlay');
+    if(overlay) overlay.style.display = 'none';
+  }
+
+  function attemptLogin(){
+    const emailInput = document.getElementById('loginEmailInput');
+    const input = document.getElementById('loginPasswordInput');
+    const err = document.getElementById('loginError');
+    const submitBtn = document.getElementById('loginSubmitBtn');
+    const email = emailInput ? emailInput.value.trim() : '';
+    const val = input ? input.value : '';
+    if(!email || !val){
+      if(err){ err.textContent = 'Enter both email and password.'; err.style.display = 'block'; }
+      return;
+    }
+    if(err) err.style.display = 'none';
+    if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Logging in…'; }
+    auth.signInWithEmailAndPassword(email, val)
+      .then(()=>{
+        closeLoginModal();
+        showToast('Logged in', 'Admin editing is now unlocked.');
+      })
+      .catch((e)=>{
+        console.error('Login failed', e);
+        if(err){ err.textContent = 'Login failed — check email/password.'; err.style.display = 'block'; }
+      })
+      .finally(()=>{
+        if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'Log in'; }
+      });
+  }
+
+  function logoutAdmin(){
+    auth.signOut().then(()=>{
+      selectedMember = null;
+      editingMember = null;
+      showAddForm = false;
+      showToast('Logged out', 'This browser is now in view-only mode.');
+    });
+  }
+
+  auth.onAuthStateChanged((user)=>{
+    isAdmin = !!user;
+    applyAdminUI();
+    renderAll();
+  });
+
+  // Call this at the top of any action that changes data. Returns true if allowed to proceed.
+  function requireAdmin(){
+    if(isAdmin) return true;
+    showToast('Admin login required', 'Log in as admin to make changes.', 'warn');
+    openLoginModal();
+    return false;
+  }
+
+  function computeStatus(name){
+    const key = findAssignedTeam(name);
+    if(key === null) return 'Unassigned';
+    if(currentEvent === 'polarity_zone') return 'Elite';
+    return teamKind(key) === 'main-bf' ? 'Main' : 'Sub';
+  }
+
+  // ---------- Storage: Firebase Firestore, synced in real time to everyone viewing the page ----------
+  function setSaveFlag(state, msg){
+    const el = document.getElementById('saveFlag');
+    const txt = document.getElementById('saveFlagText');
+    if(!el) return;
+    el.classList.remove('ok','err');
+    if(state) el.classList.add(state);
+    txt.textContent = msg;
+  }
+
+  let applyingRemote = false; // true while a Firestore snapshot is being written into local state
+
+  function persist(){
+    if(!isAdmin){ setSaveFlag(null, 'View only'); return; }
+    setSaveFlag(null, 'Saving…');
+    dataDocRef.set({
+      members: MEMBERS,
+      assignments: assignments,
+      currentEvent: currentEvent,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true })
+      .then(()=> setSaveFlag('ok', 'Saved'))
+      .catch((e)=>{
+        console.error('Save failed', e);
+        setSaveFlag('err', 'Save failed — log in as admin and check connection');
+      });
+  }
+
+  let saveTimer = null;
+  function saveState(){
+    if(applyingRemote) return; // don't echo remote data straight back to Firestore
+    setSaveFlag(null, 'Saving…');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 200);
+  }
+
+  function saveRoster(){
+    saveState();
+  }
+
+  function loadState(){
+    setSaveFlag(null, 'Connecting…');
+    dataDocRef.onSnapshot((doc)=>{
+      applyingRemote = true;
+      const data = doc.data();
+      if(data){
+        if(data.currentEvent === 'guild_league' || data.currentEvent === 'polarity_zone'){
+          currentEvent = data.currentEvent;
+        }
+        if(Array.isArray(data.members) && data.members.length){
+          MEMBERS = data.members;
+        }
+        rebuildIndex();
+        if(data.assignments){
+          ALL_TEAM_KEYS.forEach(k=>{
+            if(Array.isArray(data.assignments[k])){
+              assignments[k] = data.assignments[k].slice(0,SLOTS_PER_TEAM);
+              while(assignments[k].length < SLOTS_PER_TEAM) assignments[k].push(null);
+            }
+          });
+        }
+      }
+      setSaveFlag(null, 'Synced');
+      renderAll();
+      applyingRemote = false;
+    }, (err)=>{
+      console.error('Sync failed', err);
+      setSaveFlag('err', 'Could not connect to Firebase');
+    });
+  }
+
+  // ---------- Toast notifications ----------
+  function showToast(title, msg, kind){
+    const stack = document.getElementById('toastStack');
+    if(!stack) return;
+    const el = document.createElement('div');
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    const icon = kind === 'err' ? '⚠️' : kind === 'warn' ? '❗' : '✅';
+    el.innerHTML =
+      '<span class="toast-icon">' + icon + '</span>' +
+      '<span class="toast-body">' +
+        '<div class="toast-title"></div>' +
+        (msg ? '<div class="toast-msg"></div>' : '') +
+      '</span>';
+    el.querySelector('.toast-title').textContent = title;
+    if(msg) el.querySelector('.toast-msg').textContent = msg;
+    stack.appendChild(el);
+    const life = kind ? 4500 : 2600;
+    setTimeout(()=>{
+      el.classList.add('toast-out');
+      setTimeout(()=> el.remove(), 200);
+    }, life);
+  }
+
+  // ---------- Export / Import: share the roster + lineup as a downloadable file ----------
+  function exportLineup(){
+    const payload = {
+      type: 'tempest-lineup-export',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      m: MEMBERS,
+      a: assignments
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+
+    const dateStr = new Date().toISOString().slice(0,10);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `guild-lineup-${dateStr}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+    showToast('Lineup exported', 'Send the downloaded file to your co-leader (e.g. as a Discord attachment).');
+  }
+
+  function triggerImportPicker(){
+    document.getElementById('importFileInput').click();
+  }
+
+  function handleImportFile(file){
+    if(!requireAdmin()) return;
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let data;
+      try{
+        data = JSON.parse(reader.result);
+      }catch(e){
+        showToast('Import failed', 'That file isn\'t valid — make sure you selected an exported lineup .json file.', 'err');
+        return;
+      }
+
+      if(!data || (!Array.isArray(data.m) && !data.a)){
+        showToast('Import failed', 'This file doesn\'t look like a lineup export.', 'err');
+        return;
+      }
+
+      const exportedWhen = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'an unknown time';
+      const proceed = confirm(
+        `Import lineup exported on ${exportedWhen}?\n\n` +
+        'This will REPLACE your current roster and team assignments in this browser.\n\n' +
+        'Continue?'
+      );
+      if(!proceed) return;
+
+      if(Array.isArray(data.m)) MEMBERS = data.m;
+      rebuildIndex();
+
+      ALL_TEAM_KEYS.forEach(k => assignments[k] = new Array(SLOTS_PER_TEAM).fill(null));
+      if(data.a){
+        ALL_TEAM_KEYS.forEach(k=>{
+          if(Array.isArray(data.a[k])){
+            assignments[k] = data.a[k].slice(0,SLOTS_PER_TEAM);
+            while(assignments[k].length < SLOTS_PER_TEAM) assignments[k].push(null);
+          }
+        });
+      }
+
+      persist();
+      renderAll();
+      showToast('Lineup imported', 'This browser now has the roster and assignments from the file.');
+    };
+    reader.onerror = () => {
+      showToast('Import failed', 'Could not read that file — please try again.', 'err');
+    };
+    reader.readAsText(file);
+  }
+
+  // ---------- Bulk import from the guild's Excel member sheet ----------
+  // Accepts the exported "Members" worksheet (columns like Name, Job Name, Gear Rating, ...).
+  // Column names are matched case-insensitively so small header changes still work.
+  const JOB_NAME_ALIASES = { 'อาลิเทีย': 'Alithea' }; // Thai label used for the Alithea class in some exports
+
+  function normalizeHeader(h){ return String(h||'').trim().toLowerCase(); }
+
+  function findCol(headerRow, candidates){
+    for(let i=0;i<headerRow.length;i++){
+      const h = normalizeHeader(headerRow[i]);
+      if(candidates.includes(h)) return i;
+    }
+    return -1;
+  }
+
+  function triggerExcelImportPicker(){
+    document.getElementById('importExcelFileInput').click();
+  }
+
+  function handleExcelImportFile(file){
+    if(!requireAdmin()) return;
+    if(!file) return;
+    if(typeof XLSX === 'undefined'){
+      showToast('Import failed', 'The Excel reader library did not load — check your internet connection and try again.', 'err');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      let workbook;
+      try{
+        workbook = XLSX.read(reader.result, {type:'array'});
+      }catch(e){
+        showToast('Import failed', 'That file isn\'t a readable Excel/CSV file.', 'err');
+        return;
+      }
+
+      // Prefer a sheet literally named "Members"; otherwise use the first sheet.
+      const sheetName = workbook.SheetNames.find(n => normalizeHeader(n) === 'members') || workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:true, defval:''});
+      if(!rows.length){
+        showToast('Import failed', 'That sheet looks empty.', 'err');
+        return;
+      }
+
+      const header = rows[0];
+      const nameCol = findCol(header, ['name']);
+      const jobCol  = findCol(header, ['job name','class','job']);
+      const grCol   = findCol(header, ['gear rating','gr']);
+
+      if(nameCol === -1){
+        showToast('Import failed', 'Couldn\'t find a "Name" column in that file.', 'err');
+        return;
+      }
+
+      let added = 0, updated = 0, skipped = 0;
+      const excelNames = new Set(); // lowercase names seen in the file, used to detect who to remove
+      for(let r=1;r<rows.length;r++){
+        const row = rows[r];
+        if(!row || row.length === 0) continue;
+        const rawName = row[nameCol];
+        const name = String(rawName == null ? '' : rawName).trim();
+        if(!name){ skipped++; continue; }
+        excelNames.add(name.toLowerCase());
+
+        let cls = jobCol !== -1 ? String(row[jobCol] == null ? '' : row[jobCol]).trim() : '';
+        cls = JOB_NAME_ALIASES[cls] || cls || 'Unknown';
+
+        let gr = 0;
+        if(grCol !== -1){
+          const rawGr = row[grCol];
+          const parsedGr = parseInt(String(rawGr).replace(/[^0-9-]/g,''), 10);
+          gr = Number.isFinite(parsedGr) ? parsedGr : 0;
+        }
+
+        const existing = memberByName[name] ||
+          MEMBERS.find(m => m.name.toLowerCase() === name.toLowerCase());
+        if(existing){
+          existing.cls = cls;
+          existing.gr = gr;
+          updated++;
+        } else {
+          MEMBERS.push({name, cls, gr});
+          added++;
+        }
+      }
+
+      rebuildIndex();
+
+      // Anyone currently on the roster but NOT present in this Excel file — offer to remove them.
+      let removed = 0;
+      const toRemove = MEMBERS.filter(m => !excelNames.has(m.name.toLowerCase()));
+      if(toRemove.length){
+        const preview = toRemove.slice(0, 15).map(m => m.name).join(', ') + (toRemove.length > 15 ? `, +${toRemove.length - 15} more` : '');
+        const confirmRemove = confirm(
+          `${toRemove.length} member(s) on the current roster are NOT in this Excel file:\n\n${preview}\n\n` +
+          'Remove them from the roster (and clear them from any team)?\n\n' +
+          'Click Cancel to keep them and only apply the additions/updates above.'
+        );
+        if(confirmRemove){
+          const removeSet = new Set(toRemove.map(m => m.name));
+          ALL_TEAM_KEYS.forEach(k=>{
+            for(let i=0;i<SLOTS_PER_TEAM;i++){
+              if(assignments[k][i] && removeSet.has(assignments[k][i])) assignments[k][i] = null;
+            }
+          });
+          MEMBERS = MEMBERS.filter(m => !removeSet.has(m.name));
+          removed = toRemove.length;
+          rebuildIndex();
+          saveState();
+        }
+      }
+
+      saveRoster();
+      renderAll();
+
+      const parts = [];
+      if(added) parts.push(`${added} added`);
+      if(updated) parts.push(`${updated} updated`);
+      if(removed) parts.push(`${removed} removed`);
+      if(skipped) parts.push(`${skipped} skipped (no name)`);
+      showToast('Excel import complete', parts.length ? parts.join(', ') : 'No members found in that file.', added || updated || removed ? undefined : 'warn');
+    };
+    reader.onerror = () => {
+      showToast('Import failed', 'Could not read that file — please try again.', 'err');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ---------- Export/Import "how it works" guide ----------
+  const GUIDE_SEEN_KEY = 'tempest_seen_export_import_guide_v1';
+
+  function openImportExportGuide(){
+    const overlay = document.getElementById('guideOverlay');
+    if(overlay) overlay.style.display = 'flex';
+  }
+
+  function closeImportExportGuide(){
+    const overlay = document.getElementById('guideOverlay');
+    if(overlay) overlay.style.display = 'none';
+    localStorage.setItem(GUIDE_SEEN_KEY, '1');
+  }
+
+  function maybeAutoShowGuide(){
+    try{
+      if(!localStorage.getItem(GUIDE_SEEN_KEY)) openImportExportGuide();
+    }catch(e){ /* ignore */ }
+  }
+
+  function assignedNamesSet(keys){
+    const s = new Set();
+    (keys || currentTeamKeys()).forEach(k => assignments[k].forEach(n => { if(n) s.add(n); }));
+    return s;
+  }
+
+  function placeMember(name, teamKey, slotIdx){
+    if(!requireAdmin()) return;
+    currentTeamKeys().forEach(k=>{
+      for(let i=0;i<SLOTS_PER_TEAM;i++){
+        if(assignments[k][i] === name) assignments[k][i] = null;
+      }
+    });
+    assignments[teamKey][slotIdx] = name;
+    saveState();
+  }
+
+  function removeFromSlot(teamKey, slotIdx){
+    if(!requireAdmin()) return;
+    assignments[teamKey][slotIdx] = null;
+    saveState();
+  }
+
+  function clearAll(){
+    if(!requireAdmin()) return;
+    const eventLabel = currentEvent === 'polarity_zone' ? 'Polarity Zone' : 'Guild League';
+    if(!confirm(`Clear every ${eventLabel} team assignment? This cannot be undone. (The other event's lineup is unaffected.)`)) return;
+    currentTeamKeys().forEach(k => assignments[k] = new Array(SLOTS_PER_TEAM).fill(null));
+    saveState();
+    renderAll();
+  }
+
+  function autoFill(){
+    if(!requireAdmin()) return;
+    for(const teamKey of currentTeamKeys()){
+      for(let i=0;i<SLOTS_PER_TEAM;i++){
+        if(!assignments[teamKey][i]){
+          const assigned = assignedNamesSet();
+          const pool = MEMBERS.filter(m => !assigned.has(m.name)).sort((a,b)=>b.gr-a.gr);
+          if(pool.length) assignments[teamKey][i] = pool[0].name;
+        }
+      }
+    }
+    saveState();
+    renderAll();
+  }
+
+  function classOptionsHtml(selected){
+    const classes = Object.keys(CLASS_COLORS).filter(c=>c!=='Unknown');
+    return classes.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('');
+  }
+
+  function addMember(name, cls, gr){
+    if(!requireAdmin()) return false;
+    name = (name||'').trim();
+    if(!name){ alert('Enter a name.'); return false; }
+    if(MEMBERS.some(m => m.name.toLowerCase() === name.toLowerCase())){
+      alert('A member with that name already exists.');
+      return false;
+    }
+    MEMBERS.push({name, cls: cls || 'Unknown', gr: parseInt(gr) || 0});
+    rebuildIndex();
+    saveRoster();
+    return true;
+  }
+
+  function updateMember(oldName, newName, cls, gr){
+    if(!requireAdmin()) return false;
+    newName = (newName||'').trim();
+    if(!newName){ alert('Enter a name.'); return false; }
+    if(newName.toLowerCase() !== oldName.toLowerCase() && MEMBERS.some(m => m.name.toLowerCase() === newName.toLowerCase())){
+      alert('A member with that name already exists.');
+      return false;
+    }
+    const m = memberByName[oldName];
+    if(!m) return false;
+    m.name = newName;
+    m.cls = cls || 'Unknown';
+    m.gr = parseInt(gr) || 0;
+    if(newName !== oldName){
+      ALL_TEAM_KEYS.forEach(k=>{
+        for(let i=0;i<SLOTS_PER_TEAM;i++){
+          if(assignments[k][i] === oldName) assignments[k][i] = newName;
+        }
+      });
+    }
+    rebuildIndex();
+    saveRoster();
+    saveState();
+    return true;
+  }
+
+  function deleteMember(name){
+    if(!requireAdmin()) return;
+    if(!confirm(`Remove ${name} from the guild roster? This also clears them from any team.`)) return;
+    ALL_TEAM_KEYS.forEach(k=>{
+      for(let i=0;i<SLOTS_PER_TEAM;i++){
+        if(assignments[k][i] === name) assignments[k][i] = null;
+      }
+    });
+    MEMBERS = MEMBERS.filter(m => m.name !== name);
+    rebuildIndex();
+    saveState();
+    saveRoster();
+    if(selectedMember === name) selectedMember = null;
+    if(editingMember === name) editingMember = null;
+    renderAll();
+  }
+
+  // ---------- Rendering ----------
+  function renderStats(){
+    const total = MEMBERS.length;
+    const keys = currentTeamKeys();
+    const assigned = assignedNamesSet(keys).size;
+    const totalSlots = keys.length * SLOTS_PER_TEAM;
+    const teamsFull = keys.filter(k => assignments[k].every(x=>x)).length;
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat-chip"><b>${total}</b><span>Members</span></div>
+      <div class="stat-chip"><b>${assigned}/${totalSlots}</b><span>Slotted</span></div>
+      <div class="stat-chip"><b>${teamsFull}/${keys.length}</b><span>Full Teams</span></div>
+    `;
+  }
+
+  function renderEventTabs(){
+    document.querySelectorAll('#eventTabs .event-tab').forEach(btn=>{
+      const isActive = btn.dataset.event === currentEvent;
+      btn.classList.toggle('active', isActive);
+      btn.classList.toggle('gl', isActive && currentEvent === 'guild_league');
+      btn.classList.toggle('pz', isActive && currentEvent === 'polarity_zone');
+    });
+  }
+
+  function renderFilters(){
+    const statuses = currentEvent === 'polarity_zone'
+      ? ['All','Elite','Unassigned']
+      : ['All','Main','Sub','Unassigned'];
+    if(!statuses.includes(statusFilter)) statusFilter = 'All';
+    document.getElementById('statusFilterRow').innerHTML = statuses.map(s =>
+      `<div class="pill ${statusFilter===s?'active':''}" data-status="${s}">${s}</div>`
+    ).join('');
+    document.querySelectorAll('#statusFilterRow .pill').forEach(el=>{
+      el.addEventListener('click', ()=>{ statusFilter = el.dataset.status; renderFilters(); renderMemberList(); });
+    });
+
+    const classSel = document.getElementById('classFilter');
+    const prevVal = classSel.value || 'All';
+    const classes = Array.from(new Set(MEMBERS.map(m=>m.cls))).sort();
+    classSel.innerHTML = `<option value="All">All Classes</option>` + classes.map(c=>`<option value="${c}">${c}</option>`).join('');
+    classSel.value = classes.includes(prevVal) ? prevVal : 'All';
+    classFilter = classSel.value;
+    classSel.onchange = ()=>{ classFilter = classSel.value; renderMemberList(); };
+  }
+
+  function renderSortRow(){
+    const el = document.getElementById('sortRow');
+    if(!el) return;
+    const opts = [
+      {key:'gr', label:'Gear Rating'},
+      {key:'name', label:'Name'}
+    ];
+    el.innerHTML = `<span class="sort-label">Sort</span>` + opts.map(o=>{
+      const active = sortBy === o.key;
+      const arrow = active ? (sortDir==='asc' ? '↑' : '↓') : '';
+      return `<div class="pill sort-pill ${active?'active':''}" data-sort="${o.key}">${o.label}${arrow ? ' '+arrow : ''}</div>`;
+    }).join('');
+    el.querySelectorAll('.sort-pill').forEach(pillEl=>{
+      pillEl.addEventListener('click', ()=>{
+        const key = pillEl.dataset.sort;
+        if(sortBy === key){
+          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+          sortBy = key;
+          sortDir = key === 'name' ? 'asc' : 'desc';
+        }
+        renderSortRow();
+        renderMemberList();
+      });
+    });
+  }
+
+  function renderAddForm(){
+    if(!showAddForm) return '';
+    return `
+      <div class="edit-card" id="addMemberForm">
+        <div class="edit-row">
+          <input type="text" class="edit-input" id="addName" placeholder="Member name">
+          <select class="edit-input" id="addClass">${classOptionsHtml('Hunter')}</select>
+        </div>
+        <div class="edit-row">
+          <input type="number" class="edit-input" id="addGr" placeholder="Gear Rating" min="0">
+        </div>
+        <div class="edit-actions">
+          <button class="btn primary small" id="addSaveBtn">Add to roster</button>
+          <button class="btn small" id="addCancelBtn">Cancel</button>
+        </div>
+      </div>`;
+  }
+
+  function renderMemberList(){
+    const assigned = assignedNamesSet();
+    let list = MEMBERS.filter(m=>{
+      const status = computeStatus(m.name);
+      if(statusFilter !== 'All' && status !== statusFilter) return false;
+      if(classFilter !== 'All' && m.cls !== classFilter) return false;
+      if(searchTerm && !m.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+      return true;
+    }).sort((a,b)=>{
+      let cmp;
+      if(sortBy === 'name'){
+        cmp = a.name.localeCompare(b.name, undefined, {sensitivity:'base'});
+      } else {
+        cmp = a.gr - b.gr;
+      }
+      return sortDir === 'asc' ? cmp : -cmp;
+    });
+
+    const wrap = document.getElementById('memberList');
+    const addFormHtml = renderAddForm();
+
+    if(list.length === 0){
+      wrap.innerHTML = addFormHtml + `<div class="empty-note">No members match this filter.</div>`;
+    } else {
+      wrap.innerHTML = addFormHtml + list.map(m=>{
+        const isAssigned = assigned.has(m.name);
+        const status = computeStatus(m.name);
+        const isSelected = selectedMember === m.name;
+        const isEditing = editingMember === m.name;
+        const assignedToKey = isAssigned ? findAssignedTeam(m.name) : null;
+        const assignedLabel = assignedToKey
+          ? (currentEvent === 'polarity_zone' ? `Elite ${teamLabel(assignedToKey)}` : `${teamKind(assignedToKey)==='main-bf'?'Main':'Sub'} ${teamLabel(assignedToKey)}`)
+          : '';
+
+        if(isEditing){
+          return `
+            <div class="edit-card" data-editing="${escapeAttr(m.name)}">
+              <div class="edit-row">
+                <input type="text" class="edit-input" id="editName" value="${escapeAttr(m.name)}" placeholder="Name">
+                <select class="edit-input" id="editClass">${classOptionsHtml(m.cls)}</select>
+              </div>
+              <div class="edit-row">
+                <input type="number" class="edit-input" id="editGr" value="${m.gr||0}" min="0" placeholder="Gear Rating">
+              </div>
+              <div class="edit-actions">
+                <button class="btn primary small" id="editSaveBtn" data-old="${escapeAttr(m.name)}">Save</button>
+                <button class="btn small" id="editCancelBtn">Cancel</button>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div class="member-card ${isAssigned?'assigned':''} ${isSelected?'selected':''}"
+               draggable="${!isAssigned && isAdmin}" data-name="${escapeAttr(m.name)}">
+            <div class="class-dot" style="background:${classColor(m.cls)}; color:${classColor(m.cls)};"></div>
+            <div class="m-info">
+              <div class="m-name">${escapeHtml(m.name)}</div>
+              <div class="m-sub">
+                <span>${escapeHtml(m.cls)}</span>
+                ${isAssigned ? `<span class="assigned-flag">→ ${assignedLabel}</span>` : ''}
+              </div>
+            </div>
+            <span class="status-tag ${status}">${status}</span>
+            <span class="m-gr">${m.gr ? m.gr.toLocaleString() : '—'}</span>
+            <div class="card-tools">
+              <button class="icon-btn edit-btn" data-name="${escapeAttr(m.name)}" title="Edit">✎</button>
+              <button class="icon-btn del-btn" data-name="${escapeAttr(m.name)}" title="Remove from roster">🗑</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    if(showAddForm){
+      const saveBtn = document.getElementById('addSaveBtn');
+      const cancelBtn = document.getElementById('addCancelBtn');
+      if(saveBtn) saveBtn.addEventListener('click', ()=>{
+        const ok = addMember(
+          document.getElementById('addName').value,
+          document.getElementById('addClass').value,
+          document.getElementById('addGr').value
+        );
+        if(ok){ showAddForm = false; renderAll(); }
+      });
+      if(cancelBtn) cancelBtn.addEventListener('click', ()=>{ showAddForm = false; renderMemberList(); });
+    }
+
+    const editSave = document.getElementById('editSaveBtn');
+    if(editSave){
+      editSave.addEventListener('click', ()=>{
+        const oldName = editSave.dataset.old;
+        const ok = updateMember(
+          oldName,
+          document.getElementById('editName').value,
+          document.getElementById('editClass').value,
+          document.getElementById('editGr').value
+        );
+        if(ok){ editingMember = null; renderAll(); }
+      });
+      const editCancel = document.getElementById('editCancelBtn');
+      if(editCancel) editCancel.addEventListener('click', ()=>{ editingMember = null; renderMemberList(); });
+    }
+
+    wrap.querySelectorAll('.edit-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        editingMember = btn.dataset.name;
+        selectedMember = null;
+        renderMemberList();
+      });
+    });
+    wrap.querySelectorAll('.del-btn').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        deleteMember(btn.dataset.name);
+      });
+    });
+
+    wrap.querySelectorAll('.member-card').forEach(card=>{
+      const name = card.dataset.name;
+      const isAssigned = assignedNamesSet().has(name);
+      if(!isAssigned && isAdmin){
+        card.addEventListener('dragstart', (e)=>{
+          dragMemberName = name;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', name);
+        });
+        card.addEventListener('dragend', ()=>{ card.classList.remove('dragging'); dragMemberName = null; });
+      }
+      card.addEventListener('click', (e)=>{
+        if(e.target.closest('.card-tools')) return;
+        if(isAssigned) return;
+        if(!isAdmin){ requireAdmin(); return; }
+        selectedMember = (selectedMember === name) ? null : name;
+        renderMemberList();
+      });
+    });
+  }
+
+  function findAssignedTeam(name){
+    for(const key of currentTeamKeys()){
+      if(assignments[key].includes(name)) return key;
+    }
+    return null;
+  }
+
+  function teamCard(teamKey){
+    const arr = assignments[teamKey];
+    const kind = teamKind(teamKey);
+    const filledCount = arr.filter(x=>x).length;
+    const dotClass = filledCount === SLOTS_PER_TEAM ? 'full' : (filledCount>0 ? 'partial' : 'empty');
+    let slotsHtml = '';
+    for(let i=0;i<SLOTS_PER_TEAM;i++){
+      const name = arr[i];
+      const isLeader = i===0;
+      if(name){
+        const m = memberByName[name];
+        const cls = m ? m.cls : 'Unknown';
+        slotsHtml += `
+          <div class="slot filled ${isLeader?'leader':''}" data-team="${teamKey}" data-slot="${i}">
+            ${isLeader ? `<svg class="leader-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>` : `<div class="class-dot" style="background:${classColor(cls)};color:${classColor(cls)}"></div>`}
+            <div class="slot-info">
+              <span class="slot-name">${escapeHtml(name)}</span>
+              <span class="slot-class" style="color:${classColor(cls)}">${escapeHtml(cls)}</span>
+            </div>
+            <span class="slot-gr">${m && m.gr ? m.gr.toLocaleString() : ''}</span>
+            <button class="slot-remove" data-team="${teamKey}" data-slot="${i}" title="Remove">✕</button>
+          </div>`;
+      } else {
+        slotsHtml += `
+          <div class="slot ${isLeader?'leader':''}" data-team="${teamKey}" data-slot="${i}">
+            ${isLeader ? `<svg class="leader-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>` : ''}
+            <span class="slot-empty-label">${isLeader?'Team Leader — drop here':'Empty slot'}</span>
+          </div>`;
+      }
+    }
+    return `
+      <div class="team-card ${kind}">
+        <div class="team-head">
+          <div class="team-name">${teamLabel(teamKey)}</div>
+          <div class="team-meta"><div class="team-fill-dot ${dotClass}"></div>${filledCount}/${SLOTS_PER_TEAM}</div>
+        </div>
+        ${slotsHtml}
+      </div>`;
+  }
+
+  function renderTeams(){
+    const wrap = document.getElementById('teamsWrap');
+    if(currentEvent === 'polarity_zone'){
+      wrap.innerHTML = `
+        <div class="section-head">
+          <div class="section-title elite-bf">⚡ Elite Battlefield</div>
+          <div class="section-line"></div>
+          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+        </div>
+        <div class="team-grid">${ELITE_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+      `;
+    } else {
+      wrap.innerHTML = `
+        <div class="section-head">
+          <div class="section-title main-bf">⚔ Main Battlefield</div>
+          <div class="section-line"></div>
+          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+        </div>
+        <div class="team-grid">${MAIN_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+
+        <div class="section-head">
+          <div class="section-title sub-bf">◈ Sub Battlefield</div>
+          <div class="section-line"></div>
+          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+        </div>
+        <div class="team-grid">${SUB_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+      `;
+    }
+
+    wrap.querySelectorAll('.slot').forEach(slotEl=>{
+      const teamKey = slotEl.dataset.team;
+      const slotIdx = parseInt(slotEl.dataset.slot);
+
+      slotEl.addEventListener('dragover', (e)=>{ if(!isAdmin) return; e.preventDefault(); slotEl.classList.add('dragover'); });
+      slotEl.addEventListener('dragleave', ()=>{ slotEl.classList.remove('dragover'); });
+      slotEl.addEventListener('drop', (e)=>{
+        e.preventDefault();
+        slotEl.classList.remove('dragover');
+        if(!isAdmin) return;
+        const name = e.dataTransfer.getData('text/plain') || dragMemberName;
+        if(name){
+          placeMember(name, teamKey, slotIdx);
+          selectedMember = null;
+          renderAll();
+        }
+      });
+      slotEl.addEventListener('click', (e)=>{
+        if(e.target.classList.contains('slot-remove')) return;
+        if(!isAdmin) return;
+        if(selectedMember){
+          placeMember(selectedMember, teamKey, slotIdx);
+          selectedMember = null;
+          renderAll();
+        }
+      });
+    });
+
+    wrap.querySelectorAll('.slot-remove').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        removeFromSlot(btn.dataset.team, parseInt(btn.dataset.slot));
+        renderAll();
+      });
+    });
+  }
+
+  function renderClassBreakdown(){
+    const el = document.getElementById('classBreakdown');
+    if(!el) return;
+    const counts = {};
+    MEMBERS.forEach(m=>{ const c = m.cls || 'Unknown'; counts[c] = (counts[c]||0) + 1; });
+    const rows = Object.keys(counts).sort((a,b)=> counts[b]-counts[a] || a.localeCompare(b));
+    if(rows.length === 0){
+      el.innerHTML = `<div class="cb-head"><span>Members by Class</span></div><div class="empty-note" style="padding:6px 0;">No members yet.</div>`;
+      return;
+    }
+    el.innerHTML = `<div class="cb-head"><span>Members by Class</span><span>${MEMBERS.length} total</span></div>` +
+      rows.map(c => `
+        <div class="cb-row">
+          <span class="class-dot" style="background:${classColor(c)}; color:${classColor(c)};"></span>
+          <span class="cb-name">${escapeHtml(c)}</span>
+          <span class="cb-count">${counts[c]}</span>
+        </div>`).join('');
+  }
+
+  function renderAll(){
+    renderEventTabs();
+    renderStats();
+    renderFilters();
+    renderSortRow();
+    renderMemberList();
+    renderClassBreakdown();
+    renderTeams();
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  document.getElementById('searchInput').addEventListener('input', (e)=>{
+    searchTerm = e.target.value;
+    renderMemberList();
+  });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; clearAll(); });
+  document.getElementById('autoFillBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; autoFill(); });
+  document.getElementById('exportBtn').addEventListener('click', exportLineup);
+  document.getElementById('importBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; triggerImportPicker(); });
+  document.getElementById('importFileInput').addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    handleImportFile(file);
+    e.target.value = ''; // allow importing the same filename again later
+  });
+  document.getElementById('importExcelBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; triggerExcelImportPicker(); });
+  document.getElementById('importExcelFileInput').addEventListener('change', (e)=>{
+    const file = e.target.files && e.target.files[0];
+    handleExcelImportFile(file);
+    e.target.value = ''; // allow importing the same filename again later
+  });
+  document.getElementById('importExportHelpBtn').addEventListener('click', openImportExportGuide);
+  document.getElementById('guideCloseBtn').addEventListener('click', closeImportExportGuide);
+  document.getElementById('guideCloseBtn2').addEventListener('click', closeImportExportGuide);
+  document.getElementById('guideOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'guideOverlay') closeImportExportGuide();
+  });
+  document.getElementById('addMemberBtn').addEventListener('click', ()=>{
+    if(!requireAdmin()) return;
+    showAddForm = !showAddForm;
+    editingMember = null;
+    renderMemberList();
+    if(showAddForm){ const el = document.getElementById('addName'); if(el) el.focus(); }
+  });
+
+  // ---------- Admin login wiring ----------
+  document.getElementById('adminLoginBtn').addEventListener('click', ()=>{
+    if(isAdmin){ logoutAdmin(); } else { openLoginModal(); }
+  });
+  document.getElementById('loginCloseBtn').addEventListener('click', closeLoginModal);
+  document.getElementById('loginCancelBtn').addEventListener('click', closeLoginModal);
+  document.getElementById('loginSubmitBtn').addEventListener('click', attemptLogin);
+  document.getElementById('loginOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'loginOverlay') closeLoginModal();
+  });
+  document.getElementById('loginPasswordInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') attemptLogin();
+  });
+  document.getElementById('loginEmailInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') attemptLogin();
+  });
+  applyAdminUI();
+  document.querySelectorAll('#eventTabs .event-tab').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(btn.dataset.event === currentEvent) return;
+      currentEvent = btn.dataset.event;
+      selectedMember = null;
+      editingMember = null;
+      renderAll();
+      if(isAdmin) saveState();
+    });
+  });
+
+  loadState();
+  maybeAutoShowGuide();
+})();
 </script>
-
 </body>
 </html>
