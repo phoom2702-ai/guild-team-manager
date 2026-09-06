@@ -481,7 +481,7 @@
         <button class="btn" id="adminLoginBtn" title="Log in as admin to edit">🔒 Admin Login</button>
         <span class="save-flag" id="saveFlag"><span class="dot"></span><span id="saveFlagText">Idle</span></span>
         <button class="btn" id="autoFillBtn" title="Fill empty slots with top-GR unassigned members">⚡ Auto-fill</button>
-        <button class="btn" id="exportImageBtn" title="Download the current lineup view as an image (PNG)">🖼 Export Image</button>
+        <button class="btn" id="exportImageBtn" title="Download the lineup as images — one image per battlefield/ชุด section">🖼 Export Image</button>
         <button class="btn" id="importExcelBtn" title="Bulk add/update members from a guild members Excel (.xlsx) file">📊 Import Excel</button>
         <input type="file" id="importExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
         <button class="btn danger" id="clearBtn">Clear all</button>
@@ -863,7 +863,38 @@
   }
 
   // ---------- Export: save the current lineup view as a PNG image ----------
-  function exportLineupAsImage(){
+  function captureElementAsPng(el, bgColor){
+    return html2canvas(el, {
+      backgroundColor: bgColor,
+      scale: Math.min(2, window.devicePixelRatio || 1.5),
+      useCORS: true
+    }).then(canvas => new Promise((resolve, reject) => {
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png');
+    }));
+  }
+
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  const SECTION_LABELS = {
+    main_battlefield: 'Main Battlefield',
+    sub_battlefield: 'Sub Battlefield',
+    elite_battlefield: 'Elite Battlefield',
+    castle_set_1: 'ชุด 1',
+    castle_set_2: 'ชุด 2',
+    castle_set_3: 'ชุด 3',
+    castle_set_4: 'ชุด 4'
+  };
+
+  async function exportLineupAsImage(){
     if(typeof html2canvas === 'undefined'){
       showToast('Export failed', 'The image export library did not load — check your internet connection and try again.', 'err');
       return;
@@ -876,39 +907,38 @@
 
     const btn = document.getElementById('exportImageBtn');
     const originalLabel = btn ? btn.textContent : null;
-    if(btn){ btn.disabled = true; btn.textContent = '⏳ Rendering…'; }
+    if(btn) btn.disabled = true;
 
-    // Use the page background so the exported PNG isn't transparent.
     const bgColor = getComputedStyle(document.body).backgroundColor || '#0c0f1a';
+    const dateStr = new Date().toISOString().slice(0,10);
+    const eventSlug = currentEvent || 'lineup';
+    const sectionBlocks = target.querySelectorAll('.section-block');
 
-    html2canvas(target, {
-      backgroundColor: bgColor,
-      scale: Math.min(2, window.devicePixelRatio || 1.5),
-      useCORS: true
-    }).then(canvas => {
-      canvas.toBlob(blob => {
-        if(!blob){
-          showToast('Export failed', 'Could not generate the image — please try again.', 'err');
-          return;
+    try{
+      if(sectionBlocks.length > 1){
+        // Export each battlefield/set section as its own separate image.
+        for(let i=0;i<sectionBlocks.length;i++){
+          const sectionKey = sectionBlocks[i].dataset.section || `part${i+1}`;
+          const label = SECTION_LABELS[sectionKey] || sectionKey;
+          if(btn) btn.textContent = `⏳ Rendering ${label} (${i+1}/${sectionBlocks.length})…`;
+          const blob = await captureElementAsPng(sectionBlocks[i], bgColor);
+          downloadBlob(blob, `guild-lineup-${eventSlug}-${sectionKey}-${dateStr}.png`);
+          // Small pause between downloads so the browser doesn't block them as a batch.
+          await new Promise(r => setTimeout(r, 250));
         }
-        const url = URL.createObjectURL(blob);
-        const dateStr = new Date().toISOString().slice(0,10);
-        const eventSlug = currentEvent || 'lineup';
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `guild-lineup-${eventSlug}-${dateStr}.png`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
+        showToast('Image exported', `Downloaded ${sectionBlocks.length} images, one per section.`);
+      } else {
+        if(btn) btn.textContent = '⏳ Rendering…';
+        const blob = await captureElementAsPng(target, bgColor);
+        downloadBlob(blob, `guild-lineup-${eventSlug}-${dateStr}.png`);
         showToast('Image exported', 'Lineup image downloaded — ready to share.');
-      }, 'image/png');
-    }).catch(err => {
+      }
+    }catch(err){
       console.error(err);
       showToast('Export failed', 'Something went wrong while capturing the image.', 'err');
-    }).finally(() => {
+    }finally{
       if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
-    });
+    }
   }
 
   // ---------- Bulk import from the guild's Excel member sheet ----------
@@ -1448,39 +1478,47 @@
       for(let s=1; s<=GC_SETS; s++){
         const setKeys = GC_TEAM_KEYS.filter(k => k.startsWith(`gc_${s}_`));
         html += `
-        <div class="section-head">
-          <div class="section-title castle-bf castle-set-${s}">🏰 Guild Castle — ชุด ${s}</div>
-          <div class="section-line"></div>
-          <div class="section-note">Teams 1–${GC_TEAMS_PER_SET}</div>
+        <div class="gc-set-block section-block" data-set="${s}" data-section="castle_set_${s}">
+          <div class="section-head">
+            <div class="section-title castle-bf castle-set-${s}">🏰 Guild Castle — ชุด ${s}</div>
+            <div class="section-line"></div>
+            <div class="section-note">Teams 1–${GC_TEAMS_PER_SET}</div>
+          </div>
+          <div class="team-grid">${setKeys.map(k=>teamCard(k)).join('')}</div>
         </div>
-        <div class="team-grid">${setKeys.map(k=>teamCard(k)).join('')}</div>
         `;
       }
       wrap.innerHTML = html;
     } else if(currentEvent === 'polarity_zone'){
       wrap.innerHTML = `
-        <div class="section-head">
-          <div class="section-title elite-bf">⚡ Elite Battlefield</div>
-          <div class="section-line"></div>
-          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+        <div class="section-block" data-section="elite_battlefield">
+          <div class="section-head">
+            <div class="section-title elite-bf">⚡ Elite Battlefield</div>
+            <div class="section-line"></div>
+            <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+          </div>
+          <div class="team-grid">${ELITE_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
         </div>
-        <div class="team-grid">${ELITE_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
       `;
     } else {
       wrap.innerHTML = `
-        <div class="section-head">
-          <div class="section-title main-bf">⚔ Main Battlefield</div>
-          <div class="section-line"></div>
-          <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+        <div class="section-block" data-section="main_battlefield">
+          <div class="section-head">
+            <div class="section-title main-bf">⚔ Main Battlefield</div>
+            <div class="section-line"></div>
+            <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+          </div>
+          <div class="team-grid">${MAIN_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
         </div>
-        <div class="team-grid">${MAIN_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
 
-        <div class="section-head">
-          <div class="section-title sub-bf">◈ Sub Battlefield</div>
-          <div class="section-line"></div>
-          <div class="section-note">Teams 1–${SUB_TEAMS_PER_SIDE}</div>
+        <div class="section-block" data-section="sub_battlefield">
+          <div class="section-head">
+            <div class="section-title sub-bf">◈ Sub Battlefield</div>
+            <div class="section-line"></div>
+            <div class="section-note">Teams 1–${SUB_TEAMS_PER_SIDE}</div>
+          </div>
+          <div class="team-grid">${SUB_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
         </div>
-        <div class="team-grid">${SUB_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
       `;
     }
 
