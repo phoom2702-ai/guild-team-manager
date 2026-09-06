@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
     --bg: #0c0f1a;
@@ -178,7 +179,6 @@
 
   /* Viewer (non-admin) mode: hide every editing control */
   .app.viewer-mode #autoFillBtn,
-  .app.viewer-mode #importBtn,
   .app.viewer-mode #importExcelBtn,
   .app.viewer-mode #clearBtn,
   .app.viewer-mode #addMemberBtn,
@@ -481,10 +481,8 @@
         <button class="btn" id="adminLoginBtn" title="Log in as admin to edit">🔒 Admin Login</button>
         <span class="save-flag" id="saveFlag"><span class="dot"></span><span id="saveFlagText">Idle</span></span>
         <button class="btn" id="autoFillBtn" title="Fill empty slots with top-GR unassigned members">⚡ Auto-fill</button>
-        <button class="btn" id="exportBtn" title="Download the current roster and lineup as a file">⬇ Export</button>
-        <button class="btn" id="importBtn" title="Load a roster and lineup from a file">⬆ Import</button>
+        <button class="btn" id="exportImageBtn" title="Download the current lineup view as an image (PNG)">🖼 Export Image</button>
         <button class="btn" id="importExcelBtn" title="Bulk add/update members from a guild members Excel (.xlsx) file">📊 Import Excel</button>
-        <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
         <input type="file" id="importExcelFileInput" accept=".xlsx,.xls,.csv" style="display:none">
         <button class="btn danger" id="clearBtn">Clear all</button>
       </div>
@@ -864,83 +862,53 @@
     });
   }
 
-  // ---------- Export / Import: share the roster + lineup as a downloadable file ----------
-  function exportLineup(){
-    const payload = {
-      type: 'tempest-lineup-export',
-      version: 2,
-      exportedAt: new Date().toISOString(),
-      m: MEMBERS,
-      a: assignments
-    };
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
+  // ---------- Export: save the current lineup view as a PNG image ----------
+  function exportLineupAsImage(){
+    if(typeof html2canvas === 'undefined'){
+      showToast('Export failed', 'The image export library did not load — check your internet connection and try again.', 'err');
+      return;
+    }
+    const target = document.getElementById('mainContent');
+    if(!target){
+      showToast('Export failed', 'Could not find the lineup view to capture.', 'err');
+      return;
+    }
 
-    const dateStr = new Date().toISOString().slice(0,10);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `guild-lineup-${dateStr}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    const btn = document.getElementById('exportImageBtn');
+    const originalLabel = btn ? btn.textContent : null;
+    if(btn){ btn.disabled = true; btn.textContent = '⏳ Rendering…'; }
 
-    showToast('Lineup exported', 'Send the downloaded file to your co-leader (e.g. as a Discord attachment).');
-  }
+    // Use the page background so the exported PNG isn't transparent.
+    const bgColor = getComputedStyle(document.body).backgroundColor || '#0c0f1a';
 
-  function triggerImportPicker(){
-    document.getElementById('importFileInput').click();
-  }
-
-  function handleImportFile(file){
-    if(!requireAdmin()) return;
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      let data;
-      try{
-        data = JSON.parse(reader.result);
-      }catch(e){
-        showToast('Import failed', 'That file isn\'t valid — make sure you selected an exported lineup .json file.', 'err');
-        return;
-      }
-
-      if(!data || (!Array.isArray(data.m) && !data.a)){
-        showToast('Import failed', 'This file doesn\'t look like a lineup export.', 'err');
-        return;
-      }
-
-      const exportedWhen = data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'ไม่ทราบเวลา';
-      const proceed = await appConfirm(
-        `นำเข้าไลน์อัพที่ส่งออกไว้เมื่อ ${exportedWhen} ใช่หรือไม่?\n\n` +
-        'การดำเนินการนี้จะแทนที่รายชื่อสมาชิกและการจัดทีมปัจจุบันในเบราว์เซอร์นี้ทั้งหมด\n\n' +
-        'ต้องการดำเนินการต่อหรือไม่?',
-        { title: 'ยืนยันการนำเข้าไลน์อัพ' }
-      );
-      if(!proceed) return;
-
-      if(Array.isArray(data.m)) MEMBERS = data.m;
-      rebuildIndex();
-
-      ALL_TEAM_KEYS.forEach(k => assignments[k] = new Array(SLOTS_PER_TEAM).fill(null));
-      if(data.a){
-        ALL_TEAM_KEYS.forEach(k=>{
-          if(Array.isArray(data.a[k])){
-            assignments[k] = data.a[k].slice(0,SLOTS_PER_TEAM);
-            while(assignments[k].length < SLOTS_PER_TEAM) assignments[k].push(null);
-          }
-        });
-      }
-
-      persist();
-      renderAll();
-      showToast('Lineup imported', 'This browser now has the roster and assignments from the file.');
-    };
-    reader.onerror = () => {
-      showToast('Import failed', 'Could not read that file — please try again.', 'err');
-    };
-    reader.readAsText(file);
+    html2canvas(target, {
+      backgroundColor: bgColor,
+      scale: Math.min(2, window.devicePixelRatio || 1.5),
+      useCORS: true
+    }).then(canvas => {
+      canvas.toBlob(blob => {
+        if(!blob){
+          showToast('Export failed', 'Could not generate the image — please try again.', 'err');
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const dateStr = new Date().toISOString().slice(0,10);
+        const eventSlug = currentEvent || 'lineup';
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `guild-lineup-${eventSlug}-${dateStr}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Image exported', 'Lineup image downloaded — ready to share.');
+      }, 'image/png');
+    }).catch(err => {
+      console.error(err);
+      showToast('Export failed', 'Something went wrong while capturing the image.', 'err');
+    }).finally(() => {
+      if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+    });
   }
 
   // ---------- Bulk import from the guild's Excel member sheet ----------
@@ -1593,13 +1561,7 @@
   });
   document.getElementById('clearBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; clearAll(); });
   document.getElementById('autoFillBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; autoFill(); });
-  document.getElementById('exportBtn').addEventListener('click', exportLineup);
-  document.getElementById('importBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; triggerImportPicker(); });
-  document.getElementById('importFileInput').addEventListener('change', (e)=>{
-    const file = e.target.files && e.target.files[0];
-    handleImportFile(file);
-    e.target.value = ''; // allow importing the same filename again later
-  });
+  document.getElementById('exportImageBtn').addEventListener('click', exportLineupAsImage);
   document.getElementById('importExcelBtn').addEventListener('click', ()=>{ if(!requireAdmin()) return; triggerExcelImportPicker(); });
   document.getElementById('importExcelFileInput').addEventListener('change', (e)=>{
     const file = e.target.files && e.target.files[0];
