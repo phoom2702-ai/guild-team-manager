@@ -773,6 +773,29 @@
     });
   }
 
+  // ---------- Discord notifications ----------
+  // NOTE: this URL is visible to anyone who views this page's source. If it ever
+  // leaks or gets spammed, delete this webhook in Discord (Server Settings ->
+  // Integrations -> Webhooks) and paste a fresh URL in here.
+  const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1546477786389155850/InntcBrOsPpgY1oE3xyoJGKcuIRH-k4FvX55isuORm1kdzEnq1ZWspV5oWB2csqd8-pp";
+
+  function notifyDiscord(description, color){
+    if(!DISCORD_WEBHOOK_URL) return;
+    const who = (auth.currentUser && auth.currentUser.email) ? auth.currentUser.email : 'Admin';
+    fetch(DISCORD_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          description: description,
+          color: color || 0x5865F2,
+          footer: { text: `by ${who}` },
+          timestamp: new Date().toISOString()
+        }]
+      })
+    }).catch(err => console.error('Discord notify failed', err));
+  }
+
   // ---------- Toast notifications ----------
   function showToast(title, msg, kind){
     const stack = document.getElementById('toastStack');
@@ -1064,6 +1087,9 @@
       if(removed) parts.push(`${removed} removed`);
       if(skipped) parts.push(`${skipped} skipped (no name)`);
       showToast('Excel import complete', parts.length ? parts.join(', ') : 'No members found in that file.', added || updated || removed ? undefined : 'warn');
+      if(added || updated || removed){
+        notifyDiscord(`📊 **นำเข้ารายชื่อจาก Excel:** ${added} เพิ่ม, ${updated} แก้ไข, ${removed} ลบ`, 0x5865F2);
+      }
     };
     reader.onerror = () => {
       showToast('Import failed', 'Could not read that file — please try again.', 'err');
@@ -1138,6 +1164,7 @@
     MEMBERS.push({name, cls: cls || 'Unknown', gr: parseInt(gr) || 0});
     rebuildIndex();
     saveRoster();
+    notifyDiscord(`➕ **เพิ่มสมาชิกใหม่:** ${name} (${cls || 'Unknown'}, GR ${parseInt(gr) || 0})`, 0x57F287);
     return true;
   }
 
@@ -1164,6 +1191,8 @@
     rebuildIndex();
     saveRoster();
     saveState();
+    const label = newName !== oldName ? `${oldName} → ${newName}` : newName;
+    notifyDiscord(`✏️ **แก้ไขสมาชิก:** ${label} (${cls || 'Unknown'}, GR ${parseInt(gr) || 0})`, 0xFEE75C);
     return true;
   }
 
@@ -1183,6 +1212,7 @@
     rebuildIndex();
     saveState();
     saveRoster();
+    notifyDiscord(`➖ **ลบสมาชิก:** ${name}`, 0xED4245);
     if(selectedMember === name) selectedMember = null;
     if(editingMember === name) editingMember = null;
     renderAll();
