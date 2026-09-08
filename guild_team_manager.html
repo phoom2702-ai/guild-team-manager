@@ -352,6 +352,67 @@
   .team-card.castle-set-2{ border-left:3px solid #f0a022; }
   .team-card.castle-set-3{ border-left:3px solid #8b7cf6; }
   .team-card.castle-set-4{ border-left:3px solid #3fd6c4; }
+
+  /* ---------- Main Battlefield: 3สนามหลัก ---------- */
+  .main-group{
+    border:1px solid var(--line-soft);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:18px;
+    background:#0f1422aa;
+  }
+  .main-group.main-upper{ border-color:#5b8def88; box-shadow:0 0 0 1px #5b8def22 inset; }
+  .main-group.main-middle{ border-color:#f0b42988; box-shadow:0 0 0 1px #f0b42922 inset; }
+  .main-group.main-lower{ border-color:#ef5a6f88; box-shadow:0 0 0 1px #ef5a6f22 inset; }
+
+  .main-group-head{
+    display:flex; align-items:center; gap:10px; margin:0 0 12px;
+  }
+  .main-group-title{
+    font-family:'Cinzel', serif; font-weight:700; font-size:14px;
+    letter-spacing:1px;
+  }
+  .main-group.main-upper .main-group-title{ color:#7fa8ff; }
+  .main-group.main-middle .main-group-title{ color:#ffd166; }
+  .main-group.main-lower .main-group-title{ color:#ff8798; }
+  .main-group-note{
+    font-size:10.5px; color:var(--muted-2); margin-left:auto;
+  }
+  .main-group .team-card.main-bf{ border-left-width:4px; }
+  .main-group.main-upper .team-card.main-bf{ border-left-color:#5b8def; }
+  .main-group.main-middle .team-card.main-bf{ border-left-color:#f0b429; }
+  .main-group.main-lower .team-card.main-bf{ border-left-color:#ef5a6f; }
+
+  /* ---------- Sub Battlefield: 3สนามรอง x 6ทีม ---------- */
+  .sub-group{
+    border:1px solid var(--line-soft);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:18px;
+    background:#0f1422aa;
+  }
+  .sub-group.sub-upper{ border-color:#5b8def88; box-shadow:0 0 0 1px #5b8def22 inset; }
+  .sub-group.sub-middle{ border-color:#f0b42988; box-shadow:0 0 0 1px #f0b42922 inset; }
+  .sub-group.sub-lower{ border-color:#ef5a6f88; box-shadow:0 0 0 1px #ef5a6f22 inset; }
+
+  .sub-group-head{
+    display:flex; align-items:center; gap:10px; margin:0 0 12px;
+  }
+  .sub-group-title{
+    font-family:'Cinzel', serif; font-weight:700; font-size:14px;
+    letter-spacing:1px;
+  }
+  .sub-group.sub-upper .sub-group-title{ color:#7fa8ff; }
+  .sub-group.sub-middle .sub-group-title{ color:#ffd166; }
+  .sub-group.sub-lower .sub-group-title{ color:#ff8798; }
+  .sub-group-note{
+    font-size:10.5px; color:var(--muted-2); margin-left:auto;
+  }
+  .sub-group .team-card.sub-bf{ border-left-width:4px; }
+  .sub-group.sub-upper .team-card.sub-bf{ border-left-color:#5b8def; }
+  .sub-group.sub-middle .team-card.sub-bf{ border-left-color:#f0b429; }
+  .sub-group.sub-lower .team-card.sub-bf{ border-left-color:#ef5a6f; }
+
   .team-head{ display:flex; align-items:center; justify-content:space-between; }
   .team-name{ font-size:13px; font-weight:700; letter-spacing:.3px; }
   .team-meta{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); display:flex; gap:6px; align-items:center;}
@@ -1536,18 +1597,70 @@
           <div class="section-head">
             <div class="section-title main-bf">⚔ Main Battlefield</div>
             <div class="section-line"></div>
-            <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
+            <div class="section-note">12 Teams · 3 สนามหลัก</div>
           </div>
-          <div class="team-grid">${MAIN_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+
+          <div class="main-group main-upper">
+            <div class="main-group-head">
+              <div class="main-group-title">🔵 สนามหลักบน</div>
+              <div class="section-line"></div>
+              <div class="main-group-note">ทีม 1–6</div>
+            </div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(0,6).map(k=>teamCard(k)).join('')}</div>
+          </div>
+
+          <div class="main-group main-middle">
+            <div class="main-group-head">
+              <div class="main-group-title">🟡 สนามหลักกลาง</div>
+              <div class="section-line"></div>
+              <div class="main-group-note">ทีม 7–9</div>
+            </div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(6,9).map(k=>teamCard(k)).join('')}</div>
+          </div>
+
+          <div class="main-group main-lower">
+            <div class="main-group-head">
+              <div class="main-group-title">🔴 สนามหลักล่าง</div>
+              <div class="section-line"></div>
+              <div class="main-group-note">ทีม 10–12</div>
+            </div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(9,12).map(k=>teamCard(k)).join('')}</div>
+          </div>
         </div>
 
         <div class="section-block" data-section="sub_battlefield">
           <div class="section-head">
             <div class="section-title sub-bf">◈ Sub Battlefield</div>
             <div class="section-line"></div>
-            <div class="section-note">Teams 1–${SUB_TEAMS_PER_SIDE}</div>
+            <div class="section-note">18 Teams · 3 สนามรอง</div>
           </div>
-          <div class="team-grid">${SUB_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+
+          <div class="sub-group sub-upper">
+            <div class="sub-group-head">
+              <div class="sub-group-title">🔵 สนามรองบน</div>
+              <div class="section-line"></div>
+              <div class="sub-group-note">ทีม 1–6</div>
+            </div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(0,6).map(k=>teamCard(k)).join('')}</div>
+          </div>
+
+          <div class="sub-group sub-middle">
+            <div class="sub-group-head">
+              <div class="sub-group-title">🟡 สนามรองกลาง</div>
+              <div class="section-line"></div>
+              <div class="sub-group-note">ทีม 7–12</div>
+            </div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(6,12).map(k=>teamCard(k)).join('')}</div>
+          </div>
+
+          <div class="sub-group sub-lower">
+            <div class="sub-group-head">
+              <div class="sub-group-title">🔴 สนามรองล่าง</div>
+              <div class="section-line"></div>
+              <div class="sub-group-note">ทีม 13–18</div>
+            </div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(12,18).map(k=>teamCard(k)).join('')}</div>
+          </div>
         </div>
       `;
     }
