@@ -173,6 +173,43 @@
   }
   .guide-footer{ padding:12px 18px 16px; text-align:right; border-top:1px solid var(--line-soft); }
 
+  /* Member finder modal */
+  .finder-modal{ width:min(620px, 96vw); max-height:88vh; }
+  .finder-modal .guide-header h3{ font-size:18px; }
+  .finder-modal .guide-body{ padding:18px 20px; }
+  .finder-body{ display:flex; flex-direction:column; gap:14px; }
+  #finderSearchInput{ width:100%; font-size:15.5px; padding:11px 13px; }
+  .finder-hint{
+    font-size:15px; color:var(--muted); line-height:1.5; background:#8b7cf614; border:1px solid #8b7cf640;
+    border-radius:9px; padding:8px 11px; margin-bottom:10px;
+  }
+  .finder-results{ max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:6px; padding-right:2px; }
+  .finder-name-item{
+    padding:8px 12px; border-radius:9px; border:1px solid var(--line-soft); background:var(--panel-2);
+    cursor:pointer; font-size:13.5px; font-weight:600; transition:.12s;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .finder-name-item:hover{ border-color:var(--violet); box-shadow:0 0 0 1px var(--violet-glow); }
+  .finder-empty{ font-size:14px; color:var(--muted); text-align:center; padding:28px 0; }
+  .finder-detail{ display:flex; flex-direction:column; gap:12px; }
+  .finder-detail-back{
+    font-family:inherit; font-size:13px; color:var(--teal); cursor:pointer; background:none; border:none;
+    padding:0; text-align:left; font-weight:600;
+  }
+  .finder-detail-back:hover{ text-decoration:underline; }
+  .finder-detail-name{ font-family:'Cinzel', serif; font-weight:700; font-size:20px; color:var(--text); }
+  .finder-placement{ border:1px solid var(--line-soft); border-radius:13px; padding:14px 16px; background:#0f1422aa; display:flex; gap:20px; flex-wrap:wrap; }
+  .finder-placement-main{ flex:1 1 200px; min-width:160px; }
+  .finder-placement-title{ font-family:'Cinzel', serif; font-weight:700; font-size:20px; margin-bottom:5px; }
+  .finder-placement-sub{ font-size:19px; color:var(--text); font-weight:700; margin-bottom:13px; }
+  .finder-placement-leader{ font-size:17px; color:var(--amber); font-weight:600; margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+  .finder-placement-members{ flex:1 1 200px; min-width:160px; border-left:1px solid var(--line-soft); padding-left:18px; }
+  .finder-members-label{ font-size:13px; color:var(--muted); font-weight:600; letter-spacing:.3px; margin:0 0 6px; }
+  .finder-member-row{ display:flex; align-items:center; gap:8px; font-size:17px; padding:5px 0; color:var(--text); }
+  .finder-member-row.is-me{ color:var(--teal); font-weight:700; }
+  .finder-member-row .crown-slot{ width:16px; flex:none; text-align:center; color:var(--amber); }
+  .finder-none{ font-size:14px; color:var(--muted); padding:8px 0; }
+
   /* Admin login modal */
   #loginPasswordInput{ width:100%; margin-top:10px; }
   .login-error{ color:var(--red); font-size:12.5px; margin-top:8px; display:none; }
@@ -520,6 +557,20 @@
   </div>
 </div>
 
+<div id="finderOverlay" class="guide-overlay" style="display:none;">
+  <div class="guide-modal finder-modal" role="dialog" aria-modal="true" aria-labelledby="finderTitle">
+    <div class="guide-header">
+      <h3 id="finderTitle">🔍 ค้นหารายชื่อของคุณ</h3>
+      <button class="icon-btn" id="finderCloseBtn" title="Close">✕</button>
+    </div>
+    <div class="guide-body finder-body">
+      <div class="finder-hint">💡 พิมพ์ชื่อของคุณ แล้วแตะที่ชื่อในรายการ ระบบจะบอกว่าคุณอยู่ทีมไหน ใครเป็นผู้นำของทีมคุณ และเพื่อนร่วมทีมมีใครบ้าง</div>
+      <input type="text" id="finderSearchInput" class="edit-input" placeholder="พิมพ์ชื่อของคุณ..." autocomplete="off">
+      <div id="finderResults" class="finder-results"></div>
+    </div>
+  </div>
+</div>
+
 <div class="app" id="app">
 
   <div style="width:100%;">
@@ -540,6 +591,7 @@
       <div class="actions">
         <span class="admin-badge" id="adminBadge">🔓 Admin</span>
         <span class="viewer-badge" id="viewerBadge">👁 View only</span>
+        <button class="btn" id="findMeBtn" title="ค้นหารายชื่อของคุณในทีม">🔍 หาชื่อฉัน</button>
         <button class="btn" id="adminLoginBtn" title="Log in as admin to edit">🔒 Admin Login</button>
         <span class="save-flag" id="saveFlag"><span class="dot"></span><span id="saveFlagText">Idle</span></span>
         <button class="btn" id="autoFillBtn" title="Fill empty slots with top-GR unassigned members">⚡ Auto-fill</button>
@@ -595,6 +647,7 @@
     Merchant:'#c98a5e', Blacksmith:'#c98a5e', Whitesmith:'#6b3f24', Alchemist:'#8fd9c4', Creator:'#3fd6c4',
     Gunslinger:'#ff9f5a', Rebel:'#ff7a3d', 'Night Watch':'#7d8bb8', 'Night Walker':'#c49a6c',
     Druid:'#3fd6c4', Kanos:'#9d6bff', Alithea:'#90d890',
+    'ผู้นำ':'#f0b429',
     Unknown:'#8b93b0'
   };
   function classColor(c){ return CLASS_COLORS[c] || '#8b93b0'; }
@@ -638,6 +691,158 @@
     if(key.startsWith('sub_')) return 'sub-bf';
     if(key.startsWith('gc_')) return 'castle-bf';
     return 'elite-bf';
+  }
+
+  // ---------- Member Finder (search popup) ----------
+  function getMainGroupInfo(idx){
+    if(idx < 6) return {label:'สนามหลักบน', emoji:'🔵'};
+    if(idx < 9) return {label:'สนามหลักกลาง', emoji:'🟡'};
+    return {label:'สนามหลักล่าง', emoji:'🔴'};
+  }
+  function getSubGroupInfo(idx){
+    if(idx < 6) return {label:'สนามรองบน', emoji:'🔵'};
+    if(idx < 12) return {label:'สนามรองกลาง', emoji:'🟡'};
+    return {label:'สนามรองล่าง', emoji:'🔴'};
+  }
+  function findMemberPlacements(name, eventFilter){
+    const results = [];
+    if(!eventFilter || eventFilter === 'guild_league'){
+      MAIN_TEAM_KEYS.forEach((k, idx)=>{
+        if(assignments[k] && assignments[k].includes(name)){
+          const g = getMainGroupInfo(idx);
+          results.push({ event:'guild_league', icon:'⚔', battlefield:'Main Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k });
+        }
+      });
+      SUB_TEAM_KEYS.forEach((k, idx)=>{
+        if(assignments[k] && assignments[k].includes(name)){
+          const g = getSubGroupInfo(idx);
+          results.push({ event:'guild_league', icon:'◈', battlefield:'Sub Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k });
+        }
+      });
+    }
+    if(!eventFilter || eventFilter === 'polarity_zone'){
+      ELITE_TEAM_KEYS.forEach((k, idx)=>{
+        if(assignments[k] && assignments[k].includes(name)){
+          results.push({ event:'polarity_zone', icon:'⚡', battlefield:'Elite Battlefield', groupLabel:null, groupEmoji:null, teamNum: idx+1, teamKey:k });
+        }
+      });
+    }
+    if(!eventFilter || eventFilter === 'guild_castle'){
+      GC_TEAM_KEYS.forEach((k)=>{
+        if(assignments[k] && assignments[k].includes(name)){
+          const parts = k.split('_');
+          results.push({ event:'guild_castle', icon:'🏰', battlefield:'Guild Castle', groupLabel:`ชุด ${parts[1]}`, groupEmoji:null, teamNum: parseInt(parts[2],10), teamKey:k });
+        }
+      });
+    }
+    return results;
+  }
+
+  let finderSelectedName = null;
+
+  function renderFinderPlacementHtml(p, myName){
+    const arr = assignments[p.teamKey] || [];
+    const leaderEntryName = arr.find(n => n && memberByName[n] && memberByName[n].cls === 'ผู้นำ');
+    const leaderStatusHtml = leaderEntryName
+      ? `<span style="color:${classColor('ผู้นำ')};font-weight:700;">${escapeHtml(leaderEntryName)}</span>`
+      : '— ยังไม่มีผู้นำ —';
+    const membersHtml = arr.map((n, i)=>{
+      const isLeader = i === 0;
+      if(!n){
+        return `<div class="finder-member-row" style="opacity:.4;"><span class="crown-slot">${isLeader?'👑':''}</span>— ว่าง —</div>`;
+      }
+      const isMe = n === myName;
+      return `<div class="finder-member-row ${isMe?'is-me':''}"><span class="crown-slot">${isLeader?'👑':''}</span>${escapeHtml(n)}${isMe?' <span style="font-size:10px;">(คุณ)</span>':''}</div>`;
+    }).join('');
+    const groupText = p.groupLabel ? `${p.groupEmoji?p.groupEmoji+' ':''}${p.groupLabel} · ` : '';
+    return `
+      <div class="finder-placement">
+        <div class="finder-placement-main">
+          <div class="finder-placement-sub">${groupText}ทีมที่ ${p.teamNum}</div>
+          <div class="finder-placement-leader">👑 ผู้นำ: ${leaderStatusHtml}</div>
+        </div>
+        <div class="finder-placement-members">
+          <div class="finder-members-label">สมาชิกทีม</div>
+          <div>${membersHtml}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderFinderDetail(name){
+    finderSelectedName = name;
+    const container = document.getElementById('finderResults');
+    if(!container) return;
+    const placements = findMemberPlacements(name, currentEvent);
+    let html = `<button class="finder-detail-back" id="finderBackBtn">← กลับไปค้นหา</button>
+      <div class="finder-detail">
+        <div class="finder-detail-name">${escapeHtml(name)}</div>`;
+    if(placements.length === 0){
+      html += `<div class="finder-none">ยังไม่ถูกจัดลงทีมในสนามนี้</div>`;
+    } else {
+      html += placements.map(p => renderFinderPlacementHtml(p, name)).join('');
+    }
+    html += `</div>`;
+    container.innerHTML = html;
+    const backBtn = document.getElementById('finderBackBtn');
+    if(backBtn) backBtn.addEventListener('click', ()=>{
+      finderSelectedName = null;
+      const input = document.getElementById('finderSearchInput');
+      if(input){ input.value = ''; input.focus(); }
+      renderFinderList('');
+    });
+  }
+
+  function renderFinderList(query){
+    const container = document.getElementById('finderResults');
+    if(!container) return;
+    const q = (query || '').trim().toLowerCase();
+    if(!q){
+      container.innerHTML = MEMBERS.length === 0
+        ? `<div class="finder-empty">กำลังโหลดรายชื่อสมาชิก…</div>`
+        : `<div class="finder-empty">พิมพ์ชื่อของคุณเพื่อค้นหา…</div>`;
+      return;
+    }
+    let names = MEMBERS.map(m => m.name);
+    names = names.filter(n => n.toLowerCase().startsWith(q));
+    names.sort((a,b) => a.localeCompare(b, 'th'));
+    if(names.length === 0){
+      container.innerHTML = MEMBERS.length === 0
+        ? `<div class="finder-empty">กำลังโหลดรายชื่อสมาชิก…</div>`
+        : `<div class="finder-empty">ไม่พบชื่อที่ตรงกัน</div>`;
+      return;
+    }
+    container.innerHTML = names.map(n => {
+      return `<div class="finder-name-item" data-name="${escapeAttr(n)}"><span>${escapeHtml(n)}</span></div>`;
+    }).join('');
+    container.querySelectorAll('.finder-name-item').forEach(el=>{
+      el.addEventListener('click', ()=> renderFinderDetail(el.dataset.name));
+    });
+  }
+
+  function openFinderModal(){
+    const overlay = document.getElementById('finderOverlay');
+    if(!overlay) return;
+    overlay.style.display = 'flex';
+    finderSelectedName = null;
+    const input = document.getElementById('finderSearchInput');
+    if(input){ input.value = ''; }
+    renderFinderList('');
+    setTimeout(()=>{ if(input) input.focus(); }, 60);
+  }
+  function closeFinderModal(){
+    const overlay = document.getElementById('finderOverlay');
+    if(overlay) overlay.style.display = 'none';
+  }
+  function refreshFinderIfOpen(){
+    const overlay = document.getElementById('finderOverlay');
+    if(!overlay || overlay.style.display !== 'flex') return;
+    if(finderSelectedName){
+      renderFinderDetail(finderSelectedName);
+    } else {
+      const input = document.getElementById('finderSearchInput');
+      renderFinderList(input ? input.value : '');
+    }
   }
 
   // state: { teamKey: [name|null, name|null, ...5] }
@@ -1703,6 +1908,7 @@
     renderMemberList();
     renderClassBreakdown();
     renderTeams();
+    refreshFinderIfOpen();
   }
 
   function escapeHtml(s){
@@ -1759,7 +1965,32 @@
     });
   });
 
+  // ---------- Member finder wiring ----------
+  document.getElementById('findMeBtn').addEventListener('click', openFinderModal);
+  document.getElementById('finderCloseBtn').addEventListener('click', closeFinderModal);
+  document.getElementById('finderOverlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'finderOverlay') closeFinderModal();
+  });
+  document.getElementById('finderSearchInput').addEventListener('input', (e)=>{
+    finderSelectedName = null;
+    renderFinderList(e.target.value);
+  });
+  document.getElementById('finderSearchInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){ closeFinderModal(); return; }
+    if(e.key === 'Enter'){
+      const q = e.target.value.trim().toLowerCase();
+      if(!q) return;
+      const exact = MEMBERS.find(m => m.name.toLowerCase() === q);
+      const partial = MEMBERS.find(m => m.name.toLowerCase().includes(q));
+      const match = exact || partial;
+      if(match) renderFinderDetail(match.name);
+    }
+  });
+
   loadState();
+
+  // Show the member finder popup right away when the site loads.
+  openFinderModal();
 })();
 </script>
 </body>
