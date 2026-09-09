@@ -769,12 +769,13 @@
       ? `<span style="color:${classColor('ผู้นำ')};font-weight:700;">${escapeHtml(leaderEntryName)}</span>`
       : '— ยังไม่มีผู้นำ —';
     const membersHtml = arr.map((n, i)=>{
-      const isLeader = i === 0;
+      const isLeaderSlot = i === 0;
       if(!n){
-        return `<div class="finder-member-row" style="opacity:.4;"><span class="crown-slot">${isLeader?'👑':''}</span>— ว่าง —</div>`;
+        return `<div class="finder-member-row" style="opacity:.4;"><span class="crown-slot">${isLeaderSlot?'👑':''}</span>— ว่าง —</div>`;
       }
       const isMe = n === myName;
-      return `<div class="finder-member-row ${isMe?'is-me':''}"><span class="crown-slot">${isLeader?'👑':''}</span>${escapeHtml(n)}${isMe?' <span style="font-size:10px;">(คุณ)</span>':''}</div>`;
+      const isActualLeader = memberByName[n] && memberByName[n].cls === 'ผู้นำ';
+      return `<div class="finder-member-row ${isMe?'is-me':''}"><span class="crown-slot">${isActualLeader?'👑':''}</span>${escapeHtml(n)}${isMe?' <span style="font-size:10px;">(คุณ)</span>':''}</div>`;
     }).join('');
     const groupText = p.groupLabel ? `${p.groupEmoji?p.groupEmoji+' ':''}${p.groupLabel} · ` : '';
     return `
@@ -1729,13 +1730,14 @@
     let slotsHtml = '';
     for(let i=0;i<SLOTS_PER_TEAM;i++){
       const name = arr[i];
-      const isLeader = i===0;
+      const isLeaderSlot = i===0;
       if(name){
         const m = memberByName[name];
         const cls = m ? m.cls : 'Unknown';
+        const isActualLeader = cls === 'ผู้นำ';
         slotsHtml += `
-          <div class="slot filled ${isLeader?'leader':''}" data-team="${teamKey}" data-slot="${i}">
-            ${isLeader ? `<svg class="leader-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>` : `<div class="class-dot" style="background:${classColor(cls)};color:${classColor(cls)}"></div>`}
+          <div class="slot filled ${isLeaderSlot?'leader':''}" data-team="${teamKey}" data-slot="${i}">
+            ${isActualLeader ? `<svg class="leader-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>` : `<div class="class-dot" style="background:${classColor(cls)};color:${classColor(cls)}"></div>`}
             <div class="slot-info">
               <span class="slot-name">${escapeHtml(name)}</span>
               <span class="slot-class" style="color:${classColor(cls)}">${escapeHtml(cls)}</span>
@@ -1745,9 +1747,8 @@
           </div>`;
       } else {
         slotsHtml += `
-          <div class="slot ${isLeader?'leader':''}" data-team="${teamKey}" data-slot="${i}">
-            ${isLeader ? `<svg class="leader-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 16L3 6l5.5 4L12 4l3.5 6L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>` : ''}
-            <span class="slot-empty-label">${isLeader?'Team Leader — drop here':'Empty slot'}</span>
+          <div class="slot ${isLeaderSlot?'leader':''}" data-team="${teamKey}" data-slot="${i}">
+            <span class="slot-empty-label">Empty slot</span>
           </div>`;
       }
     }
