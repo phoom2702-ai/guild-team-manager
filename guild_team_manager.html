@@ -165,6 +165,11 @@
     padding:16px 18px; border-bottom:1px solid var(--line-soft);
   }
   .guide-header h3{ margin:0; font-size:15px; color:var(--text); }
+  .guide-header .icon-btn{
+    width:30px; height:30px; font-size:16px; flex:none;
+    background:var(--panel-2); border:1px solid var(--line-soft); color:var(--text);
+  }
+  .guide-header .icon-btn:hover{ background:var(--red); border-color:var(--red); color:#fff; }
   .guide-body{ padding:16px 18px; font-size:13px; color:var(--muted); line-height:1.55; }
   .guide-body p{ margin:0 0 14px; }
   .guide-body code{
@@ -464,7 +469,6 @@
     border:1px dashed var(--line-soft); background:#0e1322; min-height:38px; position:relative;
     transition:.12s;
   }
-  .slot.leader{ border-style:solid; border-color:#f0b42955; background:#1c1a10; }
   .slot.filled{ border-style:solid; border-color:var(--line); background:var(--panel-2); }
   .slot.dragover{ border-color:var(--teal); box-shadow:0 0 0 2px var(--teal-glow); background:#132322; }
   .slot .leader-icon{ width:13px; height:13px; color:var(--amber); flex:none; }
