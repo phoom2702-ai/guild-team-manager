@@ -704,26 +704,42 @@
     if(idx < 12) return {label:'สนามรองกลาง', emoji:'🟡'};
     return {label:'สนามรองล่าง', emoji:'🔴'};
   }
+  // Returns all team keys that belong to the same category/group as the given index,
+  // so the leader lookup can span the whole group (e.g. all teams in สนามหลักบน)
+  // instead of just a single team.
+  function getMainGroupTeamKeys(idx){
+    if(idx < 6) return MAIN_TEAM_KEYS.slice(0,6);
+    if(idx < 9) return MAIN_TEAM_KEYS.slice(6,9);
+    return MAIN_TEAM_KEYS.slice(9,12);
+  }
+  function getSubGroupTeamKeys(idx){
+    if(idx < 6) return SUB_TEAM_KEYS.slice(0,6);
+    if(idx < 12) return SUB_TEAM_KEYS.slice(6,12);
+    return SUB_TEAM_KEYS.slice(12,18);
+  }
+  function getGcGroupTeamKeys(setNum){
+    return GC_TEAM_KEYS.filter(k => k.split('_')[1] === String(setNum));
+  }
   function findMemberPlacements(name, eventFilter){
     const results = [];
     if(!eventFilter || eventFilter === 'guild_league'){
       MAIN_TEAM_KEYS.forEach((k, idx)=>{
         if(assignments[k] && assignments[k].includes(name)){
           const g = getMainGroupInfo(idx);
-          results.push({ event:'guild_league', icon:'⚔', battlefield:'Main Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k });
+          results.push({ event:'guild_league', icon:'⚔', battlefield:'Main Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k, groupTeamKeys:getMainGroupTeamKeys(idx) });
         }
       });
       SUB_TEAM_KEYS.forEach((k, idx)=>{
         if(assignments[k] && assignments[k].includes(name)){
           const g = getSubGroupInfo(idx);
-          results.push({ event:'guild_league', icon:'◈', battlefield:'Sub Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k });
+          results.push({ event:'guild_league', icon:'◈', battlefield:'Sub Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k, groupTeamKeys:getSubGroupTeamKeys(idx) });
         }
       });
     }
     if(!eventFilter || eventFilter === 'polarity_zone'){
       ELITE_TEAM_KEYS.forEach((k, idx)=>{
         if(assignments[k] && assignments[k].includes(name)){
-          results.push({ event:'polarity_zone', icon:'⚡', battlefield:'Elite Battlefield', groupLabel:null, groupEmoji:null, teamNum: idx+1, teamKey:k });
+          results.push({ event:'polarity_zone', icon:'⚡', battlefield:'Elite Battlefield', groupLabel:null, groupEmoji:null, teamNum: idx+1, teamKey:k, groupTeamKeys:[k] });
         }
       });
     }
@@ -731,7 +747,7 @@
       GC_TEAM_KEYS.forEach((k)=>{
         if(assignments[k] && assignments[k].includes(name)){
           const parts = k.split('_');
-          results.push({ event:'guild_castle', icon:'🏰', battlefield:'Guild Castle', groupLabel:`ชุด ${parts[1]}`, groupEmoji:null, teamNum: parseInt(parts[2],10), teamKey:k });
+          results.push({ event:'guild_castle', icon:'🏰', battlefield:'Guild Castle', groupLabel:`ชุด ${parts[1]}`, groupEmoji:null, teamNum: parseInt(parts[2],10), teamKey:k, groupTeamKeys:getGcGroupTeamKeys(parts[1]) });
         }
       });
     }
@@ -742,7 +758,13 @@
 
   function renderFinderPlacementHtml(p, myName){
     const arr = assignments[p.teamKey] || [];
-    const leaderEntryName = arr.find(n => n && memberByName[n] && memberByName[n].cls === 'ผู้นำ');
+    const groupKeys = (p.groupTeamKeys && p.groupTeamKeys.length) ? p.groupTeamKeys : [p.teamKey];
+    let leaderEntryName = null;
+    for(const gk of groupKeys){
+      const garr = assignments[gk] || [];
+      const found = garr.find(n => n && memberByName[n] && memberByName[n].cls === 'ผู้นำ');
+      if(found){ leaderEntryName = found; break; }
+    }
     const leaderStatusHtml = leaderEntryName
       ? `<span style="color:${classColor('ผู้นำ')};font-weight:700;">${escapeHtml(leaderEntryName)}</span>`
       : '— ยังไม่มีผู้นำ —';
