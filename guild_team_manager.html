@@ -566,8 +566,9 @@
   }
 
   @media (max-width: 900px){
-    .sidebar{ position:relative; top:0; height:min(70vh, 620px); width:100%; min-width:0; border-right:none; border-bottom:1px solid var(--line-soft); overflow-y:auto; }
-    .member-list{ padding-bottom:16px; }
+    .sidebar{ position:relative; top:0; height:auto; width:100%; min-width:0; border-right:none; border-bottom:1px solid var(--line-soft); overflow:visible; }
+    .member-list{ overflow-y:visible; padding-bottom:16px; }
+    .class-breakdown{ max-height:none; overflow-y:visible; }
     .body-wrap{ flex-direction:column; }
     .topbar{ flex-wrap:wrap; }
     .event-tabs{ width:100%; justify-content:center; }
