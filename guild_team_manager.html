@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild League Lineup Builder By TinyPeanut </title>
+<title>Guild League Lineup Builder by @CharlesPlaysGG | EunAe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -438,6 +438,31 @@
   .main-group.main-middle .team-card.main-bf{ border-left-color:#f0b429; }
   .main-group.main-lower .team-card.main-bf{ border-left-color:#ef5a6f; }
 
+  /* ---------- Elite Battlefield (Polarity Zone) frame ---------- */
+  .elite-group{
+    border:1px solid #f0b42988;
+    box-shadow:0 0 0 1px #f0b42922 inset;
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:18px;
+    background:#0f1422aa;
+  }
+  .elite-group .team-card.elite-bf{ border-left-width:4px; }
+
+  /* ---------- Guild Castle set frame ---------- */
+  .gc-set-block{
+    border:1px solid var(--line-soft);
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:18px;
+    background:#0f1422aa;
+  }
+  .gc-set-block.castle-set-1{ border-color:#ff5f7e88; box-shadow:0 0 0 1px #ff5f7e22 inset; }
+  .gc-set-block.castle-set-2{ border-color:#f0a02288; box-shadow:0 0 0 1px #f0a02222 inset; }
+  .gc-set-block.castle-set-3{ border-color:#8b7cf688; box-shadow:0 0 0 1px #8b7cf622 inset; }
+  .gc-set-block.castle-set-4{ border-color:#3fd6c488; box-shadow:0 0 0 1px #3fd6c422 inset; }
+  .gc-set-block .team-card.castle-bf{ border-left-width:4px; }
+
   /* ---------- Sub Battlefield: 3สนามรอง x 6ทีม ---------- */
   .sub-group{
     border:1px solid var(--line-soft);
@@ -669,9 +694,10 @@
   function classColor(c){ return CLASS_COLORS[c] || '#8b93b0'; }
 
   const SLOTS_PER_TEAM = 5; // slot 0 = leader
-  const TEAMS_PER_SIDE = 12;
-  const SUB_TEAMS_PER_SIDE = TEAMS_PER_SIDE + 6; // Sub Battlefield has 6 extra teams
-  const MAIN_TEAM_KEYS  = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`main_${i+1}`);
+  const TEAMS_PER_SIDE = 12; // used by Elite Battlefield (Polarity Zone) — unchanged
+  const MAIN_TEAMS_PER_SIDE = 18; // Main Battlefield: 6 บน + 6 กลาง + 6 ล่าง
+  const SUB_TEAMS_PER_SIDE = 18; // Sub Battlefield stays at 18 teams
+  const MAIN_TEAM_KEYS  = Array.from({length: MAIN_TEAMS_PER_SIDE}, (_,i)=>`main_${i+1}`);
   const SUB_TEAM_KEYS   = Array.from({length: SUB_TEAMS_PER_SIDE}, (_,i)=>`sub_${i+1}`);
   const ELITE_TEAM_KEYS = Array.from({length: TEAMS_PER_SIDE}, (_,i)=>`elite_${i+1}`);
   const GC_SETS = 4;              // Guild Castle: 4 sets
@@ -712,7 +738,7 @@
   // ---------- Member Finder (search popup) ----------
   function getMainGroupInfo(idx){
     if(idx < 6) return {label:'สนามหลักบน', emoji:'🔵'};
-    if(idx < 9) return {label:'สนามหลักกลาง', emoji:'🟡'};
+    if(idx < 12) return {label:'สนามหลักกลาง', emoji:'🟡'};
     return {label:'สนามหลักล่าง', emoji:'🔴'};
   }
   function getSubGroupInfo(idx){
@@ -725,8 +751,8 @@
   // instead of just a single team.
   function getMainGroupTeamKeys(idx){
     if(idx < 6) return MAIN_TEAM_KEYS.slice(0,6);
-    if(idx < 9) return MAIN_TEAM_KEYS.slice(6,9);
-    return MAIN_TEAM_KEYS.slice(9,12);
+    if(idx < 12) return MAIN_TEAM_KEYS.slice(6,12);
+    return MAIN_TEAM_KEYS.slice(12,18);
   }
   function getSubGroupTeamKeys(idx){
     if(idx < 6) return SUB_TEAM_KEYS.slice(0,6);
@@ -736,19 +762,40 @@
   function getGcGroupTeamKeys(setNum){
     return GC_TEAM_KEYS.filter(k => k.split('_')[1] === String(setNum));
   }
+  function getMainGroupLocalNum(idx){
+    if(idx < 6) return idx + 1;
+    if(idx < 12) return idx - 6 + 1;
+    return idx - 12 + 1;
+  }
+  function getSubGroupLocalNum(idx){
+    if(idx < 6) return idx + 1;
+    if(idx < 12) return idx - 6 + 1;
+    return idx - 12 + 1;
+  }
+  function localTeamLabel(key){
+    if(key.startsWith('main_')){
+      const idx = parseInt(key.split('_')[1],10) - 1;
+      return 'Team ' + getMainGroupLocalNum(idx);
+    }
+    if(key.startsWith('sub_')){
+      const idx = parseInt(key.split('_')[1],10) - 1;
+      return 'Team ' + getSubGroupLocalNum(idx);
+    }
+    return teamLabel(key);
+  }
   function findMemberPlacements(name, eventFilter){
     const results = [];
     if(!eventFilter || eventFilter === 'guild_league'){
       MAIN_TEAM_KEYS.forEach((k, idx)=>{
         if(assignments[k] && assignments[k].includes(name)){
           const g = getMainGroupInfo(idx);
-          results.push({ event:'guild_league', icon:'⚔', battlefield:'Main Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k, groupTeamKeys:getMainGroupTeamKeys(idx) });
+          results.push({ event:'guild_league', icon:'⚔', battlefield:'Main Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: getMainGroupLocalNum(idx), teamKey:k, groupTeamKeys:getMainGroupTeamKeys(idx) });
         }
       });
       SUB_TEAM_KEYS.forEach((k, idx)=>{
         if(assignments[k] && assignments[k].includes(name)){
           const g = getSubGroupInfo(idx);
-          results.push({ event:'guild_league', icon:'◈', battlefield:'Sub Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: idx+1, teamKey:k, groupTeamKeys:getSubGroupTeamKeys(idx) });
+          results.push({ event:'guild_league', icon:'◈', battlefield:'Sub Battlefield', groupLabel:g.label, groupEmoji:g.emoji, teamNum: getSubGroupLocalNum(idx), teamKey:k, groupTeamKeys:getSubGroupTeamKeys(idx) });
         }
       });
     }
@@ -1169,11 +1216,34 @@
   }
 
   // ---------- Export: save the current lineup view as a PNG image ----------
+  // html2canvas struggles with border-radius + inset box-shadow together — corners
+  // can render jagged or "leak" outside the rounded frame in the exported PNG even
+  // though they look fine on-screen. We fix this only inside the cloned document
+  // that html2canvas renders from (via onclone), so the live UI is untouched.
   function captureElementAsPng(el, bgColor){
     return html2canvas(el, {
       backgroundColor: bgColor,
       scale: Math.min(2, window.devicePixelRatio || 1.5),
-      useCORS: true
+      useCORS: true,
+      onclone: (clonedDoc) => {
+        const style = clonedDoc.createElement('style');
+        style.textContent = `
+          .section-block, .main-group, .sub-group, .team-card, .team-grid, .gc-set-block, .elite-group {
+            box-shadow: none !important;
+            overflow: hidden !important;
+          }
+          .main-group.main-upper, .sub-group.sub-upper { border-color:#5b8def !important; }
+          .main-group.main-middle, .sub-group.sub-middle { border-color:#f0b429 !important; }
+          .main-group.main-lower, .sub-group.sub-lower { border-color:#ef5a6f !important; }
+          .elite-group { border-color:#f0b429 !important; }
+          .gc-set-block.castle-set-1 { border-color:#ff5f7e !important; }
+          .gc-set-block.castle-set-2 { border-color:#f0a022 !important; }
+          .gc-set-block.castle-set-3 { border-color:#8b7cf6 !important; }
+          .gc-set-block.castle-set-4 { border-color:#3fd6c4 !important; }
+          .team-grid:not(.team-grid-4) { grid-template-columns: repeat(6, 1fr) !important; }
+        `;
+        clonedDoc.head.appendChild(style);
+      }
     }).then(canvas => new Promise((resolve, reject) => {
       canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png');
     }));
@@ -1622,7 +1692,7 @@
         const assignedLabel = assignedToKey
           ? (currentEvent === 'polarity_zone' ? `Elite ${teamLabel(assignedToKey)}`
              : currentEvent === 'guild_castle' ? `Castle ${teamLabel(assignedToKey)}`
-             : `${teamKind(assignedToKey)==='main-bf'?'Main':'Sub'} ${teamLabel(assignedToKey)}`)
+             : `${teamKind(assignedToKey)==='main-bf'?'Main':'Sub'} ${localTeamLabel(assignedToKey)}`)
           : '';
 
         if(isEditing){
@@ -1738,7 +1808,7 @@
     return null;
   }
 
-  function teamCard(teamKey){
+  function teamCard(teamKey, displayNum){
     const arr = assignments[teamKey];
     const kind = teamKind(teamKey);
     const filledCount = arr.filter(x=>x).length;
@@ -1768,7 +1838,7 @@
           </div>`;
       }
     }
-    const cardLabel = kind === 'castle-bf' ? `Team ${teamKey.split('_')[2]}` : teamLabel(teamKey);
+    const cardLabel = kind === 'castle-bf' ? `Team ${teamKey.split('_')[2]}` : (displayNum ? `Team ${displayNum}` : teamLabel(teamKey));
     const setClass = kind === 'castle-bf' ? ` castle-set-${teamKey.split('_')[1]}` : '';
     return `
       <div class="team-card ${kind}${setClass}">
@@ -1787,7 +1857,7 @@
       for(let s=1; s<=GC_SETS; s++){
         const setKeys = GC_TEAM_KEYS.filter(k => k.startsWith(`gc_${s}_`));
         html += `
-        <div class="gc-set-block section-block" data-set="${s}" data-section="castle_set_${s}">
+        <div class="gc-set-block section-block castle-set-${s}" data-set="${s}" data-section="castle_set_${s}">
           <div class="section-head">
             <div class="section-title castle-bf castle-set-${s}">🏰 Guild Castle — ชุด ${s}</div>
             <div class="section-line"></div>
@@ -1800,7 +1870,7 @@
       wrap.innerHTML = html;
     } else if(currentEvent === 'polarity_zone'){
       wrap.innerHTML = `
-        <div class="section-block" data-section="elite_battlefield">
+        <div class="section-block elite-group" data-section="elite_battlefield">
           <div class="section-head">
             <div class="section-title elite-bf">⚡ Elite Battlefield</div>
             <div class="section-line"></div>
@@ -1815,7 +1885,7 @@
           <div class="section-head">
             <div class="section-title main-bf">⚔ Main Battlefield</div>
             <div class="section-line"></div>
-            <div class="section-note">12 Teams · 3 สนามหลัก</div>
+            <div class="section-note">18 Teams · 3 สนามหลัก</div>
           </div>
 
           <div class="main-group main-upper">
@@ -1824,25 +1894,25 @@
               <div class="section-line"></div>
               <div class="main-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${MAIN_TEAM_KEYS.slice(0,6).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(0,6).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
 
           <div class="main-group main-middle">
             <div class="main-group-head">
               <div class="main-group-title">🟡 สนามหลักกลาง</div>
               <div class="section-line"></div>
-              <div class="main-group-note">ทีม 7–9</div>
+              <div class="main-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${MAIN_TEAM_KEYS.slice(6,9).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(6,12).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
 
           <div class="main-group main-lower">
             <div class="main-group-head">
               <div class="main-group-title">🔴 สนามหลักล่าง</div>
               <div class="section-line"></div>
-              <div class="main-group-note">ทีม 10–12</div>
+              <div class="main-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${MAIN_TEAM_KEYS.slice(9,12).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${MAIN_TEAM_KEYS.slice(12,18).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
         </div>
 
@@ -1859,25 +1929,25 @@
               <div class="section-line"></div>
               <div class="sub-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${SUB_TEAM_KEYS.slice(0,6).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(0,6).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
 
           <div class="sub-group sub-middle">
             <div class="sub-group-head">
               <div class="sub-group-title">🟡 สนามรองกลาง</div>
               <div class="section-line"></div>
-              <div class="sub-group-note">ทีม 7–12</div>
+              <div class="sub-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${SUB_TEAM_KEYS.slice(6,12).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(6,12).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
 
           <div class="sub-group sub-lower">
             <div class="sub-group-head">
               <div class="sub-group-title">🔴 สนามรองล่าง</div>
               <div class="section-line"></div>
-              <div class="sub-group-note">ทีม 13–18</div>
+              <div class="sub-group-note">ทีม 1–6</div>
             </div>
-            <div class="team-grid">${SUB_TEAM_KEYS.slice(12,18).map(k=>teamCard(k)).join('')}</div>
+            <div class="team-grid">${SUB_TEAM_KEYS.slice(12,18).map((k,i)=>teamCard(k,i+1)).join('')}</div>
           </div>
         </div>
       `;
