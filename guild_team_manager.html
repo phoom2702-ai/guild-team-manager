@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild League Lineup Builder by @CharlesPlaysGG | EunAe</title>
+<title>Guild League Lineup Builder By TinyPeanut </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -381,7 +381,19 @@
   .section-note{ font-size:11px; color:var(--muted-2); }
 
   .team-grid{
-    display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:14px;
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;
+  }
+  .team-grid.team-grid-4{
+    grid-template-columns:repeat(4, 1fr);
+  }
+  @media (max-width:1100px){
+    .team-grid.team-grid-4{ grid-template-columns:repeat(3, 1fr); }
+  }
+  @media (max-width:900px){
+    .team-grid{ grid-template-columns:repeat(2, 1fr); }
+  }
+  @media (max-width:560px){
+    .team-grid{ grid-template-columns:1fr; }
   }
   .team-card{
     background:var(--panel); border:1px solid var(--line-soft); border-radius:14px; padding:12px;
@@ -1781,7 +1793,7 @@
             <div class="section-line"></div>
             <div class="section-note">Teams 1–${GC_TEAMS_PER_SET}</div>
           </div>
-          <div class="team-grid">${setKeys.map(k=>teamCard(k)).join('')}</div>
+          <div class="team-grid team-grid-4">${setKeys.map(k=>teamCard(k)).join('')}</div>
         </div>
         `;
       }
@@ -1794,7 +1806,7 @@
             <div class="section-line"></div>
             <div class="section-note">Teams 1–${TEAMS_PER_SIDE}</div>
           </div>
-          <div class="team-grid">${ELITE_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
+          <div class="team-grid team-grid-4">${ELITE_TEAM_KEYS.map(k=>teamCard(k)).join('')}</div>
         </div>
       `;
     } else {
